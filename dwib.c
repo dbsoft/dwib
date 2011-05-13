@@ -3,8 +3,9 @@
  * Author: Brian Smith
  */
 
+#include <dw.h>
 #include "resources.h"
-#include "%APP%.h"
+#include "dwib.h"
 
 
 /* The main entry point.  Notice we don't use WinMain() on Windows */

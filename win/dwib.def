@@ -1,0 +1,5 @@
+NAME DWIB WINDOWAPI
+           
+DESCRIPTION 'Dynamic Windows Interface Builder'
+
+STACKSIZE 128000
