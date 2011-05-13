@@ -1,0 +1,13 @@
+/* OS/2 Warp Resource Script File - Created by Dynamic Windows Interface Builder */
+
+#define INCL_WINSYS
+#define INCL_WINSTDDLGS
+#define INCL_WINSTDSPIN
+#define INCL_NLS
+#define INCL_SW
+
+#include <os2.h>
+
+#include "resources.h"
+
+

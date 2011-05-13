@@ -1,0 +1,49 @@
+# Dynamic Windows Interface Builder Makefile
+
+CC = @CC@
+RM = @RM@
+CP = @CP@
+MAKE = @MAKE@
+MKDIR = @MKDIR@
+INSTALL = @INSTALL@
+PREFIX = @prefix@
+TARGET = dwib
+DISPLAYNAME = Dynamic Windows Interface Builder
+
+LIBS = @LIBS@
+INCLUDES = @INCLUDES@
+
+CFLAGS = @CFLAGS@ -DDW_RESOURCES -DINSTALL_PREFIX=\"$(PREFIX)\" -D__TARGET__=\"$(TARGET)\"
+LDFLAGS = @LDFLAGS@
+
+
+OBJECTS = dwib.o
+
+SOURCES = dwib.c
+
+all: $(TARGET)
+
+$(OBJECTS):
+	$(CC) $(CFLAGS) $(INCLUDES) -c $<
+
+resources.o:
+	$(CC) $(CFLAGS) $(INCLUDES) -c gtk/resources.c
+
+$(TARGET):  $(OBJECTS) resources.o
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJECTS) resources.o $(LDFLAGS) $(LIBS)
+
+clean: 
+	$(RM) $(OBJECTS) resources.o $(TARGET)
+
+distclean: 
+	$(RM) $(OBJECTS) resources.o $(TARGET) *~ os2/*~ win/*~ gtk/*~ config.cache config.log config.status Makefile config.h
+
+install:
+	$(RM) -rf $(PREFIX)/$(TARGET)
+	$(MKDIR)  $(PREFIX)/$(TARGET)
+	$(INSTALL) $(TARGET) $(PREFIX)/bin
+	$(CP) -f gtk/*.png /usr/share/pixmaps
+        
+resources.o: gtk/resources.c
+dwib.o: dwib.c dwib.h resources.h config.h
+

@@ -1,0 +1,40 @@
+# %APPNAME% Makefile
+
+# Edit these as necessary
+#DWINCDIR = d:/work/netlabs/dwindows
+#DWLIBDIR = d:/work/netlabs/dwindows/lib
+
+CC = gcc
+RM = rm -f
+RC = rc
+MAKE = make
+COMPRESS = lxlite
+
+DEFS =
+LIBS =
+
+CFLAGS = -O -g -Zomf -Zmt -D__ST_MT_ERRNO__ -I. -Wall -I$(DWINCDIR) -o $(@)
+LDFLAGS = -ldw -L$(DWLIBDIR)
+RCFLAGS = -r
+
+
+OBJECTS = %APP%.obj
+
+SOURCES = %APP%.c
+
+all: %APP%.exe
+
+$(OBJECTS):
+	$(CC) $(CFLAGS) -c $<	
+
+handyftp.exe:  $(OBJECTS)
+	$(RC) $(RCFLAGS) os2/%APP%.rc
+	$(CC) $(CFLAGS) $(DEFS) -o %APP%.exe $(OBJECTS) $(LDFLAGS) os2/%APP%.def %APP%.res
+#	$(COMPRESS) %APP%.exe
+
+clean: 
+	$(RM) $(OBJECTS) %APP%.exe %APP%.res
+
+%APP%.obj: %APP%.c %APP%.h resources.h
+%APP%.res: os2/%APP%.rc resources.h
+

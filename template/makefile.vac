@@ -1,0 +1,43 @@
+# %APPNAME% Makefile
+
+# Edit this as necessary.
+#DWLIBPATH=..\..\dwindows\lib
+#DWINCPATH=..\..\dwindows
+
+TARGET=%APP%
+
+.SUFFIXES: \
+	.c .obj
+
+CFLAGS = /Ti /Tm+ /DOS2 /DTCPV40HDRS /D__TARGET__=\"$(TARGET)\" /I. /I$(DWINCPATH) /Sm /Ss /Q /Gm /Gt /C
+LDFLAGS = /DE /optfunc
+
+
+OBJECTS = %APP%.obj
+
+SOURCES = %APP%.c
+
+all: %APP%.exe
+
+$(OBJECTS):
+	icc $(CFLAGS) %s	
+
+handyftp.exe:  $(OBJECTS)
+	rc -r os2\%APP%.rc
+	icc @<<
+	 /B" $(LDFLAGS)"
+	 /Fe%APP%.exe
+	 so32dll.lib tcp32dll.lib $(DWLIBPATH)\dw.lib
+	 $(OBJECTS)
+	 %APP%.def
+<<
+	rc -x1 %APP%.res %APP%.exe
+#	lxlite %APP%.exe
+
+clean: 
+	rm $(OBJECTS) %APP%.exe %APP%.res
+
+
+%APP%.obj: %APP%.c %APP%.h resources.h
+%APP%.res: %APP%.rc %APP%.h resources.h
+

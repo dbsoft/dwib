@@ -1,0 +1,43 @@
+# Dynamic Windows Interface Builder Makefile
+
+# Edit this as necessary.
+#DWLIBPATH=..\..\dwindows\lib
+#DWINCPATH=..\..\dwindows
+
+TARGET=dwib
+
+.SUFFIXES: \
+	.c .obj
+
+CFLAGS = /Ti /Tm+ /DOS2 /DTCPV40HDRS /D__TARGET__=\"$(TARGET)\" /I. /I$(DWINCPATH) /Sm /Ss /Q /Gm /Gt /C
+LDFLAGS = /DE /optfunc
+
+
+OBJECTS = dwib.obj
+
+SOURCES = dwib.c
+
+all: dwib.exe
+
+$(OBJECTS):
+	icc $(CFLAGS) %s	
+
+handyftp.exe:  $(OBJECTS)
+	rc -r os2\dwib.rc
+	icc @<<
+	 /B" $(LDFLAGS)"
+	 /Fedwib.exe
+	 $(DWLIBPATH)\dw.lib
+	 $(OBJECTS)
+	 os2\dwib.def
+<<
+	rc -x1 dwib.res dwib.exe
+#	lxlite dwib.exe
+
+clean: 
+	rm $(OBJECTS) dwib.exe dwib.res
+
+
+dwib.obj: dwib.c dwib.h resources.h
+dwib.res: dwib.rc resources.h
+

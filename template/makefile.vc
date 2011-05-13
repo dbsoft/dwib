@@ -1,0 +1,67 @@
+# %APPNAME% Makefile for Win32
+
+# Either add environment variables for DWLIBDIR and DWINCDIR or
+# Uncomment and change these as needed
+#DWLIBDIR=\netlabs\dwindows\lib
+#DWINCDIR=\netlabs\dwindows
+
+TARGET=%APP%
+
+#
+# Configure settings for the target platform
+#	Default to x86 if not specified
+#
+!if "$(TARGET_CPU)" == ""
+TARGET_CPU=x86
+!endif
+
+!if "$(TARGET_CPU)" == "x86"
+PLATFORM_DEF = -DWIN32
+!else
+PLATFORM_DEF = -DWIN64
+!endif
+
+CC = cl
+CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR)
+CFLAGS_DEBUG = -Zi
+CFLAGS_COMPILE = -MTd
+LIBS = wsock32.lib kernel32.lib user32.lib comctl32.lib gdi32.lib advapi32.lib shell32.lib comdlg32.lib $(DWLIBDIR)\dw.lib
+RES = 
+LINKFLAGS = -machine:$(TARGET_CPU) -manifest -debug -debugtype:cv
+DLLLINKFLAGS = -dll
+LINK = link
+DEFFILE = win\%APP%.def
+
+OBJS =	%APP%.obj \
+	winmain.obj
+	
+all: %APP%.exe
+
+clean:
+	-erase *.dll
+        -erase *.exe
+        -erase *.opt
+        -erase *.lib
+        -erase *.obj
+        -erase *.map
+        -erase *.pdb
+        -erase *.ilk
+        -erase *.exp
+        -erase *.res
+        -erase *~
+        
+%APP%.res: win\%APP%.rc
+	rc -r handyftpw.rc
+
+%APP%.exe: $(OBJS) %APP%.res
+	$(LINK) @<<
+-out:$(@) -def:$(DEFFILE) -subsystem:windows
+$(LINKFLAGS)
+$(OBJS)
+$(LIBS)
+%APP%.res
+<<
+	mt.exe /manifest %APP%.exe.manifest win\%APP%.exe.$(TARGET_CPU).manifest /outputresource:%APP%.exe;1
+        
+.c.obj:
+	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $(CFLAGS_COMPILE) $*.c
