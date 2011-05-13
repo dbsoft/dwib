@@ -20,9 +20,9 @@ SOURCES = dwib.c
 all: dwib.exe
 
 $(OBJECTS):
-	icc $(CFLAGS) %s	
+	icc $(CFLAGS) %s
 
-handyftp.exe:  $(OBJECTS)
+dwib.exe:  $(OBJECTS)
 	rc -r os2\dwib.rc
 	icc @<<
 	 /B" $(LDFLAGS)"
@@ -31,13 +31,13 @@ handyftp.exe:  $(OBJECTS)
 	 $(OBJECTS)
 	 os2\dwib.def
 <<
-	rc -x1 dwib.res dwib.exe
+	rc -x1 os2\dwib.res dwib.exe
 #	lxlite dwib.exe
 
 clean: 
-	rm $(OBJECTS) dwib.exe dwib.res
+	rm $(OBJECTS) dwib.exe os2\dwib.res
 
 
 dwib.obj: dwib.c dwib.h resources.h
-dwib.res: dwib.rc resources.h
+dwib.res: os2\dwib.rc resources.h
 

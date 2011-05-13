@@ -16,5 +16,7 @@ int main(int argc, char *argv[])
     dw_init(TRUE, argc, argv);
     
     dw_main();
+
+    return 0;
 }
 

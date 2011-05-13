@@ -22,7 +22,7 @@ all: %APP%.exe
 $(OBJECTS):
 	icc $(CFLAGS) %s	
 
-handyftp.exe:  $(OBJECTS)
+%APP%.exe:  $(OBJECTS)
 	rc -r os2\%APP%.rc
 	icc @<<
 	 /B" $(LDFLAGS)"
@@ -31,11 +31,11 @@ handyftp.exe:  $(OBJECTS)
 	 $(OBJECTS)
 	 %APP%.def
 <<
-	rc -x1 %APP%.res %APP%.exe
+	rc -x1 os2\%APP%.res %APP%.exe
 #	lxlite %APP%.exe
 
 clean: 
-	rm $(OBJECTS) %APP%.exe %APP%.res
+	rm $(OBJECTS) %APP%.exe os2\%APP%.res
 
 
 %APP%.obj: %APP%.c %APP%.h resources.h

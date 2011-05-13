@@ -47,7 +47,7 @@ clean:
         -erase *.pdb
         -erase *.ilk
         -erase *.exp
-        -erase *.res
+        -erase win\*.res
         -erase *~
         
 dwib.res: win\dwib.rc

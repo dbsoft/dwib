@@ -47,19 +47,19 @@ clean:
         -erase *.pdb
         -erase *.ilk
         -erase *.exp
-        -erase *.res
+        -erase win\*.res
         -erase *~
         
 %APP%.res: win\%APP%.rc
 	rc -r handyftpw.rc
 
-%APP%.exe: $(OBJS) %APP%.res
+%APP%.exe: $(OBJS) win\%APP%.res
 	$(LINK) @<<
 -out:$(@) -def:$(DEFFILE) -subsystem:windows
 $(LINKFLAGS)
 $(OBJS)
 $(LIBS)
-%APP%.res
+win\%APP%.res
 <<
 	mt.exe /manifest %APP%.exe.manifest win\%APP%.exe.$(TARGET_CPU).manifest /outputresource:%APP%.exe;1
         
