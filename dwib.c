@@ -180,7 +180,8 @@ void dwib_init(void)
 {
     HWND vbox, hbox, item;
     
-    hwndToolbar = dw_window_new(DW_DESKTOP, "Interface Builder", DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_CLOSEBUTTON | DW_FCF_SIZEBORDER);
+    hwndToolbar = dw_window_new(DW_DESKTOP, "Interface Builder", 
+                                DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(hwndToolbar, hbox, 1, 1, TRUE, TRUE, 0);
     vbox = dw_box_new(DW_VERT, 0);
