@@ -13,7 +13,7 @@ HWND hwndToolbar, hwndProperties;
 #define PROPERTIES_WIDTH 120
 
 /* Populate the properties window for a window */
-void properties_window(void *data)
+void DWSIGNAL properties_window(void *data)
 {
     HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
     
@@ -148,7 +148,7 @@ void properties_window(void *data)
 }
 
 /* One of the buttons on the toolbar was clicked */
-int toolbar_clicked(HWND button, void *data)
+int DWSIGNAL toolbar_clicked(HWND button, void *data)
 {
     int which = (int)data;
     
