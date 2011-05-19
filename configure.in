@@ -24,14 +24,14 @@ CFLAGS=`dwindows-config --cflags`
 
 AC_CHECK_LIB(dwindows, dw_main,LIBS="$LIBS",AC_MSG_ERROR(Dynamic Windows library not found. Interface Builder cannot build without it.))
 
-LIBXML2_LIBS=`pkg-config libxml-2.0 --libs`
-LIBXML2_CFLAGS=`pkg-config libxml-2.0 --cflags`
+PLATFORM=`uname -s`
 
-if test -z "$LIBXML2_CFLAGS"; then
+if test x"$PLATFORM" = x"Darwin"; then
   LIBXML2_CFLAGS="-I/usr/include/libxml2"
-fi
-if test -z "$LIBXML2_LIBS"; then
-  LIBXML2_LIBS="-lxml2"
+  LIBXML2_LIBS="-L/usr/lib -lxml2"
+else
+  LIBXML2_LIBS=`pkg-config libxml-2.0 --libs`
+  LIBXML2_CFLAGS=`pkg-config libxml-2.0 --cflags`
 fi
 
 LIBS="$LIBXML2_LIBS $LIBS"
