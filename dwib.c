@@ -4,16 +4,18 @@
  */
 
 #include <dw.h>
+#include <libxml/tree.h>
 #include "resources.h"
 #include "dwib.h"
 
 HWND hwndToolbar, hwndProperties;
+xmlDocPtr DWDoc;
 
 #define PROPERTIES_HEIGHT 22
 #define PROPERTIES_WIDTH 120
 
 /* Populate the properties window for a window */
-void DWSIGNAL properties_window(void *data)
+void DWSIGNAL properties_window(xmlNodePtr *node)
 {
     HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
     
@@ -146,7 +148,7 @@ void DWSIGNAL properties_window(void *data)
     dw_window_set_data(vbox, "orientation", item);    
     
     /* If it is a new window add button */
-    if(!data)
+    if(!node)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -168,6 +170,12 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handles raising the properties inspector when the toolbar gets focus */
+int DWSIGNAL toolbar_focus(HWND toolbar, void *data)
+{
+    dw_window_raise(hwndProperties);
+}
+
 /* Closing the toolbar window */
 int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
 {
@@ -175,6 +183,7 @@ int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
     {
         dw_window_destroy(hwndProperties);
         dw_window_destroy(hwndToolbar);
+        xmlFreeDoc(DWDoc);
         dw_exit(0);
 	}
 	return TRUE;
@@ -186,6 +195,9 @@ int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
 void dwib_init(void)
 {
     HWND vbox, hbox, item;
+    
+    /* Create a new empty XML document */
+    DWDoc = xmlNewDoc("1.0");
     
     hwndToolbar = dw_window_new(DW_DESKTOP, DWIB_NAME, 
                                 DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
@@ -256,6 +268,7 @@ void dwib_init(void)
     dw_window_set_data(hwndProperties, "box", vbox);
     item = dw_text_new("No item selected", 0);
     dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+    dw_signal_connect(hwndToolbar, DW_SIGNAL_SET_FOCUS, DW_SIGNAL_FUNC(toolbar_focus), NULL);
     dw_window_set_pos_size(hwndProperties, 650, 20, 300, 500);
     dw_window_show(hwndProperties);
 }

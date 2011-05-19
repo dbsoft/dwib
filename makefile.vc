@@ -4,6 +4,8 @@
 # Uncomment and change these as needed
 #DWLIBDIR=\netlabs\dwindows\lib
 #DWINCDIR=\netlabs\dwindows
+#XML2LIBDIR=\lib
+#XML2INCDIR=\include
 
 TARGET=dwib
 
@@ -22,10 +24,10 @@ PLATFORM_DEF = -DWIN64
 !endif
 
 CC = cl
-CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR)
+CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR) -I$(XML2INCDIR)
 CFLAGS_DEBUG = -Zi
 CFLAGS_COMPILE = -MTd
-LIBS = wsock32.lib kernel32.lib user32.lib comctl32.lib gdi32.lib advapi32.lib shell32.lib comdlg32.lib $(DWLIBDIR)\dw.lib
+LIBS = wsock32.lib kernel32.lib user32.lib comctl32.lib gdi32.lib advapi32.lib shell32.lib comdlg32.lib $(DWLIBDIR)\dw.lib $(XML2LIBDIR)\libxml2_a.lib
 RES = 
 LINKFLAGS = -machine:$(TARGET_CPU) -manifest -debug -debugtype:cv
 DLLLINKFLAGS = -dll
