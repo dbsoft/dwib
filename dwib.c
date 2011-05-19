@@ -171,7 +171,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
 /* Closing the toolbar window */
 int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
 {
-    if(dw_messagebox("Dynamic Windows Interface Builder", DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to exit Interface Builder?"))
+    if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to exit Interface Builder?"))
     {
         dw_window_destroy(hwndProperties);
         dw_window_destroy(hwndToolbar);
@@ -187,7 +187,7 @@ void dwib_init(void)
 {
     HWND vbox, hbox, item;
     
-    hwndToolbar = dw_window_new(DW_DESKTOP, "Interface Builder", 
+    hwndToolbar = dw_window_new(DW_DESKTOP, DWIB_NAME, 
                                 DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(hwndToolbar, hbox, 1, 1, TRUE, TRUE, 0);
