@@ -22,9 +22,15 @@ AC_CHECK_HEADERS(sys/stat.h)
 LIBS=`dwindows-config --libs`
 CFLAGS=`dwindows-config --cflags`
 
-AC_CHECK_LIB(dwindows, dw_main,LIBS="$LIBS",AC_MSG_ERROR(Dynamic Windows library not found. HandyFTP cannot build without it.))
+AC_CHECK_LIB(dwindows, dw_main,LIBS="$LIBS",AC_MSG_ERROR(Dynamic Windows library not found. Interface Builder cannot build without it.))
 
-AC_CHECK_FUNCS(pipe, AC_DEFINE(HAVE_PIPE,1,Determine whether we have the pipe function))
+LIBXML2_LIBS=`pkg-config libxml-2.0 --libs`
+LIBXML2_CFLAGS=`pkg-config libxml-2.0 --cflags`
+
+LIBS="$LIBXML2_LIBS $LIBS"
+CFLAGS="$LIBXML2_CFLAGS $CFLAGS"
+
+AC_CHECK_LIB(xml2, xmlNewDoc,LIBS="$LIBS",AC_MSG_ERROR(XML2 library not found. Interface Builder cannot build without it.))
 
 AC_CHECK_FUNCS(connect)
 if test x"$ac_cv_func_connect" = x"no"; then
