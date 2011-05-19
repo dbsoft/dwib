@@ -3,13 +3,15 @@
 # Edit this as necessary.
 #DWLIBPATH=..\..\dwindows\lib
 #DWINCPATH=..\..\dwindows
+#XML2LIBPATH=\usr\lib
+#XML2INCPATH=\usr\include\libxml2
 
 TARGET=dwib
 
 .SUFFIXES: \
 	.c .obj
 
-CFLAGS = /Ti /Tm+ /DOS2 /DTCPV40HDRS /D__TARGET__=\"$(TARGET)\" /I. /I$(DWINCPATH) /Sm /Ss /Q /Gm /Gt /C
+CFLAGS = /Ti /Tm+ /DOS2 /DTCPV40HDRS /D__TARGET__=\"$(TARGET)\" /I. /I$(DWINCPATH) /I$(XML2INCPATH) /Sm /Ss /Q /Gm /Gt /C
 LDFLAGS = /DE /optfunc
 
 
@@ -27,7 +29,7 @@ dwib.exe:  $(OBJECTS)
 	icc @<<
 	 /B" $(LDFLAGS)"
 	 /Fedwib.exe
-	 $(DWLIBPATH)\dw.lib
+	 $(DWLIBPATH)\dw.lib $(XML2LIBPATH)\xml2.lib
 	 $(OBJECTS)
 	 os2\dwib.def
 <<
