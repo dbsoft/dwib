@@ -5,19 +5,62 @@
 
 #include <dw.h>
 #include <libxml/tree.h>
+#include <string.h>
 #include "resources.h"
 #include "dwib.h"
 
 HWND hwndToolbar, hwndProperties;
 xmlDocPtr DWDoc;
 
+/* Returns a child of node with the specified name.
+ * Returns NULL on failure.
+ */
+xmlNodePtr findChildName(xmlNodePtr node, char *name)
+{
+    xmlNodePtr p = node ? node->children : NULL;
+    
+    for(;p; p = p->next)
+    {
+        if(p->name && strcmp(name, (char *)p->name) == 0)
+        {
+            return p;
+        }
+    }
+    return NULL;
+}
+
+/* Updates the XML tree with current settings */
+void save_properties(void)
+{
+    int which = (int)dw_window_get_data(hwndProperties, "type");
+    HWND item, vbox = (HWND)dw_window_get_data(hwndProperties, "vbox");
+    char *val;
+    
+    if(!vbox)
+        return;
+    
+    switch(which)
+    {
+        case TYPE_WINDOW:
+            item = (HWND)dw_window_get_data(vbox, "title");
+            val = dw_window_get_text(item);
+            if(val)
+            {
+                dw_free(val);
+            }
+            break;
+    }
+}
+
 #define PROPERTIES_HEIGHT 22
 #define PROPERTIES_WIDTH 120
 
 /* Populate the properties window for a window */
-void DWSIGNAL properties_window(xmlNodePtr *node)
+void DWSIGNAL properties_window(xmlNodePtr node)
 {
     HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *defvalstr = "", *defvalint = "-1", *defvaltrue = "1", *val = defvalstr;
+    xmlNodePtr this;
     
     /* TODO: Save existing data... if any... here */
     
@@ -34,7 +77,11 @@ void DWSIGNAL properties_window(xmlNodePtr *node)
     item = dw_text_new("Title", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    item = dw_entryfield_new("", 0);
+    if((this = findChildName(node, "title")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_entryfield_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "title", item);
     /* Size */ 
@@ -43,11 +90,21 @@ void DWSIGNAL properties_window(xmlNodePtr *node)
     item = dw_text_new("Size (width, height)", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    item = dw_spinbutton_new("-1", 0);
+    val = defvalint;
+    if((this = findChildName(node, "width")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_spinbutton_set_limits(item, 2000, -1);
     dw_window_set_data(vbox, "width", item);
-    item = dw_spinbutton_new("-1", 0);
+    val = defvalint;
+    if((this = findChildName(node, "height")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_spinbutton_set_limits(item, 2000, -1);
     dw_window_set_data(vbox, "height", item);
@@ -57,11 +114,21 @@ void DWSIGNAL properties_window(xmlNodePtr *node)
     item = dw_text_new("Position (x, y)", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    item = dw_spinbutton_new("-1", 0);
+    val = defvalint;
+    if((this = findChildName(node, "x")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_spinbutton_set_limits(item, 2000, -1);
     dw_window_set_data(vbox, "x", item);
-    item = dw_spinbutton_new("-1", 0);
+    val = defvalint;
+    if((this = findChildName(node, "y")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_spinbutton_set_limits(item, 2000, -1);
     dw_window_set_data(vbox, "y", item);
@@ -71,7 +138,12 @@ void DWSIGNAL properties_window(xmlNodePtr *node)
     item = dw_text_new("Border", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    item = dw_spinbutton_new("-1", 0);
+    val = defvalint;
+    if((this = findChildName(node, "bordersize")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_spinbutton_set_limits(item, 2000, -1);
     dw_window_set_data(vbox, "bordersize", item);
@@ -83,24 +155,48 @@ void DWSIGNAL properties_window(xmlNodePtr *node)
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     item = dw_checkbox_new("Close", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvaltrue;
+    if((this = findChildName(node, "close")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "close", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_checkbox_new("Minimize", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvaltrue;
+    if((this = findChildName(node, "minimize")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "minimize", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_checkbox_new("Maximize", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvaltrue;
+    if((this = findChildName(node, "maximize")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "maximize", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_checkbox_new("Hide", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvalstr;
+    if((this = findChildName(node, "hide")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "hide", item);
     /* Style */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -110,30 +206,60 @@ void DWSIGNAL properties_window(xmlNodePtr *node)
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     item = dw_checkbox_new("Resize", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvaltrue;
+    if((this = findChildName(node, "resize")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "resize", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_checkbox_new("Dialog", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvalstr;
+    if((this = findChildName(node, "dialog")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "dialog", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_checkbox_new("Border", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvalstr;
+    if((this = findChildName(node, "border")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "border", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_checkbox_new("System Menu", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvaltrue;
+    if((this = findChildName(node, "sysmenu")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "sysmenu", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_checkbox_new("Task List", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvaltrue;
+    if((this = findChildName(node, "tasklist")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "tasklist", item);
     /* Orientation */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -145,6 +271,12 @@ void DWSIGNAL properties_window(xmlNodePtr *node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_listbox_append(item, "Horizontal");
     dw_listbox_append(item, "Vertical");
+    val = defvalstr;
+    if((this = findChildName(node, "orientation")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "orientation", item);    
     
     /* If it is a new window add button */
@@ -166,7 +298,10 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
         case 0:
             properties_window(NULL);
             break;
+        default:
+            return FALSE;
     }
+    dw_window_set_data(hwndProperties, "type", (void *)which);
     return FALSE;
 }
 
@@ -174,6 +309,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
 int DWSIGNAL toolbar_focus(HWND toolbar, void *data)
 {
     dw_window_raise(hwndProperties);
+    return FALSE;
 }
 
 /* Closing the toolbar window */
@@ -195,9 +331,12 @@ int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
 void dwib_init(void)
 {
     HWND vbox, hbox, item;
+    xmlNodePtr rootNode;
     
     /* Create a new empty XML document */
-    DWDoc = xmlNewDoc("1.0");
+    DWDoc = xmlNewDoc((xmlChar *)"1.0");
+    rootNode = xmlNewNode(NULL, (xmlChar *)"Dynamic Windows");
+    xmlDocSetRootElement(DWDoc, rootNode);
     
     hwndToolbar = dw_window_new(DW_DESKTOP, DWIB_NAME, 
                                 DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
@@ -207,53 +346,58 @@ void dwib_init(void)
     dw_box_pack_start(hbox, vbox, 0, 0, FALSE, FALSE, 0);
     item = dw_button_new("Window", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)0);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_WINDOW);
     item = dw_button_new("Box", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)1);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_BOX);
     item = dw_button_new("Text", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)2);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_TEXT);
     item = dw_button_new("Entryfield", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)3);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_ENTRYFIELD);
     item = dw_button_new("Combobox", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)4);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_COMBOBOX);
     item = dw_button_new("Listbox", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)5);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_LISTBOX);
     item = dw_button_new("Container", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)6);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_CONTAINER);
     item = dw_button_new("Tree", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)7);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_TREE);
     item = dw_button_new("MLE", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)8);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_MLE);
     item = dw_button_new("Render", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)9);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_RENDER);
     item = dw_button_new("Ranged", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)10);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_RANGED);
     item = dw_button_new("Spinbutton", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)11);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_SPINBUTTON);
     item = dw_button_new("Bitmap", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)12);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_BITMAP);
     item = dw_button_new("Notebook", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)13);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_NOTEBOOK);
 #ifndef __OS2__
     item = dw_button_new("HTML", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)14);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_HTML);
     item = dw_button_new("Calendar", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)15);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_CALENDAR);
+#endif
+#if 0
+    item = dw_button_new("Splitbar", 0);
+    dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_SPLITBAR);
 #endif
     item = dw_tree_new(0);
     dw_box_pack_start(hbox, item, 1, 1, TRUE, TRUE, 0);

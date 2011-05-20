@@ -4,3 +4,24 @@
  */
 
 #define DWIB_NAME "Dynamic Windows Interface Builder"
+
+enum DWTYPES
+{
+    TYPE_WINDOW = 0,
+    TYPE_BOX,
+    TYPE_TEXT,
+    TYPE_ENTRYFIELD,
+    TYPE_COMBOBOX,
+    TYPE_LISTBOX,
+    TYPE_CONTAINER,
+    TYPE_TREE,
+    TYPE_MLE,
+    TYPE_RENDER,
+    TYPE_RANGED,
+    TYPE_SPINBUTTON,
+    TYPE_BITMAP,
+    TYPE_NOTEBOOK,
+    TYPE_HTML,
+    TYPE_CALENDAR,
+    TYPE_SPLITBAR
+} DWTypes;
