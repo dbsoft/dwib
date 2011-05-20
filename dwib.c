@@ -35,8 +35,9 @@ xmlNodePtr findChildName(xmlNodePtr node, char *name)
 void updateNode(xmlNodePtr node, HWND vbox, char *name, int toggle)
 {
     HWND item = (HWND)dw_window_get_data(vbox, name);
-    val = dw_window_get_text(item);
-    if(val)
+    char *val;
+    
+    if((val = dw_window_get_text(item)) && (findChildName(node, name)))
     {
         dw_free(val);
     }
