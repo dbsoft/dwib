@@ -35,23 +35,51 @@ xmlNodePtr findChildName(xmlNodePtr node, char *name)
 void updateNode(xmlNodePtr node, HWND vbox, char *name, int toggle)
 {
     HWND item = (HWND)dw_window_get_data(vbox, name);
-    char *val;
+    char *val = "0";
     
-    if((val = dw_window_get_text(item)) && (findChildName(node, name)))
+    if(!item)
+        return;
+    
+    if(toggle && dw_checkbox_get(item))
     {
+        val[0] = '1';
+    }
+    
+    if((toggle || (val = dw_window_get_text(item))))
+    {
+        xmlNodePtr this = findChildName(node, name);
+        
+        if(!this)
+            this = xmlNewTextChild(node, NULL, (xmlChar *)name, (xmlChar *)val);
+        else
+            xmlNodeSetContent(this, (xmlChar *)val);
         dw_free(val);
     }
+}
+
+/* Save the properties for general items */
+void save_item(xmlNodePtr node, HWND vbox)
+{
+    updateNode(node, vbox, "dataname", FALSE);
+    updateNode(node, vbox, "width", FALSE);
+    updateNode(node, vbox, "height", FALSE);
+    updateNode(node, vbox, "hexpand", FALSE);
+    updateNode(node, vbox, "vexpand", FALSE);
+    updateNode(node, vbox, "padding", FALSE);
+    updateNode(node, vbox, "enabled", TRUE);
+    updateNode(node, vbox, "fcolor", FALSE);
+    updateNode(node, vbox, "bcolor", FALSE);
+    updateNode(node, vbox, "font", FALSE);
 }
 
 /* Updates the XML tree with current settings */
 void save_properties(void)
 {
     int which = (int)dw_window_get_data(hwndProperties, "type");
-    HWND item, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     xmlNodePtr node;
-    char *val;
     
-    if(!vbox)
+    if(!vbox || !which)
         return;
         
     if(!(node = dw_window_get_data(vbox, "node")))
@@ -61,6 +89,25 @@ void save_properties(void)
     {
         case TYPE_WINDOW:
             updateNode(node, vbox, "title", FALSE);
+            updateNode(node, vbox, "width", FALSE);
+            updateNode(node, vbox, "height", FALSE);
+            updateNode(node, vbox, "x", FALSE);
+            updateNode(node, vbox, "y", FALSE);
+            updateNode(node, vbox, "bordersize", FALSE);
+            updateNode(node, vbox, "close", TRUE);
+            updateNode(node, vbox, "minimize", TRUE);
+            updateNode(node, vbox, "maximize", TRUE);
+            updateNode(node, vbox, "hide", TRUE);
+            updateNode(node, vbox, "resize", TRUE);
+            updateNode(node, vbox, "dialog", TRUE);
+            updateNode(node, vbox, "border", TRUE);
+            updateNode(node, vbox, "sysmenu", TRUE);
+            updateNode(node, vbox, "tasklist", TRUE);
+            updateNode(node, vbox, "orientation", FALSE);
+            break;
+        case TYPE_BOX:
+            save_item(node, vbox);
+            updateNode(node, vbox, "orientation", FALSE);
             break;
     }
 }
@@ -181,20 +228,23 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
     dw_spinbutton_set_limits(item, 2000, 0);
     dw_window_set_data(vbox, "padding", item);
     /* Enabled */
-    hbox = dw_box_new(DW_HORZ, 0);
-    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Enabled", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    item = dw_checkbox_new("", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    val = defvaltrue;
-    if((this = findChildName(node, "enabled")))
+    if(!box)
     {
-        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+        hbox = dw_box_new(DW_HORZ, 0);
+        dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+        item = dw_text_new("Enabled", 0);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+        item = dw_checkbox_new("", 0);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        val = defvaltrue;
+        if((this = findChildName(node, "enabled")))
+        {
+            val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+        }
+        dw_checkbox_set(item, atoi(val));
+        dw_window_set_data(vbox, "enabled", item);
     }
-    dw_checkbox_set(item, atoi(val));
-    dw_window_set_data(vbox, "enabled", item);
     /* Foreground Color */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
