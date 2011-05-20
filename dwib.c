@@ -33,7 +33,7 @@ xmlNodePtr findChildName(xmlNodePtr node, char *name)
 void save_properties(void)
 {
     int which = (int)dw_window_get_data(hwndProperties, "type");
-    HWND item, vbox = (HWND)dw_window_get_data(hwndProperties, "vbox");
+    HWND item, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *val;
     
     if(!vbox)
@@ -55,20 +55,237 @@ void save_properties(void)
 #define PROPERTIES_HEIGHT 22
 #define PROPERTIES_WIDTH 120
 
-/* Populate the properties window for a window */
-void DWSIGNAL properties_window(xmlNodePtr node)
+char *defvalstr = "", *defvalint = "-1", *defvaltrue = "1";
+
+char *Colors[] =
+{
+    "Black",
+    "Dark Red",
+    "Dark Green",
+    "Brown",
+    "Dark Blue",
+    "Dark Pink",
+    "Dark Cyan",
+    "Pale Gray",
+    "Dark Gray",
+    "Red",
+    "Green",
+    "Yellow",
+    "Blue",
+    "Pink",
+    "Cyan",
+    "White"
+};
+
+/* Populate the properties window with generic item fields */
+void properties_item(xmlNodePtr node, HWND scrollbox)
+{
+    HWND item, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *val = defvalstr;
+    xmlNodePtr this;
+    int x;
+    
+    /* Data name*/
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Data name", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    if((this = findChildName(node, "dataname")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_entryfield_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "dataname", item);
+    /* Required size */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Size (width, height)", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = findChildName(node, "width")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_spinbutton_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_spinbutton_set_limits(item, 2000, 0);
+    dw_window_set_data(vbox, "width", item);
+    val = defvalstr;
+    if((this = findChildName(node, "height")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_spinbutton_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_spinbutton_set_limits(item, 2000, 0);
+    dw_window_set_data(vbox, "height", item);
+    /* Expandable */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Expand", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvaltrue;
+    if((this = findChildName(node, "hexpand")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_checkbox_new("Horizontally", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "hexpand", item);
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvaltrue;
+    if((this = findChildName(node, "vexpand")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_checkbox_new("Vertically", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "vexpand", item);
+    /* Padding */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Padding", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = findChildName(node, "padding")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_spinbutton_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_spinbutton_set_limits(item, 2000, 0);
+    dw_window_set_data(vbox, "padding", item);
+    /* Enabled */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Enabled", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    item = dw_checkbox_new("", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvaltrue;
+    if((this = findChildName(node, "enabled")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "enabled", item);
+    /* Foreground Color */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Foreground Color", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    item = dw_combobox_new("Default", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Default");
+    for(x=0;x<16;x++)
+    {
+        dw_listbox_append(item, Colors[x]);
+    }
+    val = defvalstr;
+    if((this = findChildName(node, "fcolor")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_listbox_select(item, atoi(val), TRUE);
+    dw_window_set_data(vbox, "fcolor", item);    
+    /* Background Color */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Background Color", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    item = dw_combobox_new("Default", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Default");
+    for(x=0;x<16;x++)
+    {
+        dw_listbox_append(item, Colors[x]);
+    }
+    val = defvalstr;
+    if((this = findChildName(node, "bcolor")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_listbox_select(item, atoi(val), TRUE);
+    dw_window_set_data(vbox, "bcolor", item);    
+    /* Font */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Font", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    item = dw_combobox_new("Default", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Default");
+    dw_window_set_data(vbox, "font", item);    
+}
+
+/* Populate the properties window for a box */
+void DWSIGNAL properties_box(xmlNodePtr node)
 {
     HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
-    char *defvalstr = "", *defvalint = "-1", *defvaltrue = "1", *val = defvalstr;
+    char *val = defvalstr;
     xmlNodePtr this;
-    
-    /* TODO: Save existing data... if any... here */
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", vbox);
-    scrollbox = dw_scrollbox_new(DW_VERT, 0);
+    scrollbox = dw_scrollbox_new(DW_VERT, 2);
+    dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
+    
+    properties_item(node, scrollbox);
+    
+    /* Orientation */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Orientation", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    item = dw_combobox_new("Horizontal", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Horizontal");
+    dw_listbox_append(item, "Vertical");
+    val = defvalstr;
+    if((this = findChildName(node, "orientation")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_listbox_select(item, atoi(val), TRUE);
+    dw_window_set_data(vbox, "orientation", item);    
+
+    /* If it is a new window add button */
+    if(!node)
+    {
+        item = dw_button_new("Create", 0);
+        dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+    }
+    dw_window_redraw(hwndProperties);
+}    
+
+/* Populate the properties window for a window */
+void DWSIGNAL properties_window(xmlNodePtr node)
+{
+    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *val = defvalstr;
+    xmlNodePtr this;
+    
+    dw_window_destroy(vbox);
+    vbox = dw_box_new(DW_VERT, 0);
+    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
+    dw_window_set_data(hwndProperties, "box", vbox);
+    scrollbox = dw_scrollbox_new(DW_VERT, 2);
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Create the actual properties - Title */
@@ -90,7 +307,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_text_new("Size (width, height)", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    val = defvalint;
+    val = "100";
     if((this = findChildName(node, "width")))
     {
         val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
@@ -99,7 +316,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_spinbutton_set_limits(item, 2000, -1);
     dw_window_set_data(vbox, "width", item);
-    val = defvalint;
+    val = "100";
     if((this = findChildName(node, "height")))
     {
         val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
@@ -293,10 +510,21 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
 {
     int which = (int)data;
     
+    if(!data)
+    {
+        return FALSE;
+    }
+    
+    /* Save existing data... if any... here */
+    save_properties();
+    
     switch(which)
     {
-        case 0:
+        case TYPE_WINDOW:
             properties_window(NULL);
+            break;
+        case TYPE_BOX:
+            properties_box(NULL);
             break;
         default:
             return FALSE;

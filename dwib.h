@@ -7,7 +7,7 @@
 
 enum DWTYPES
 {
-    TYPE_WINDOW = 0,
+    TYPE_WINDOW = 1,
     TYPE_BOX,
     TYPE_TEXT,
     TYPE_ENTRYFIELD,
