@@ -25,3 +25,6 @@ enum DWTYPES
     TYPE_CALENDAR,
     TYPE_SPLITBAR
 } DWTypes;
+
+void DWSIGNAL properties_window(xmlNodePtr node);
+void DWSIGNAL properties_box(xmlNodePtr node);

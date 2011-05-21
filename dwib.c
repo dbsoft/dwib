@@ -11,6 +11,7 @@
 
 HWND hwndToolbar, hwndProperties;
 xmlDocPtr DWDoc;
+xmlNodePtr DWCurrNode = NULL;
 
 /* Returns a child of node with the specified name.
  * Returns NULL on failure.
@@ -42,7 +43,7 @@ void updateNode(xmlNodePtr node, HWND vbox, char *name, int toggle)
     
     if(toggle && dw_checkbox_get(item))
     {
-        val[0] = '1';
+        val = "1";
     }
     
     if((toggle || (val = dw_window_get_text(item))))
@@ -53,7 +54,8 @@ void updateNode(xmlNodePtr node, HWND vbox, char *name, int toggle)
             this = xmlNewTextChild(node, NULL, (xmlChar *)name, (xmlChar *)val);
         else
             xmlNodeSetContent(this, (xmlChar *)val);
-        dw_free(val);
+        if(!toggle)
+            dw_free(val);
     }
 }
 
@@ -336,9 +338,35 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+        //dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(box_create), NULL);
     }
     dw_window_redraw(hwndProperties);
 }    
+
+/* Create a new window definition */
+int DWSIGNAL window_create(HWND window, void *data)
+{
+    xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+    xmlNodePtr windowNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"Window", (xmlChar *)"");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    char buf[200], *title = dw_window_get_text((HWND)dw_window_get_data(vbox, "title"));
+    
+    snprintf(buf, 200, "Window - (%s)", title ? title : "");
+    
+    if(title)
+        dw_free(title);
+    
+    dw_tree_insert(tree, buf, 0, 0, windowNode);
+    
+    dw_window_set_data(vbox, "node", windowNode);
+    
+    save_properties();
+    
+    properties_window(DWCurrNode);
+    
+    return FALSE;
+}
 
 /* Populate the properties window for a window */
 void DWSIGNAL properties_window(xmlNodePtr node)
@@ -567,6 +595,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(window_create), NULL);
     }
     dw_window_redraw(hwndProperties);
 }
@@ -599,6 +628,29 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handle loading a new item when selectng the tree */
+int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, void *itemdata)
+{
+    /* Save existing data... if any... here */
+    save_properties();
+    
+    DWCurrNode = itemdata;
+    
+    if(DWCurrNode && DWCurrNode->name)
+    {
+        if(strcmp((char *)DWCurrNode->name, "Window") == 0)
+        {
+            properties_window(DWCurrNode);
+        }
+        else if(strcmp((char *)DWCurrNode->name, "Box") == 0)
+        {
+            properties_box(DWCurrNode);
+        }
+    }
+
+    return FALSE;
+}
+
 /* Handles raising the properties inspector when the toolbar gets focus */
 int DWSIGNAL toolbar_focus(HWND toolbar, void *data)
 {
@@ -625,12 +677,11 @@ int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
 void dwib_init(void)
 {
     HWND vbox, hbox, item;
-    xmlNodePtr rootNode;
     
     /* Create a new empty XML document */
     DWDoc = xmlNewDoc((xmlChar *)"1.0");
-    rootNode = xmlNewNode(NULL, (xmlChar *)"Dynamic Windows");
-    xmlDocSetRootElement(DWDoc, rootNode);
+    DWCurrNode = xmlNewNode(NULL, (xmlChar *)"Dynamic Windows");
+    xmlDocSetRootElement(DWDoc, DWCurrNode);
     
     hwndToolbar = dw_window_new(DW_DESKTOP, DWIB_NAME, 
                                 DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
@@ -697,6 +748,7 @@ void dwib_init(void)
     dw_box_pack_start(hbox, item, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndToolbar, "tree", item);
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
+    dw_signal_connect(item, DW_SIGNAL_ITEM_SELECT, DW_SIGNAL_FUNC(tree_select), NULL);
     dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 500);
     dw_window_show(hwndToolbar);
     
