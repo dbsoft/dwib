@@ -586,6 +586,10 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     if((this = findChildName(node, "orientation")))
     {
         val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+        if(strcmp(val, "Vertical") == 0)
+        {
+            val = "1";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "orientation", item);    
@@ -761,6 +765,7 @@ void dwib_init(void)
     dw_box_pack_start(hbox, vbox, 0, 0, TRUE, TRUE, 0);
     item = dw_tree_new(0);
     dw_box_pack_start(vbox, item, 1, 1, TRUE, TRUE, 0);
+    dw_signal_connect(item, DW_SIGNAL_ITEM_SELECT, DW_SIGNAL_FUNC(tree_select), NULL);
     dw_window_set_data(hwndToolbar, "tree", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -774,7 +779,6 @@ void dwib_init(void)
     dw_box_pack_start(hbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     //dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), NULL);
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
-    dw_signal_connect(item, DW_SIGNAL_ITEM_SELECT, DW_SIGNAL_FUNC(tree_select), NULL);
     dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 500);
     dw_window_show(hwndToolbar);
     
