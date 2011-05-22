@@ -5,6 +5,10 @@
 
 #define DWIB_NAME "Dynamic Windows Interface Builder"
 
+#ifdef MSVC
+#define snprintf _snprintf
+#endif
+
 enum DWTYPES
 {
     TYPE_WINDOW = 1,
