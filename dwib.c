@@ -31,13 +31,17 @@ xmlNodePtr findChildName(xmlNodePtr node, char *name)
 }
 
 /* Returns TRUE if a packable class is selected */
-int is_packable(void)
+int is_packable(int message)
 {
     if(strcmp((char *)DWCurrNode->name, "Window") == 0 ||
        strcmp((char *)DWCurrNode->name, "Box") == 0 ||
        strcmp((char *)DWCurrNode->name, "Notebook Page") == 0)
     {
         return TRUE;
+    }
+    if(message)
+    {
+        dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be packable (window, box, splitbar, notebook page)");
     }
     return FALSE;
 }
@@ -128,6 +132,7 @@ void save_properties(void)
         case TYPE_TEXT:
             updateNode(node, vbox, "subtype", FALSE);
             save_item(node, vbox);
+            updateNode(node, vbox, "text", FALSE);
             updateNode(node, vbox, "alignment", FALSE);
             updateNode(node, vbox, "valignment", FALSE);
             break;
@@ -319,6 +324,42 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
     dw_window_set_data(vbox, "font", item);    
 }
 
+/* Create a new text definition */
+int DWSIGNAL text_create(HWND window, void *data)
+{
+    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
+    xmlNodePtr textNode = NULL;
+    
+    if(is_packable(TRUE) && parentNode)
+    {
+        textNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Text", (xmlChar *)subtype);
+    }
+    
+    
+    if(!textNode)
+        return FALSE;
+    
+    snprintf(buf, 200, "Text - (%s)", subtype ? subtype : "");
+    
+    if(subtype)
+        dw_free(subtype);
+    
+    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, textNode);
+    textNode->_private = (void *)treeitem;
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    
+    dw_window_set_data(vbox, "node", textNode);
+    
+    save_properties();
+    
+    properties_window(DWCurrNode);
+    
+    return FALSE;
+}
+
 /* Populate the properties window for a text */
 void DWSIGNAL properties_text(xmlNodePtr node)
 {
@@ -353,6 +394,20 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     
     properties_item(node, scrollbox, TRUE);
     
+    /* Text */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Text", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = findChildName(node, "text")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_entryfield_new(val ? val : "", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "text", item);
     /* Alignment */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -396,11 +451,50 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
-        //dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(box_create), NULL);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(text_create), NULL);
     }
     dw_window_redraw(hwndProperties);
 }
     
+/* Create a new box definition */
+int DWSIGNAL box_create(HWND window, void *data)
+{
+    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
+    xmlNodePtr boxNode = NULL;
+    
+    if(is_packable(TRUE))
+    {
+        boxNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Box", (xmlChar *)subtype);
+    }
+
+    
+    if(!boxNode)
+        return FALSE;
+    
+    /* Create a sub-node for holding children */
+    xmlNewTextChild(boxNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+    
+    snprintf(buf, 200, "Box - (%s)", subtype ? subtype : "");
+    
+    if(subtype)
+        dw_free(subtype);
+    
+    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, boxNode);
+    boxNode->_private = (void *)treeitem;
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    
+    dw_window_set_data(vbox, "node", boxNode);
+    
+    save_properties();
+    
+    properties_window(DWCurrNode);
+    
+    return FALSE;
+}
+
 /* Populate the properties window for a box */
 void DWSIGNAL properties_box(xmlNodePtr node)
 {
@@ -473,7 +567,7 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
-        //dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(box_create), NULL);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(box_create), NULL);
     }
     dw_window_redraw(hwndProperties);
 }    
@@ -484,15 +578,19 @@ int DWSIGNAL window_create(HWND window, void *data)
     xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
     xmlNodePtr windowNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"Window", (xmlChar *)"");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
     char buf[200], *title = dw_window_get_text((HWND)dw_window_get_data(vbox, "title"));
+    
+    /* Create a sub-node for holding children */
+    xmlNewTextChild(windowNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
     
     snprintf(buf, 200, "Window - (%s)", title ? title : "");
     
     if(title)
         dw_free(title);
     
-    dw_tree_insert(tree, buf, 0, 0, windowNode);
+    treeitem = dw_tree_insert(tree, buf, 0, 0, windowNode);
+    windowNode->_private = (void *)treeitem;
     
     dw_window_set_data(vbox, "node", windowNode);
     
@@ -746,7 +844,7 @@ int DWSIGNAL save_clicked(HWND button, void *data)
     
     if(filename)
     {
-        xmlSaveFile(filename, DWDoc);
+        xmlSaveFormatFile(filename, DWDoc, 1);
         dw_free(filename);
     }
     return FALSE;
@@ -800,6 +898,10 @@ int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, vo
         else if(strcmp((char *)DWCurrNode->name, "Box") == 0)
         {
             properties_box(DWCurrNode);
+        }
+        else if(strcmp((char *)DWCurrNode->name, "Text") == 0)
+        {
+            properties_text(DWCurrNode);
         }
     }
 
