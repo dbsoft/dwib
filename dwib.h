@@ -26,8 +26,7 @@ enum DWTYPES
     TYPE_BITMAP,
     TYPE_NOTEBOOK,
     TYPE_HTML,
-    TYPE_CALENDAR,
-    TYPE_SPLITBAR
+    TYPE_CALENDAR
 } DWTypes;
 
 void DWSIGNAL properties_window(xmlNodePtr node);
