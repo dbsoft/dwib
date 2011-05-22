@@ -157,6 +157,7 @@ void save_properties(void)
             break;
         case TYPE_MLE:
             save_item(node, vbox);
+            updateNode(node, vbox, "deftext", FALSE);
             break;
         case TYPE_RENDER:
             save_item(node, vbox);
@@ -168,21 +169,28 @@ void save_properties(void)
             updateNode(node, vbox, "setting", FALSE);
             break;
         case TYPE_RANGED:
+            updateNode(node, vbox, "subtype", FALSE);
             save_item(node, vbox);
-            break;
-        case TYPE_SPINBUTTON:
-            save_item(node, vbox);
+            updateNode(node, vbox, "position", FALSE);
+            updateNode(node, vbox, "range", FALSE);
             break;
         case TYPE_BITMAP:
             save_item(node, vbox);
+            updateNode(node, vbox, "setting", FALSE);
             break;
         case TYPE_NOTEBOOK:
             save_item(node, vbox);
+            updateNode(node, vbox, "position", FALSE);
             break;
         case TYPE_NOTEBOOK_PAGE:
+            updateNode(node, vbox, "title", FALSE);
+            updateNode(node, vbox, "pagetext", FALSE);
+            updateNode(node, vbox, "statustext", FALSE);
+            updateNode(node, vbox, "orientation", FALSE);
             break;
         case TYPE_HTML:
             save_item(node, vbox);
+            updateNode(node, vbox, "URL", FALSE);
             break;
         case TYPE_CALENDAR:
             save_item(node, vbox);
@@ -1184,6 +1192,528 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     dw_window_redraw(hwndProperties);
 }
 
+/* Create a new ranged definition */
+int DWSIGNAL ranged_create(HWND window, void *data)
+{
+    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
+    xmlNodePtr thisNode = NULL;
+    
+    if(is_packable(TRUE) && parentNode)
+    {
+        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Ranged", (xmlChar *)subtype);
+    }
+    
+    if(!thisNode)
+        return FALSE;
+    
+    snprintf(buf, 200, "Ranged - (%s)", subtype ? subtype : "");
+    
+    if(subtype)
+        dw_free(subtype);
+    
+    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    thisNode->_private = (void *)treeitem;
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    
+    dw_window_set_data(vbox, "node", thisNode);
+    
+    save_properties();
+    
+    properties_text(DWCurrNode);
+    
+    return FALSE;
+}
+
+/* Populate the properties window for a ranged */
+void DWSIGNAL properties_ranged(xmlNodePtr node)
+{
+    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *val = defvalstr;
+    xmlNodePtr this;
+    
+    dw_window_destroy(vbox);
+    vbox = dw_box_new(DW_VERT, 0);
+    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
+    dw_window_set_data(hwndProperties, "box", vbox);
+    scrollbox = dw_scrollbox_new(DW_VERT, 2);
+    dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
+    
+    /* Title display */
+    item = dw_text_new("Ranged Widget", 0);
+    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    
+    /* Sub-type */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Sub-type", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    item = dw_combobox_new("Percent", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Percent");
+    dw_listbox_append(item, "Slider");
+    dw_listbox_append(item, "Scrollbar");
+    dw_listbox_append(item, "Spinbutton");
+    val = defvalstr;
+    if((this = findChildName(node, "subtype")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_listbox_select(item, atoi(val), TRUE);
+    dw_window_set_data(vbox, "subtype", item);    
+    
+    properties_item(node, scrollbox, TRUE);
+    
+    /* Position */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Position", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalzero;
+    if((this = findChildName(node, "position")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_spinbutton_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_spinbutton_set_limits(item, 65536, 0);
+    dw_window_set_data(vbox, "position", item);
+    /* Range */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Range", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = "100";
+    if((this = findChildName(node, "range")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_spinbutton_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_spinbutton_set_limits(item, 65536, -65536);
+    dw_window_set_data(vbox, "range", item);
+    
+    /* If it is a new window add button */
+    if(!node)
+    {
+        item = dw_button_new("Create", 0);
+        dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(ranged_create), NULL);
+    }
+    dw_window_redraw(hwndProperties);
+}
+
+/* Create a new bitmap definition */
+int DWSIGNAL bitmap_create(HWND window, void *data)
+{
+    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    xmlNodePtr thisNode = NULL;
+    
+    if(is_packable(TRUE) && parentNode)
+    {
+        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Bitmap", (xmlChar *)"");
+    }
+    
+    if(!thisNode)
+        return FALSE;
+    
+    treeitem = dw_tree_insert(tree, "Bitmap", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    thisNode->_private = (void *)treeitem;
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    
+    dw_window_set_data(vbox, "node", thisNode);
+    
+    save_properties();
+    
+    properties_text(DWCurrNode);
+    
+    return FALSE;
+}
+
+/* Populate the properties window for a bitmap */
+void DWSIGNAL properties_bitmap(xmlNodePtr node)
+{
+    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *val = defvalstr;
+    xmlNodePtr this;
+    
+    dw_window_destroy(vbox);
+    vbox = dw_box_new(DW_VERT, 0);
+    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
+    dw_window_set_data(hwndProperties, "box", vbox);
+    scrollbox = dw_scrollbox_new(DW_VERT, 2);
+    dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
+    
+    /* Title display */
+    item = dw_text_new("Bitmap Widget", 0);
+    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    
+    properties_item(node, scrollbox, TRUE);
+    
+    /* Default Text */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Resource ID/Filename", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = findChildName(node, "setting")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_entryfield_new(val ? val : "", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "setting", item);
+    
+    /* If it is a new window add button */
+    if(!node)
+    {
+        item = dw_button_new("Create", 0);
+        dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(bitmap_create), NULL);
+    }
+    dw_window_redraw(hwndProperties);
+}
+
+/* Create a new HTML definition */
+int DWSIGNAL html_create(HWND window, void *data)
+{
+    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    xmlNodePtr thisNode = NULL;
+    
+    if(is_packable(TRUE) && parentNode)
+    {
+        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"HTML", (xmlChar *)"");
+    }
+    
+    if(!thisNode)
+        return FALSE;
+    
+    treeitem = dw_tree_insert(tree, "HTML", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    thisNode->_private = (void *)treeitem;
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    
+    dw_window_set_data(vbox, "node", thisNode);
+    
+    save_properties();
+    
+    properties_text(DWCurrNode);
+    
+    return FALSE;
+}
+
+/* Populate the properties window for a HTML */
+void DWSIGNAL properties_html(xmlNodePtr node)
+{
+    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *val = defvalstr;
+    xmlNodePtr this;
+    
+    dw_window_destroy(vbox);
+    vbox = dw_box_new(DW_VERT, 0);
+    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
+    dw_window_set_data(hwndProperties, "box", vbox);
+    scrollbox = dw_scrollbox_new(DW_VERT, 2);
+    dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
+    
+    /* Title display */
+    item = dw_text_new("HTML Widget", 0);
+    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    
+    properties_item(node, scrollbox, TRUE);
+    
+    /* URL */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("URL", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = findChildName(node, "URL")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_entryfield_new(val ? val : "", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "URL", item);
+    
+    /* If it is a new window add button */
+    if(!node)
+    {
+        item = dw_button_new("Create", 0);
+        dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(html_create), NULL);
+    }
+    dw_window_redraw(hwndProperties);
+}
+
+/* Create a new notebook definition */
+int DWSIGNAL notebook_create(HWND window, void *data)
+{
+    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    xmlNodePtr thisNode = NULL;
+    
+    if(is_packable(TRUE) && parentNode)
+    {
+        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Notebook", (xmlChar *)"");
+    }
+    
+    if(!thisNode)
+        return FALSE;
+    
+    /* Create a sub-node for holding children */
+    xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+    
+    treeitem = dw_tree_insert(tree, "Notebook", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    thisNode->_private = (void *)treeitem;
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    
+    dw_window_set_data(vbox, "node", thisNode);
+    
+    save_properties();
+    
+    properties_text(DWCurrNode);
+    
+    return FALSE;
+}
+
+/* Populate the properties window for a notebook */
+void DWSIGNAL properties_notebook(xmlNodePtr node)
+{
+    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *val = defvalstr;
+    xmlNodePtr this;
+    
+    dw_window_destroy(vbox);
+    vbox = dw_box_new(DW_VERT, 0);
+    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
+    dw_window_set_data(hwndProperties, "box", vbox);
+    scrollbox = dw_scrollbox_new(DW_VERT, 2);
+    dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
+    
+    /* Title display */
+    item = dw_text_new("Notebook Widget", 0);
+    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    
+    properties_item(node, scrollbox, TRUE);
+    
+    /* Tab Position */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Tab Position", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    item = dw_combobox_new("Top", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Top");
+    dw_listbox_append(item, "Bottom");
+    val = defvalstr;
+    if((this = findChildName(node, "position")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_listbox_select(item, atoi(val), TRUE);
+    dw_window_set_data(vbox, "position", item);    
+    
+    /* If it is a new window add button */
+    if(!node)
+    {
+        item = dw_button_new("Create", 0);
+        dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(notebook_create), NULL);
+    }
+    dw_window_redraw(hwndProperties);
+}
+
+/* Create a new notebook page definition */
+int DWSIGNAL notebook_page_create(HWND window, void *data)
+{
+    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    char buf[200], *title = dw_window_get_text((HWND)dw_window_get_data(vbox, "title"));
+    xmlNodePtr thisNode = NULL;
+    
+    if(strcmp((char *)DWCurrNode->name, "Notebook") == 0 && parentNode)
+    {
+        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Notebook Page", (xmlChar *)"");
+    }
+    
+    if(!thisNode)
+        return FALSE;
+    
+    /* Create a sub-node for holding children */
+    xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+    
+    snprintf(buf, 200, "Page - (%s)", title ? title : "");
+    
+    if(title)
+        dw_free(title);
+    
+    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    thisNode->_private = (void *)treeitem;
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    
+    dw_window_set_data(vbox, "node", thisNode);
+    
+    save_properties();
+    
+    properties_text(DWCurrNode);
+    
+    return FALSE;
+}
+
+/* Populate the properties window for a notebook page */
+void DWSIGNAL properties_notebook_page(xmlNodePtr node)
+{
+    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *val = defvalstr;
+    xmlNodePtr this;
+    
+    dw_window_destroy(vbox);
+    vbox = dw_box_new(DW_VERT, 0);
+    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
+    dw_window_set_data(hwndProperties, "box", vbox);
+    scrollbox = dw_scrollbox_new(DW_VERT, 2);
+    dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
+    
+    /* Title display */
+    item = dw_text_new("Notebook Page Widget", 0);
+    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    
+    /* Title */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Page Title", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = findChildName(node, "title")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_entryfield_new(val ? val : "", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "title", item);
+    
+    properties_item(node, scrollbox, TRUE);
+    
+    /* Status Text */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Status Text (OS/2)", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = findChildName(node, "statustext")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    item = dw_entryfield_new(val ? val : "", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "statustext", item);
+    /* Orientation */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Orientation", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    item = dw_combobox_new("Horizontal", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Horizontal");
+    dw_listbox_append(item, "Vertical");
+    val = defvalstr;
+    if((this = findChildName(node, "orientation")))
+    {
+        val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+    }
+    dw_listbox_select(item, atoi(val), TRUE);
+    dw_window_set_data(vbox, "orientation", item);    
+    
+    /* If it is a new window add button */
+    if(!node)
+    {
+        item = dw_button_new("Create", 0);
+        dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(notebook_page_create), NULL);
+    }
+    dw_window_redraw(hwndProperties);
+}
+
+/* Create a new calendar definition */
+int DWSIGNAL calendar_create(HWND window, void *data)
+{
+    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    xmlNodePtr thisNode = NULL;
+    
+    if(is_packable(TRUE) && parentNode)
+    {
+        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Calendar", (xmlChar *)"");
+    }
+    
+    if(!thisNode)
+        return FALSE;
+    
+    treeitem = dw_tree_insert(tree, "Calendar", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    thisNode->_private = (void *)treeitem;
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    
+    dw_window_set_data(vbox, "node", thisNode);
+    
+    save_properties();
+    
+    properties_text(DWCurrNode);
+    
+    return FALSE;
+}
+
+/* Populate the properties window for a calendar */
+void DWSIGNAL properties_calendar(xmlNodePtr node)
+{
+    HWND item, scrollbox, vbox = dw_window_get_data(hwndProperties, "box");
+    
+    dw_window_destroy(vbox);
+    vbox = dw_box_new(DW_VERT, 0);
+    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
+    dw_window_set_data(hwndProperties, "box", vbox);
+    scrollbox = dw_scrollbox_new(DW_VERT, 2);
+    dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
+    
+    /* Title display */
+    item = dw_text_new("Calendar Widget", 0);
+    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    
+    properties_item(node, scrollbox, TRUE);
+    
+    /* If it is a new window add button */
+    if(!node)
+    {
+        item = dw_button_new("Create", 0);
+        dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(calendar_create), NULL);
+    }
+    dw_window_redraw(hwndProperties);
+}
+
 /* Create a new box definition */
 int DWSIGNAL box_create(HWND window, void *data)
 {
@@ -1615,57 +2145,73 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
     /* Save existing data... if any... here */
     save_properties();
     
-    switch(which)
+    if(which == TYPE_WINDOW)
     {
-        case TYPE_WINDOW:
-            properties_window(NULL);
-            break;
-        case TYPE_BOX:
-            properties_box(NULL);
-            break;
-        case TYPE_TEXT:
-            properties_text(NULL);
-            break;
-        case TYPE_ENTRYFIELD:
-            properties_entryfield(NULL);
-            break;
-        case TYPE_COMBOBOX:
-            properties_combobox(NULL);
-            break;
-        case TYPE_LISTBOX:
-            properties_listbox(NULL);
-            break;
-        case TYPE_CONTAINER:
-            properties_container(NULL);
-            break;
-        case TYPE_TREE:
-            properties_tree(NULL);
-            break;
-        case TYPE_MLE:
-            properties_mle(NULL);
-            break;
-        case TYPE_RENDER:
-            properties_render(NULL);
-            break;
-        case TYPE_BUTTON:
-            properties_button(NULL);
-            break;
-        case TYPE_RANGED:
-            break;
-        case TYPE_SPINBUTTON:
-            break;
-        case TYPE_BITMAP:
-            break;
-        case TYPE_NOTEBOOK:
-            break;
-        case TYPE_NOTEBOOK_PAGE:
-            break;
-        case TYPE_HTML:
-            break;
-        case TYPE_CALENDAR:
-            break;
-        default:
-            return FALSE;
+        properties_window(NULL);
+    }
+    else if(which == TYPE_NOTEBOOK_PAGE)
+    {
+        if(strcmp((char *)DWCurrNode->name, "Notebook") == 0)
+        {
+            properties_notebook_page(NULL);
+        }
+        else
+        {
+            dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be a notebook.");
+        }
+    }
+    else if(is_packable(TRUE))
+    {
+        switch(which)
+        {
+            case TYPE_BOX:
+                properties_box(NULL);
+                break;
+            case TYPE_TEXT:
+                properties_text(NULL);
+                break;
+            case TYPE_ENTRYFIELD:
+                properties_entryfield(NULL);
+                break;
+            case TYPE_COMBOBOX:
+                properties_combobox(NULL);
+                break;
+            case TYPE_LISTBOX:
+                properties_listbox(NULL);
+                break;
+            case TYPE_CONTAINER:
+                properties_container(NULL);
+                break;
+            case TYPE_TREE:
+                properties_tree(NULL);
+                break;
+            case TYPE_MLE:
+                properties_mle(NULL);
+                break;
+            case TYPE_RENDER:
+                properties_render(NULL);
+                break;
+            case TYPE_BUTTON:
+                properties_button(NULL);
+                break;
+            case TYPE_RANGED:
+                properties_ranged(NULL);
+                break;
+            case TYPE_BITMAP:
+                properties_bitmap(NULL);
+                break;
+            case TYPE_NOTEBOOK:
+                properties_notebook(NULL);
+                break;
+            case TYPE_HTML:
+                properties_html(NULL);
+                break;
+            case TYPE_CALENDAR:
+                properties_calendar(NULL);
+                break;
+            default:
+                return FALSE;
+        }
     }
     dw_window_set_data(hwndProperties, "type", (void *)which);
     return FALSE;
@@ -1724,6 +2270,30 @@ int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, vo
         else if(strcmp((char *)DWCurrNode->name, "Button") == 0)
         {
             properties_button(DWCurrNode);
+        }
+        else if(strcmp((char *)DWCurrNode->name, "Ranged") == 0)
+        {
+            properties_ranged(DWCurrNode);
+        }
+        else if(strcmp((char *)DWCurrNode->name, "Bitmap") == 0)
+        {
+            properties_bitmap(DWCurrNode);
+        }
+        else if(strcmp((char *)DWCurrNode->name, "Notebook") == 0)
+        {
+            properties_notebook(DWCurrNode);
+        }
+        else if(strcmp((char *)DWCurrNode->name, "Notebook Page") == 0)
+        {
+            properties_notebook_page(DWCurrNode);
+        }
+        else if(strcmp((char *)DWCurrNode->name, "HTML") == 0)
+        {
+            properties_html(DWCurrNode);
+        }
+        else if(strcmp((char *)DWCurrNode->name, "Calendar") == 0)
+        {
+            properties_calendar(DWCurrNode);
         }
     }
 
@@ -1804,9 +2374,6 @@ void dwib_init(void)
     item = dw_button_new("Ranged", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_RANGED);
-    item = dw_button_new("Spinbutton", 0);
-    dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_SPINBUTTON);
     item = dw_button_new("Bitmap", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_BITMAP);
@@ -1816,19 +2383,12 @@ void dwib_init(void)
     item = dw_button_new("NB Page", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_NOTEBOOK_PAGE);
-#ifndef __OS2__
     item = dw_button_new("HTML", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_HTML);
     item = dw_button_new("Calendar", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_CALENDAR);
-#endif
-#if 0
-    item = dw_button_new("Splitbar", 0);
-    dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_SPLITBAR);
-#endif
     vbox = dw_box_new(DW_VERT, 0);
     dw_box_pack_start(hbox, vbox, 0, 0, TRUE, TRUE, 0);
     item = dw_tree_new(0);
