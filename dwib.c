@@ -35,7 +35,7 @@ int is_packable(int message)
 {
     if(strcmp((char *)DWCurrNode->name, "Window") == 0 ||
        strcmp((char *)DWCurrNode->name, "Box") == 0 ||
-       strcmp((char *)DWCurrNode->name, "Notebook Page") == 0)
+       strcmp((char *)DWCurrNode->name, "NotebookPage") == 0)
     {
         return TRUE;
     }
@@ -1551,7 +1551,7 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
     
     if(strcmp((char *)DWCurrNode->name, "Notebook") == 0 && parentNode)
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Notebook Page", (xmlChar *)"");
+        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"NotebookPage", (xmlChar *)"");
     }
     
     if(!thisNode)
@@ -2120,14 +2120,123 @@ int DWSIGNAL save_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Parse the children if packable widgets... boxes, notebook pages, etc */
+void handleChildren(xmlNodePtr node, HWND tree)
+{
+    xmlNodePtr p = findChildName(node, "Children");
+    char buf[200], *val;
+    HWND treeitem;
+    
+    for(p=p->children;p;p = p->next)
+    {
+        printf("Node: %s Name: %s\n", (char *)node->name, (char *)p->name);
+        if(strcmp((char *)p->name, "Box") == 0)
+        {
+            xmlNodePtr this = findChildName(p, "subtype");
+            
+            val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            
+            snprintf(buf, 200, "Box - (%s)", val ? val : "");
+            
+            treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)node->_private, p);
+            p->_private = (void *)treeitem;
+            dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+            
+            handleChildren(p, tree);
+        }
+        else if(strcmp((char *)p->name, "Notebook") == 0)
+        {
+            treeitem = dw_tree_insert(tree, "Notebook", 0, (HTREEITEM)node->_private, p);
+            p->_private = (void *)treeitem;
+            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+            
+            handleChildren(p, tree);
+        }
+        else if(strcmp((char *)p->name, "NotebookPage") == 0)
+        {
+            xmlNodePtr this = findChildName(p, "title");
+            
+            val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            
+            snprintf(buf, 200, "Page - (%s)", val ? val : "");
+            
+            treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)node->_private, p);
+            p->_private = (void *)treeitem;
+            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+            
+            handleChildren(p, tree);
+        }
+        else if(strcmp((char *)p->name, "Button") == 0 ||
+                strcmp((char *)p->name, "Text") == 0 ||
+                strcmp((char *)p->name, "Container") == 0 ||
+                strcmp((char *)p->name, "Ranged") == 0 ||
+                strcmp((char *)p->name, "Entryfield") == 0)
+        {
+            xmlNodePtr this = findChildName(p, "subtype");
+            
+            val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            
+            snprintf(buf, 200, "%s - (%s)", p->name, val ? val : "");
+            
+            treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)node->_private, p);
+            p->_private = (void *)treeitem;
+            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+        }
+        else if(strcmp((char *)p->name, "Combobox") == 0 ||
+                strcmp((char *)p->name, "Tree") == 0 ||
+                strcmp((char *)p->name, "MLE") == 0 ||
+                strcmp((char *)p->name, "Render") == 0 ||
+                strcmp((char *)p->name, "Bitmap") == 0 ||
+                strcmp((char *)p->name, "HTML") == 0 ||
+                strcmp((char *)p->name, "Calendar") == 0 ||
+                strcmp((char *)p->name, "Listbox") == 0)
+        {
+            treeitem = dw_tree_insert(tree, (char *)p->name, 0, (HTREEITEM)node->_private, p);
+            p->_private = (void *)treeitem;
+            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+        }
+    }
+}
+
+/* Clears and reloads the tree data from XML */
+void reloadTree(void)
+{
+    xmlNodePtr p, rootNode = xmlDocGetRootElement(DWDoc);
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    
+    dw_tree_clear(tree);
+    
+    for(p=rootNode->children;p;p = p->next)
+    {
+        if(strcmp((char *)p->name, "Window") == 0)
+        {
+            xmlNodePtr this = findChildName(p, "title");
+            char buf[200], *val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            
+            snprintf(buf, 200, "Window - (%s)", val ? val : "");
+            
+            treeitem = dw_tree_insert(tree, buf, 0, 0, p);
+            p->_private = (void *)treeitem;
+            
+            handleChildren(p, tree);
+        }
+    }
+}
+
 /* Handle loading a new layout */
 int DWSIGNAL open_clicked(HWND button, void *data)
 {
-    char *filename = dw_file_browse("Open interface", ".", "xml", DW_FILE_OPEN);
-    
-    if(filename)
+    if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
     {
-        dw_free(filename);
+        char *filename = dw_file_browse("Open interface", ".", "xml", DW_FILE_OPEN);
+        
+        if(filename)
+        {
+            DWDoc = xmlParseFile(filename);
+            DWCurrNode = xmlDocGetRootElement(DWDoc);
+            dw_free(filename);
+            reloadTree();
+        }
     }
     return FALSE;
 }
@@ -2283,7 +2392,7 @@ int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, vo
         {
             properties_notebook(DWCurrNode);
         }
-        else if(strcmp((char *)DWCurrNode->name, "Notebook Page") == 0)
+        else if(strcmp((char *)DWCurrNode->name, "NotebookPage") == 0)
         {
             properties_notebook_page(DWCurrNode);
         }
@@ -2329,7 +2438,7 @@ void dwib_init(void)
     
     /* Create a new empty XML document */
     DWDoc = xmlNewDoc((xmlChar *)"1.0");
-    DWCurrNode = xmlNewNode(NULL, (xmlChar *)"Dynamic Windows");
+    DWCurrNode = xmlNewNode(NULL, (xmlChar *)"DynamicWindows");
     xmlDocSetRootElement(DWDoc, DWCurrNode);
     
     hwndToolbar = dw_window_new(DW_DESKTOP, DWIB_NAME, 
