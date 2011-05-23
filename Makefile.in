@@ -17,9 +17,9 @@ CFLAGS = @CFLAGS@ -DDW_RESOURCES -DINSTALL_PREFIX=\"$(PREFIX)\" -D__TARGET__=\"$
 LDFLAGS = @LDFLAGS@
 
 
-OBJECTS = dwib.o
+OBJECTS = dwib.o dwib_lib.o
 
-SOURCES = dwib.c
+SOURCES = dwib.c dwib_lib.c
 
 all: $(TARGET)
 
@@ -45,5 +45,5 @@ install:
 	$(CP) -f gtk/*.png /usr/share/pixmaps
         
 resources.o: gtk/resources.c
-dwib.o: dwib.c dwib.h resources.h config.h
-
+dwib.o: dwib.c dwib.h dwib_int.h resources.h config.h
+dwib_lib.o: dwib_lib.c dwib.h dwib_int.h config.h
