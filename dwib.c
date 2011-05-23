@@ -121,6 +121,7 @@ void save_properties(void)
             updateNode(node, vbox, "minimize", TRUE);
             updateNode(node, vbox, "maximize", TRUE);
             updateNode(node, vbox, "hide", TRUE);
+            updateNode(node, vbox, "titlebar", TRUE);
             updateNode(node, vbox, "resize", TRUE);
             updateNode(node, vbox, "dialog", TRUE);
             updateNode(node, vbox, "border", TRUE);
@@ -387,7 +388,8 @@ int DWSIGNAL text_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr thisNode = NULL;
     
@@ -528,7 +530,8 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr thisNode = NULL;
     
@@ -646,7 +649,8 @@ int DWSIGNAL combobox_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
     if(is_packable(TRUE) && parentNode)
@@ -738,7 +742,8 @@ int DWSIGNAL listbox_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
     if(is_packable(TRUE) && parentNode)
@@ -831,7 +836,8 @@ int DWSIGNAL container_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr thisNode = NULL;
     
@@ -933,7 +939,8 @@ int DWSIGNAL tree_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
     if(is_packable(TRUE) && parentNode)
@@ -991,7 +998,8 @@ int DWSIGNAL mle_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
     if(is_packable(TRUE) && parentNode)
@@ -1067,7 +1075,8 @@ int DWSIGNAL render_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
     if(is_packable(TRUE) && parentNode)
@@ -1125,7 +1134,8 @@ int DWSIGNAL button_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr thisNode = NULL;
     
@@ -1244,7 +1254,8 @@ int DWSIGNAL ranged_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr thisNode = NULL;
     
@@ -1380,7 +1391,8 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
     if(is_packable(TRUE) && parentNode)
@@ -1456,7 +1468,8 @@ int DWSIGNAL html_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
     if(is_packable(TRUE) && parentNode)
@@ -1532,7 +1545,8 @@ int DWSIGNAL notebook_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
     if(is_packable(TRUE) && parentNode)
@@ -1614,7 +1628,8 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     char buf[200], *title = dw_window_get_text((HWND)dw_window_get_data(vbox, "title"));
     xmlNodePtr thisNode = NULL;
     
@@ -1733,7 +1748,8 @@ int DWSIGNAL calendar_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
     if(is_packable(TRUE) && parentNode)
@@ -1791,7 +1807,8 @@ int DWSIGNAL box_create(HWND window, void *data)
 {
     xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr boxNode = NULL;
     
@@ -1916,7 +1933,8 @@ int DWSIGNAL window_create(HWND window, void *data)
     xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
     xmlNodePtr windowNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"Window", (xmlChar *)"");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     char buf[200], *title = dw_window_get_text((HWND)dw_window_get_data(vbox, "title"));
     
     /* Create a sub-node for holding children */
@@ -2101,9 +2119,22 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_text_new("Style", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    item = dw_checkbox_new("Resize", 0);
+    item = dw_checkbox_new("Titlebar", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvaltrue;
+    if((this = findChildName(node, "titlebar")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "titlebar", item);
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    item = dw_checkbox_new("Resize", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvalstr;
     if((this = findChildName(node, "resize")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
@@ -2218,7 +2249,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
 {
     xmlNodePtr p = findChildName(node, "Children");
     char buf[200], *val;
-    HWND treeitem;
+    HTREEITEM treeitem;
     
     for(p=p->children;p;p = p->next)
     {
@@ -2294,7 +2325,8 @@ void handleChildren(xmlNodePtr node, HWND tree)
 void reloadTree(void)
 {
     xmlNodePtr p, rootNode = xmlDocGetRootElement(DWDoc);
-    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree"), treeitem;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
     
     dw_tree_clear(tree);
     
@@ -2356,7 +2388,10 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
         
         if(val)
         {
-            dw_window_destroy(hwndPreview);
+           /* Make sure the XML tree is up-to-date */
+           save_properties();
+           
+           dw_window_destroy(hwndPreview);
             hwndPreview = dwib_load((DWIB)DWDoc, val);
             
             if(hwndPreview)

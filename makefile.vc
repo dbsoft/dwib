@@ -35,7 +35,8 @@ LINK = link
 DEFFILE = win\dwib.def
 
 OBJS =	dwib.obj \
-	winmain.obj
+        dwib_lib.obj \
+        winmain.obj
 	
 all: dwib.exe
 

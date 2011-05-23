@@ -81,7 +81,7 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
         padding = atoi(thisval);
     if((this = _dwib_find_child(node, "dataname")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dataname = thisval;
-    if((this = _dwib_find_child(node, "font")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((this = _dwib_find_child(node, "font")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && strcmp(thisval, "Default"))
         dw_window_set_font(item, thisval);
     if((this = _dwib_find_child(node, "fcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         fcolor = _dwib_get_color(thisval);
@@ -600,6 +600,8 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
         flags |= DW_FCF_SYSMENU;
     if((this = _dwib_find_child(node, "tasklist")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
         flags |= DW_FCF_TASKLIST;
+    if((this = _dwib_find_child(node, "titlebar")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+        flags |= DW_FCF_TITLEBAR;
 
     if((this = _dwib_find_child(node, "x")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         x = atoi(thisval);
