@@ -7,28 +7,15 @@
 #include <libxml/tree.h>
 #include <string.h>
 #include "resources.h"
-#include "dwib.h"
+#include "dwib_int.h"
 
 HWND hwndToolbar, hwndProperties;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL;
 
-/* Returns a child of node with the specified name.
- * Returns NULL on failure.
- */
-xmlNodePtr findChildName(xmlNodePtr node, char *name)
-{
-    xmlNodePtr p = node ? node->children : NULL;
-    
-    for(;p; p = p->next)
-    {
-        if(p->name && strcmp(name, (char *)p->name) == 0)
-        {
-            return p;
-        }
-    }
-    return NULL;
-}
+#ifdef MSVC
+#define snprintf _snprintf
+#endif
 
 /* Returns TRUE if a packable class is selected */
 int is_packable(int message)
