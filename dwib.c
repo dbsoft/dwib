@@ -86,8 +86,8 @@ void save_item(xmlNodePtr node, HWND vbox)
     updateNode(node, vbox, "dataname", FALSE);
     updateNode(node, vbox, "width", FALSE);
     updateNode(node, vbox, "height", FALSE);
-    updateNode(node, vbox, "hexpand", FALSE);
-    updateNode(node, vbox, "vexpand", FALSE);
+    updateNode(node, vbox, "hexpand", TRUE);
+    updateNode(node, vbox, "vexpand", TRUE);
     updateNode(node, vbox, "padding", FALSE);
     updateNode(node, vbox, "enabled", TRUE);
     updateNode(node, vbox, "fcolor", FALSE);
@@ -211,25 +211,7 @@ void save_properties(void)
 
 char *defvalstr = "", *defvalint = "-1", *defvaltrue = "1", *defvalzero = "0";
 
-char *Colors[] =
-{
-    "Black",
-    "Dark Red",
-    "Dark Green",
-    "Brown",
-    "Dark Blue",
-    "Dark Pink",
-    "Dark Cyan",
-    "Pale Gray",
-    "Dark Gray",
-    "Red",
-    "Green",
-    "Yellow",
-    "Blue",
-    "Pink",
-    "Cyan",
-    "White"
-};
+extern char *Colors[];
 
 /* Populate the properties window with generic item fields */
 void properties_item(xmlNodePtr node, HWND scrollbox, int box)
@@ -2485,74 +2467,98 @@ int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, vo
     
     if(DWCurrNode && DWCurrNode->name)
     {
+        HWND vbox;
+        
         if(strcmp((char *)DWCurrNode->name, "Window") == 0)
         {
             properties_window(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_WINDOW);
         }
         else if(strcmp((char *)DWCurrNode->name, "Box") == 0)
         {
             properties_box(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_BOX);
         }
         else if(strcmp((char *)DWCurrNode->name, "Text") == 0)
         {
             properties_text(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_TEXT);
         }
         else if(strcmp((char *)DWCurrNode->name, "Entryfield") == 0)
         {
             properties_entryfield(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_ENTRYFIELD);
         }
         else if(strcmp((char *)DWCurrNode->name, "Combobox") == 0)
         {
             properties_combobox(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_COMBOBOX);
         }
         else if(strcmp((char *)DWCurrNode->name, "Listbox") == 0)
         {
             properties_listbox(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_LISTBOX);
         }
         else if(strcmp((char *)DWCurrNode->name, "Container") == 0)
         {
             properties_container(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_CONTAINER);
         }
         else if(strcmp((char *)DWCurrNode->name, "Tree") == 0)
         {
             properties_tree(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_TREE);
         }
         else if(strcmp((char *)DWCurrNode->name, "MLE") == 0)
         {
             properties_mle(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_MLE);
         }
         else if(strcmp((char *)DWCurrNode->name, "Render") == 0)
         {
             properties_render(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_RENDER);
         }
         else if(strcmp((char *)DWCurrNode->name, "Button") == 0)
         {
             properties_button(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_BUTTON);
         }
         else if(strcmp((char *)DWCurrNode->name, "Ranged") == 0)
         {
             properties_ranged(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_RANGED);
         }
         else if(strcmp((char *)DWCurrNode->name, "Bitmap") == 0)
         {
             properties_bitmap(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_BITMAP);
         }
         else if(strcmp((char *)DWCurrNode->name, "Notebook") == 0)
         {
             properties_notebook(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_NOTEBOOK);
         }
         else if(strcmp((char *)DWCurrNode->name, "NotebookPage") == 0)
         {
             properties_notebook_page(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_NOTEBOOK_PAGE);
         }
         else if(strcmp((char *)DWCurrNode->name, "HTML") == 0)
         {
             properties_html(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_HTML);
         }
         else if(strcmp((char *)DWCurrNode->name, "Calendar") == 0)
         {
             properties_calendar(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_CALENDAR);
         }
+        else 
+            return FALSE;
+        
+         if((vbox = (HWND)dw_window_get_data(hwndProperties, "box")))
+            dw_window_set_data(vbox, "node", DWCurrNode);
     }
 
     return FALSE;
