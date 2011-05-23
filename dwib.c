@@ -17,6 +17,23 @@ xmlNodePtr DWCurrNode = NULL;
 #define snprintf _snprintf
 #endif
 
+/* Returns a child of node with the specified name.
+ * Returns NULL on failure.
+ */
+xmlNodePtr findChildName(xmlNodePtr node, char *name)
+{
+    xmlNodePtr p = node ? node->children : NULL;
+    
+    for(;p; p = p->next)
+    {
+        if(p->name && strcmp(name, (char *)p->name) == 0)
+        {
+            return p;
+        }
+    }
+    return NULL;
+}
+
 /* Returns TRUE if a packable class is selected */
 int is_packable(int message)
 {
