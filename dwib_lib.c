@@ -575,13 +575,18 @@ HWND API dwib_load(DWIB handle, char *name)
             
             if(val && strcmp(name, val) == 0)
             {
-                HWND ret = _dwib_window_create(p, doc);
-                _dwib_children(p, doc, ret, (HWND)dw_window_get_data(ret, "_dwib_box"));
-                return ret;
+                HWND window = _dwib_window_create(p, doc);
+                _dwib_children(p, doc, window, (HWND)dw_window_get_data(window, "_dwib_box"));
+                return window;
             }
         }
     }
     return 0;
+}
+
+DWIB API dwib_from_data(char *buffer, int size)
+{
+    return xmlParseMemory(buffer, size);
 }
 
 DWIB API dwib_open(char *filename)
