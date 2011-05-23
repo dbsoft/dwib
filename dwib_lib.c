@@ -209,15 +209,17 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     HWND container;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval;
-    int type = 0;
+    int type = 0, multi = 0;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Filesystem") == 0)
             type = 1;
     }
+    if((this = _dwib_find_child(node, "multi")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        multi = 1;
     
-    container = dw_container_new(0, FALSE);
+    container = dw_container_new(0, multi);
     
 #if 0
     switch(type)
@@ -314,6 +316,119 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
     return entryfield;
 }
 
+HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+{
+    HWND combobox;
+    xmlNodePtr this = _dwib_find_child(node, "deftext");
+    char *thisval, *deftext = "";
+    
+    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        deftext = thisval;
+    }
+    
+    combobox = dw_combobox_new(deftext, 0);
+    
+    _dwib_item_pack(node, doc, window, packbox, combobox);
+    return combobox;
+}
+
+HWND _dwib_tree_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+{
+    HWND tree = dw_tree_new(0);
+    
+    _dwib_item_pack(node, doc, window, packbox, tree);
+    return tree;
+}
+
+HWND _dwib_render_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+{
+    HWND render = dw_render_new(0);
+    
+    _dwib_item_pack(node, doc, window, packbox, render);
+    return render;
+}
+
+HWND _dwib_mle_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+{
+    HWND mle;
+    xmlNodePtr this = _dwib_find_child(node, "deftext");
+    char *thisval, *deftext = "";
+    
+    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        deftext = thisval;
+    }
+    
+    mle = dw_mle_new(0);
+    dw_mle_import(mle, deftext, -1);
+    
+    _dwib_item_pack(node, doc, window, packbox, mle);
+    return mle;
+}
+
+HWND _dwib_html_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+{
+    HWND html;
+    xmlNodePtr this = _dwib_find_child(node, "URL");
+    char *thisval;
+    
+    html = dw_html_new(0);
+    
+    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        dw_html_url(html, thisval);
+    
+    _dwib_item_pack(node, doc, window, packbox, html);
+    return html;
+}
+
+HWND _dwib_calendar_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+{
+    HWND calendar = dw_calendar_new(0);
+    
+    _dwib_item_pack(node, doc, window, packbox, calendar);
+    return calendar;
+}
+
+HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+{
+    HWND bitmap;
+    xmlNodePtr this = _dwib_find_child(node, "setting");
+    char *thisval, *setting = "";
+    int resid = 0;
+    
+    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        setting = thisval;
+        resid = atoi(setting);
+    }
+    
+    bitmap = dw_bitmap_new(resid);
+    if(setting && *setting && resid == 0)
+        dw_window_set_bitmap(bitmap, resid, setting);
+    else
+        dw_window_set_bitmap(bitmap, resid, NULL);
+
+    _dwib_item_pack(node, doc, window, packbox, bitmap);
+    return bitmap;
+}
+
+HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+{
+    HWND listbox;
+    xmlNodePtr this = _dwib_find_child(node, "multi");
+    char *thisval;
+    int multi = 0;
+    
+    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        multi = atoi(thisval);
+    
+    listbox = dw_listbox_new(0, multi);
+    
+    _dwib_item_pack(node, doc, window, packbox, listbox);
+    return listbox;
+}
+
 /* Parse the children if packable widgets... boxes, notebook pages, etc */
 void _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box)
 {
@@ -359,34 +474,35 @@ void _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box)
         /* No subtype */
         else if(strcmp((char *)p->name, "Combobox") == 0)
         {
-            
+            _dwib_combobox_create(p, doc, window, box);
         }
         else if(strcmp((char *)p->name, "Tree") == 0)
         {
-            
+            _dwib_tree_create(p, doc, window, box);
         }
         else if(strcmp((char *)p->name, "MLE") == 0)
         {
-            
+            _dwib_mle_create(p, doc, window, box);
         }
         else if(strcmp((char *)p->name, "Render") == 0)
         {
-            
+            _dwib_render_create(p, doc, window, box);
         }
         else if(strcmp((char *)p->name, "Bitmap") == 0)
         {
-            
+            _dwib_bitmap_create(p, doc, window, box);
         }
         else if(strcmp((char *)p->name, "HTML") == 0)
         {
-            
+            _dwib_html_create(p, doc, window, box);
         }
         else if(strcmp((char *)p->name, "Calendar") == 0)
         {
-            
+            _dwib_calendar_create(p, doc, window, box);
         }
         else if(strcmp((char *)p->name, "Listbox") == 0)
         {
+            _dwib_listbox_create(p, doc, window, box);
         }
     }
 }

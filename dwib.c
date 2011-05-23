@@ -152,9 +152,11 @@ void save_properties(void)
             break;
         case TYPE_LISTBOX:
             save_item(node, vbox);
+            updateNode(node, vbox, "multi", TRUE);
             break;
         case TYPE_CONTAINER:
             save_item(node, vbox);
+            updateNode(node, vbox, "multi", TRUE);
             break;
         case TYPE_TREE:
             save_item(node, vbox);
@@ -781,6 +783,8 @@ int DWSIGNAL listbox_create(HWND window, void *data)
 void DWSIGNAL properties_listbox(xmlNodePtr node)
 {
     HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *val = defvalzero, *thisval;
+    xmlNodePtr this;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -795,6 +799,22 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     
     properties_item(node, scrollbox, TRUE);
+    
+    /* Multiple select */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Selection", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    if((this = findChildName(node, "multi")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_checkbox_new("Multiple", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "multi", item);
     
     /* List */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -887,7 +907,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_listbox_append(item, "None");
     dw_listbox_append(item, "Filesystem");
-    val = defvalstr;
+    val = defvalzero;
     if((this = findChildName(node, "subtype")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
@@ -897,6 +917,23 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_window_set_data(vbox, "subtype", item);    
     
     properties_item(node, scrollbox, TRUE);
+    
+    /* Multiple select */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Selection", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvaltrue;
+    if((this = findChildName(node, "multi")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_checkbox_new("Multiple", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "multi", item);
     
     /* If it is a new window add button */
     if(!node)
