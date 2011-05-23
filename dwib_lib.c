@@ -125,12 +125,12 @@ HWND _dwib_notebook_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
     HWND notebook;
     xmlNodePtr this = _dwib_find_child(node, "position");
     char *thisval;
-    int position = 0;
+    int top = 1;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && strcmp(thisval, "Bottom") == 0)
-        position = 1;
+        top = 0;
     
-    notebook = dw_notebook_new(0, position);
+    notebook = dw_notebook_new(0, top);
     
     _dwib_item_pack(node, doc, window, packbox, notebook);
     return notebook;
