@@ -511,8 +511,9 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
 {
     xmlNodePtr this = _dwib_find_child(node, "title");
     char *thisval, *title = "";
-    unsigned long flags;
+    unsigned long flags = 0;
     int bordersize, orient = DW_HORZ, padding = 0;
+    int x = -1, y = -1, width = -1, height = -1;
     HWND ret, box;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -538,6 +539,15 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     if((this = _dwib_find_child(node, "tasklist")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
         flags |= DW_FCF_TASKLIST;
 
+    if((this = _dwib_find_child(node, "x")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        x = atoi(thisval);
+    if((this = _dwib_find_child(node, "y")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        y = atoi(thisval);
+    if((this = _dwib_find_child(node, "width")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        width = atoi(thisval);
+    if((this = _dwib_find_child(node, "height")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        height = atoi(thisval);
+    
     if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) 
        && (atoi(thisval) || strcmp(thisval, "Vertical") == 0))
         orient = DW_VERT;
@@ -545,6 +555,11 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
         padding = atoi(thisval);
 
     ret = dw_window_new(DW_DESKTOP, title, flags);
+    
+    dw_window_set_data(ret, "_dwib_x", (void *)x);
+    dw_window_set_data(ret, "_dwib_y", (void *)y);
+    dw_window_set_data(ret, "_dwib_width", (void *)width);
+    dw_window_set_data(ret, "_dwib_height", (void *)height);
     
     box = dw_box_new(orient, padding);
     
@@ -584,7 +599,26 @@ HWND API dwib_load(DWIB handle, char *name)
     return 0;
 }
 
-DWIB API dwib_from_data(char *buffer, int size)
+void API dwib_show(HWND window)
+{
+    int x, y, width, height;
+    
+    x = (int)dw_window_get_data(window, "_dwib_x");
+    y = (int)dw_window_get_data(window, "_dwib_y");
+    width = (int)dw_window_get_data(window, "_dwib_width");
+    height = (int)dw_window_get_data(window, "_dwib_height");
+    
+    if(width > 0 && height > 0 && x >= 0 && y >= 0)
+        dw_window_set_pos_size(window, x, y, width, height);
+    else if (width > 0 && height > 0)
+        dw_window_set_size(window, width, height);
+    else if(x >= 0 && y >= 0)
+        dw_window_set_pos(window, x, y);
+    
+    dw_window_show(window);
+}
+
+DWIB API dwib_open_from_data(char *buffer, int size)
 {
     return xmlParseMemory(buffer, size);
 }

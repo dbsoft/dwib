@@ -8,8 +8,9 @@
 #include <string.h>
 #include "resources.h"
 #include "dwib_int.h"
+#include "dwib.h"
 
-HWND hwndToolbar, hwndProperties;
+HWND hwndToolbar, hwndProperties, hwndPreview;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL;
 
@@ -2363,6 +2364,32 @@ int DWSIGNAL open_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handle loading a new layout */
+int DWSIGNAL refresh_clicked(HWND button, void *data)
+{
+    if(strcmp((char *)DWCurrNode->name, "Window") == 0)
+    {
+        xmlNodePtr this = findChildName(DWCurrNode, "title");
+        char *val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+        
+        if(val)
+        {
+            dw_window_destroy(hwndPreview);
+            hwndPreview = dwib_load((DWIB)DWDoc, val);
+            
+            if(hwndPreview)
+                dwib_show(hwndPreview);
+            else
+                dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Failed to load window definition.");
+        }
+        else
+            dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Could not find a window title to load.");
+    }
+    else
+        dw_messagebox(DWIB_NAME, DW_MB_OK, "You must select the window to refresh in the tree.");
+    return FALSE;
+}
+
 /* One of the buttons on the toolbar was clicked */
 int DWSIGNAL toolbar_clicked(HWND button, void *data)
 {
@@ -2641,7 +2668,7 @@ void dwib_init(void)
     dw_box_pack_start(hbox, 0, 30, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     item = dw_button_new("Refresh", 0);
     dw_box_pack_start(hbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    //dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), NULL);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), NULL);
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
     dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 600);
     dw_window_show(hwndToolbar);
