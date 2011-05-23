@@ -176,7 +176,8 @@ void save_properties(void)
             updateNode(node, vbox, "subtype", FALSE);
             save_item(node, vbox);
             updateNode(node, vbox, "position", FALSE);
-            updateNode(node, vbox, "range", FALSE);
+            updateNode(node, vbox, "upper", FALSE);
+            updateNode(node, vbox, "lower", FALSE);
             break;
         case TYPE_BITMAP:
             save_item(node, vbox);
@@ -1311,14 +1312,14 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_spinbutton_set_limits(item, 65536, 0);
     dw_window_set_data(vbox, "position", item);
-    /* Range */
+    /* Ranger - Upper */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     item = dw_text_new("Range", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = "100";
-    if((this = findChildName(node, "range")))
+    if((this = findChildName(node, "upper")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1326,7 +1327,23 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_spinbutton_set_limits(item, 65536, -65536);
-    dw_window_set_data(vbox, "range", item);
+    dw_window_set_data(vbox, "upper", item);
+    /* Ranger - Lower */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Range", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalzero;
+    if((this = findChildName(node, "lower")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_spinbutton_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_spinbutton_set_limits(item, 65536, -65536);
+    dw_window_set_data(vbox, "lower", item);
     
     /* If it is a new window add button */
     if(!node)
