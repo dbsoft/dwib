@@ -236,7 +236,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
     item = dw_entryfield_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "dataname", item);
-    if(!box)
+    if(box)
     {
         /* Required size */
         hbox = dw_box_new(DW_HORZ, 0);
@@ -264,55 +264,52 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         dw_spinbutton_set_limits(item, 2000, 0);
         dw_window_set_data(vbox, "height", item);
-    }
-    /* Expandable */
-    hbox = dw_box_new(DW_HORZ, 0);
-    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Expand", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    val = defvaltrue;
-    if((this = findChildName(node, "hexpand")))
-    {
-        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
-            val = thisval;
-    }
-    item = dw_checkbox_new("Horizontally", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_checkbox_set(item, atoi(val));
-    dw_window_set_data(vbox, "hexpand", item);
-    hbox = dw_box_new(DW_HORZ, 0);
-    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    val = defvaltrue;
-    if((this = findChildName(node, "vexpand")))
-    {
-        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
-            val = thisval;
-    }
-    item = dw_checkbox_new("Vertically", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_checkbox_set(item, atoi(val));
-    dw_window_set_data(vbox, "vexpand", item);
-    /* Padding */
-    hbox = dw_box_new(DW_HORZ, 0);
-    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Padding", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    val = defvalzero;
-    if((this = findChildName(node, "padding")))
-    {
-        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
-            val = thisval;
-    }
-    item = dw_spinbutton_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
-    dw_spinbutton_set_limits(item, 2000, 0);
-    dw_window_set_data(vbox, "padding", item);
-    /* Enabled */
-    if(!box)
-    {
+        /* Expandable */
+        hbox = dw_box_new(DW_HORZ, 0);
+        dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+        item = dw_text_new("Expand", 0);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+        val = defvaltrue;
+        if((this = findChildName(node, "hexpand")))
+        {
+            if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+                val = thisval;
+        }
+        item = dw_checkbox_new("Horizontally", 0);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        dw_checkbox_set(item, atoi(val));
+        dw_window_set_data(vbox, "hexpand", item);
+        hbox = dw_box_new(DW_HORZ, 0);
+        dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        val = defvaltrue;
+        if((this = findChildName(node, "vexpand")))
+        {
+            if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+                val = thisval;
+        }
+        item = dw_checkbox_new("Vertically", 0);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        dw_checkbox_set(item, atoi(val));
+        dw_window_set_data(vbox, "vexpand", item);
+        /* Padding */
+        hbox = dw_box_new(DW_HORZ, 0);
+        dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+        item = dw_text_new("Padding", 0);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+        val = defvalzero;
+        if((this = findChildName(node, "padding")))
+        {
+            if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+                val = thisval;
+        }
+        item = dw_spinbutton_new(val, 0);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+        dw_spinbutton_set_limits(item, 2000, 0);
+        dw_window_set_data(vbox, "padding", item);
+        /* Enabled */
         hbox = dw_box_new(DW_HORZ, 0);
         dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
         item = dw_text_new("Enabled", 0);
@@ -1697,7 +1694,7 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "title", item);
     
-    properties_item(node, scrollbox, TRUE);
+    properties_item(node, scrollbox, FALSE);
     
     /* Status Text */
     hbox = dw_box_new(DW_HORZ, 0);
