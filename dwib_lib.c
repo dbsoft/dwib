@@ -106,8 +106,6 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
     int flags = 0, orient = DW_HORZ;
     unsigned long pageid = dw_notebook_page_new(packbox, flags, FALSE);
     
-    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-        dw_notebook_page_set_text(packbox, pageid, thisval);
     if((this = _dwib_find_child(node, "statustext")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dw_notebook_page_set_status_text(packbox, pageid, thisval);
     if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) 
@@ -116,6 +114,9 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
 
     box = dw_box_new(orient, 0);
     dw_notebook_pack(packbox, pageid, box);
+    
+    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        dw_notebook_page_set_text(packbox, pageid, thisval);
     return box;
 }
 
