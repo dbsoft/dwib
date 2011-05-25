@@ -15,9 +15,9 @@ CFLAGS = /Ti /Tm+ /DOS2 /DTCPV40HDRS /D__TARGET__=\"$(TARGET)\" /I. /I$(DWINCPAT
 LDFLAGS = /DE /optfunc
 
 
-OBJECTS = dwib.obj
+OBJECTS = dwib.obj dwib_lib.obj
 
-SOURCES = dwib.c
+SOURCES = dwib.c dwib_lib.c
 
 all: dwib.exe
 
@@ -29,7 +29,7 @@ dwib.exe:  $(OBJECTS)
 	icc @<<
 	 /B" $(LDFLAGS)"
 	 /Fedwib.exe
-	 $(DWLIBPATH)\dw.lib $(XML2LIBPATH)\xml2.lib
+	 $(DWLIBPATH)\dw.lib $(XML2LIBPATH)\libxml2_a.lib
 	 $(OBJECTS)
 	 os2\dwib.def
 <<
@@ -40,6 +40,7 @@ clean:
 	rm $(OBJECTS) dwib.exe os2\dwib.res
 
 
-dwib.obj: dwib.c dwib.h resources.h
+dwib.obj: dwib.c dwib.h dwib_int.h resources.h
+dwib_lib.obj: dwib_lib.c dwib.h dwib_int.h resources.h
 dwib.res: os2\dwib.rc resources.h
 
