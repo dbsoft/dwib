@@ -2233,6 +2233,10 @@ int DWSIGNAL save_clicked(HWND button, void *data)
     
     if(filename)
     {
+        /* Make sure the XML tree is up-to-date */
+        save_properties();
+        
+        /* Enable indenting in the output */
         xmlIndentTreeOutput = 1;
         
         xmlSaveFormatFile(filename, DWDoc, 1);
