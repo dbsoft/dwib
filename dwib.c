@@ -204,6 +204,18 @@ void save_properties(void)
         case TYPE_CALENDAR:
             save_item(node, vbox);
             break;
+        case TYPE_PADDING:
+            updateNode(node, vbox, "width", FALSE);
+            updateNode(node, vbox, "height", FALSE);
+            updateNode(node, vbox, "hexpand", TRUE);
+            updateNode(node, vbox, "vexpand", TRUE);
+            break;
+        case TYPE_MENU:
+            updateNode(node, vbox, "title", FALSE);
+            updateNode(node, vbox, "checkable", TRUE);
+            updateNode(node, vbox, "checked", TRUE);
+            updateNode(node, vbox, "enabled", TRUE);
+            break;
     }
 }
 
@@ -1924,6 +1936,276 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     dw_window_redraw(hwndProperties);
 }    
 
+/* Create a new padding definition */
+int DWSIGNAL padding_create(HWND window, void *data)
+{
+    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
+    xmlNodePtr boxNode = NULL;
+    
+    if(is_packable(TRUE))
+    {
+        boxNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Padding", (xmlChar *)"");
+    }
+    
+    if(!boxNode)
+        return FALSE;
+    
+    /* Create a sub-node for holding children */
+    xmlNewTextChild(boxNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+    
+    treeitem = dw_tree_insert(tree, "Padding", 0, (HTREEITEM)DWCurrNode->_private, boxNode);
+    boxNode->_private = (void *)treeitem;
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    
+    dw_window_set_data(vbox, "node", boxNode);
+    
+    save_properties();
+    
+    properties_window(DWCurrNode);
+    
+    return FALSE;
+}
+
+/* Populate the properties window for padding */
+void DWSIGNAL properties_padding(xmlNodePtr node)
+{
+    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *thisval, *val = defvalstr;
+    xmlNodePtr this;
+    
+    dw_window_destroy(vbox);
+    vbox = dw_box_new(DW_VERT, 0);
+    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
+    dw_window_set_data(hwndProperties, "box", vbox);
+    scrollbox = dw_scrollbox_new(DW_VERT, 2);
+    dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
+    
+    /* Title display */
+    item = dw_text_new("Padding", 0);
+    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    
+    /* Required size */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Size (width, height)", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvaltrue;
+    if((this = findChildName(node, "width")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_spinbutton_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_spinbutton_set_limits(item, 2000, 0);
+    dw_window_set_data(vbox, "width", item);
+    val = defvaltrue;
+    if((this = findChildName(node, "height")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_spinbutton_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_spinbutton_set_limits(item, 2000, 0);
+    dw_window_set_data(vbox, "height", item);
+    /* Expandable */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Expand", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvaltrue;
+    if((this = findChildName(node, "hexpand")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_checkbox_new("Horizontally", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "hexpand", item);
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvaltrue;
+    if((this = findChildName(node, "vexpand")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_checkbox_new("Vertically", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "vexpand", item);
+    
+    /* If it is a new window add button */
+    if(!node)
+    {
+        item = dw_button_new("Create", 0);
+        dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(padding_create), NULL);
+    }
+    dw_window_redraw(hwndProperties);
+}
+
+/* Create a new menu definition */
+int DWSIGNAL menu_create(HWND window, void *data)
+{
+    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HTREEITEM treeitem;
+    xmlNodePtr boxNode = NULL;
+    char buf[200], *title = dw_window_get_text((HWND)dw_window_get_data(vbox, "title"));
+    
+    /* Menus can only be added to the window... or other menus */
+    if(strcmp((char *)DWCurrNode->name, "Window") == 0 ||
+       strcmp((char *)DWCurrNode->name, "Menu") == 0)
+    {
+        boxNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Menu", (xmlChar *)"");
+    }
+    
+    if(!boxNode)
+        return FALSE;
+    
+    /* Create a sub-node for holding children */
+    xmlNewTextChild(boxNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+    
+    snprintf(buf, 200, "Menu - (%s)", title ? title : "");
+    
+    if(title)
+        dw_free(title);
+    
+    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, boxNode);
+    boxNode->_private = (void *)treeitem;
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    
+    dw_window_set_data(vbox, "node", boxNode);
+    
+    save_properties();
+    
+    properties_window(DWCurrNode);
+    
+    return FALSE;
+}
+
+/* Make sure the two checkboxes have valid settings */
+int DWSIGNAL toggle_clicked(HWND window, void *data)
+{
+    HWND vbox = (HWND)data;
+    HWND checkable = (HWND)dw_window_get_data(vbox, "checkable");
+    HWND checked = (HWND)dw_window_get_data(vbox, "checked");
+    int state = dw_checkbox_get(window);
+    
+    /* If the menu isnt' checkable... it can't default to checked */
+    if(window == checkable)
+    {
+        if(!state)
+            dw_checkbox_set(checked, state);
+    }
+    /* If the menu is checked... it has to be checkable */
+    else if(window == checked)
+    {
+        if(state)
+            dw_checkbox_set(checkable, state);
+    }
+    return FALSE;
+}
+
+/* Populate the properties menubar for a menu */
+void DWSIGNAL properties_menu(xmlNodePtr node)
+{
+    HWND item, checkable, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    char *thisval, *val = defvalstr;
+    xmlNodePtr this;
+    
+    dw_window_destroy(vbox);
+    vbox = dw_box_new(DW_VERT, 0);
+    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
+    dw_window_set_data(hwndProperties, "box", vbox);
+    scrollbox = dw_scrollbox_new(DW_VERT, 2);
+    dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
+    
+    /* Title display */
+    item = dw_text_new("Menu Widget", 0);
+    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    
+    /* Create the actual properties - Title */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Title", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    if((this = findChildName(node, "title")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_entryfield_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "title", item);
+    /* Style */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Style", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = findChildName(node, "checkable")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    checkable = item = dw_checkbox_new("Checkable", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "checkable", item);
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvalstr;
+    if((this = findChildName(node, "checked")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_checkbox_new("Checked", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "checked", item);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toggle_clicked), (void *)vbox);
+    dw_signal_connect(checkable, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toggle_clicked), (void *)vbox);
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    val = defvaltrue;
+    if((this = findChildName(node, "enabled")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_checkbox_new("Enabled", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "enabled", item);
+    
+    /* If it is a new window add button */
+    if(!node)
+    {
+        item = dw_button_new("Create", 0);
+        dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_create), NULL);
+    }
+    dw_window_redraw(hwndProperties);
+}
+
 /* Create a new window definition */
 int DWSIGNAL window_create(HWND window, void *data)
 {
@@ -2276,6 +2558,20 @@ void handleChildren(xmlNodePtr node, HWND tree)
             
             handleChildren(p, tree);
         }
+        else if(strcmp((char *)p->name, "Menu") == 0)
+        {
+            xmlNodePtr this = findChildName(p, "title");
+            
+            val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            
+            snprintf(buf, 200, "Menu - (%s)", val ? val : "");
+            
+            treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)node->_private, p);
+            p->_private = (void *)treeitem;
+            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+            
+            handleChildren(p, tree);
+        }
         else if(strcmp((char *)p->name, "NotebookPage") == 0)
         {
             xmlNodePtr this = findChildName(p, "title");
@@ -2313,7 +2609,8 @@ void handleChildren(xmlNodePtr node, HWND tree)
                 strcmp((char *)p->name, "Bitmap") == 0 ||
                 strcmp((char *)p->name, "HTML") == 0 ||
                 strcmp((char *)p->name, "Calendar") == 0 ||
-                strcmp((char *)p->name, "Listbox") == 0)
+                strcmp((char *)p->name, "Listbox") == 0 ||
+                strcmp((char *)p->name, "Padding") == 0)
         {
             treeitem = dw_tree_insert(tree, (char *)p->name, 0, (HTREEITEM)node->_private, p);
             p->_private = (void *)treeitem;
@@ -2408,6 +2705,16 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handle deleting a node layout */
+int DWSIGNAL delete_clicked(HWND button, void *data)
+{
+    if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to remove the current node (%s)?", 
+                     DWCurrNode && DWCurrNode->name ? (char *)DWCurrNode->name : ""))
+    {
+    }
+    return FALSE;
+}
+
 /* One of the buttons on the toolbar was clicked */
 int DWSIGNAL toolbar_clicked(HWND button, void *data)
 {
@@ -2434,6 +2741,18 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
         else
         {
             dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be a notebook.");
+        }
+    }
+    else if(which == TYPE_MENU)
+    {
+        if(strcmp((char *)DWCurrNode->name, "Window") == 0 ||
+           strcmp((char *)DWCurrNode->name, "Menu") == 0)
+        {
+            properties_menu(NULL);
+        }
+        else
+        {
+            dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be a window or menu.");
         }
     }
     else if(is_packable(TRUE))
@@ -2484,6 +2803,9 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
                 break;
             case TYPE_CALENDAR:
                 properties_calendar(NULL);
+                break;
+            case TYPE_PADDING:
+                properties_padding(NULL);
                 break;
             default:
                 return FALSE;
@@ -2590,6 +2912,16 @@ int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, vo
             properties_calendar(DWCurrNode);
             dw_window_set_data(hwndProperties, "type", (void *)TYPE_CALENDAR);
         }
+        else if(strcmp((char *)DWCurrNode->name, "Padding") == 0)
+        {
+            properties_padding(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_PADDING);
+        }
+        else if(strcmp((char *)DWCurrNode->name, "Menu") == 0)
+        {
+            properties_menu(DWCurrNode);
+            dw_window_set_data(hwndProperties, "type", (void *)TYPE_MENU);
+        }
         else 
             return FALSE;
         
@@ -2689,6 +3021,13 @@ void dwib_init(void)
     item = dw_button_new("Calendar", 0);
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_CALENDAR);
+    item = dw_button_new("Padding", 0);
+    dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_PADDING);
+    item = dw_button_new("Menu", 0);
+    dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), (void *)TYPE_MENU);
+    dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
     vbox = dw_box_new(DW_VERT, 0);
     dw_box_pack_start(hbox, vbox, 0, 0, TRUE, TRUE, 0);
     item = dw_tree_new(0);
@@ -2706,7 +3045,7 @@ void dwib_init(void)
     dw_box_pack_start(hbox, 0, 30, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     item = dw_button_new("Delete", 0);
     dw_box_pack_start(hbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    //dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(delete_clicked), NULL);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(delete_clicked), NULL);
     dw_box_pack_start(hbox, 0, 30, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     item = dw_button_new("Refresh", 0);
     dw_box_pack_start(hbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);

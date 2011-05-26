@@ -23,7 +23,9 @@ enum DWTYPES
     TYPE_NOTEBOOK,
     TYPE_NOTEBOOK_PAGE,
     TYPE_HTML,
-    TYPE_CALENDAR
+    TYPE_CALENDAR,
+    TYPE_PADDING,
+    TYPE_MENU
 } DWTypes;
 
 xmlNodePtr findChildName(xmlNodePtr node, char *name);

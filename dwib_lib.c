@@ -491,6 +491,12 @@ HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
     return listbox;
 }
 
+/* Internal function for packing padding from an XML tree node */
+void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+{
+    _dwib_item_pack(node, doc, window, packbox, 0);
+}
+
 /* Internal function fo parsing the children of packable widgets... boxes, notebook pages, etc */
 void _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box)
 {
@@ -565,6 +571,10 @@ void _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box)
         else if(strcmp((char *)p->name, "Listbox") == 0)
         {
             _dwib_listbox_create(p, doc, window, box);
+        }
+        else if(strcmp((char *)p->name, "Padding") == 0)
+        {
+            _dwib_padding_create(p, doc, window, box);
         }
     }
 }
