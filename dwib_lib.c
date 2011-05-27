@@ -491,6 +491,35 @@ HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
     return listbox;
 }
 
+/* Internal function for creating a menu widget from an XML tree node */
+HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packbox, HMENUI submenu)
+{
+    HWND menuitem;
+    xmlNodePtr this = _dwib_find_child(node, "title");
+    char *thisval, *title = "", *dataname = NULL;
+    static int menuid = 1000;
+    int flags = 0, checkable = 0;
+    
+    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        title = thisval;
+    if((this = _dwib_find_child(node, "checkable")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        checkable = atoi(thisval);
+    if((this = _dwib_find_child(node, "checked")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+        flags |= DW_MIS_CHECKED;
+    if((this = _dwib_find_child(node, "enabled")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        flags |= DW_MIS_ENABLED;
+    if((this = _dwib_find_child(node, "dataname")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        dataname = thisval;
+    
+    menuitem = dw_menu_append_item(packbox, title, menuid, flags, TRUE, checkable, submenu);
+    menuid++;
+    
+    if(dataname && window)
+        dw_window_set_data(window, dataname, menuitem);
+    
+    return menuitem;
+}
+
 /* Internal function for packing padding from an XML tree node */
 void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
 {
@@ -498,26 +527,27 @@ void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
 }
 
 /* Internal function fo parsing the children of packable widgets... boxes, notebook pages, etc */
-void _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box)
+HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int windowlevel)
 {
     xmlNodePtr p = _dwib_find_child(node, "Children");
+    HMENUI menu = 0;
     
     for(p=p->children;p;p = p->next)
     {
         if(strcmp((char *)p->name, "Box") == 0)
         {
             HWND newbox = _dwib_box_create(p, doc, window, box);
-            _dwib_children(p, doc, window, newbox);
+            _dwib_children(p, doc, window, newbox, FALSE);
         }
         else if(strcmp((char *)p->name, "Notebook") == 0)
         {
             HWND notebook = _dwib_notebook_create(p, doc, window, box);
-            _dwib_children(p, doc, window, notebook);
+            _dwib_children(p, doc, window, notebook, FALSE);
         }
         else if(strcmp((char *)p->name, "NotebookPage") == 0)
         {
             HWND notebookpage = _dwib_notebook_page_create(p, doc, window, box);
-            _dwib_children(p, doc, window, notebookpage);
+            _dwib_children(p, doc, window, notebookpage, FALSE);
         }
         else if(strcmp((char *)p->name, "Button") == 0)
         {
@@ -576,7 +606,22 @@ void _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box)
         {
             _dwib_padding_create(p, doc, window, box);
         }
+        else if(strcmp((char *)p->name, "Menu") == 0)
+        {
+            HMENUI submenu;
+
+            if(!menu)
+            {
+                if(windowlevel)
+                    menu = dw_menubar_new(window);
+                else
+                    menu = dw_menu_new(0);
+            }
+            submenu = _dwib_children(p, doc, window, 0, FALSE);
+            _dwib_menu_create(p, doc, window, menu, submenu);
+        }
     }
+    return menu;
 }
 
 /* Internal function for creating a window from an XML tree node */
@@ -673,7 +718,7 @@ HWND API dwib_load(DWIB handle, char *name)
             if(val && strcmp(name, val) == 0)
             {
                 HWND window = _dwib_window_create(p, doc);
-                _dwib_children(p, doc, window, (HWND)dw_window_get_data(window, "_dwib_box"));
+                _dwib_children(p, doc, window, (HWND)dw_window_get_data(window, "_dwib_box"), TRUE);
                 return window;
             }
         }

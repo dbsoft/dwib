@@ -212,6 +212,7 @@ void save_properties(void)
             break;
         case TYPE_MENU:
             updateNode(node, vbox, "title", FALSE);
+            updateNode(node, vbox, "dataname", FALSE);
             updateNode(node, vbox, "checkable", TRUE);
             updateNode(node, vbox, "checked", TRUE);
             updateNode(node, vbox, "enabled", TRUE);
@@ -2151,6 +2152,20 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     item = dw_entryfield_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "title", item);
+    /* Data name*/
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Data name", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    if((this = findChildName(node, "dataname")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_entryfield_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "dataname", item);
     /* Style */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -2708,6 +2723,11 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
 /* Handle deleting a node layout */
 int DWSIGNAL delete_clicked(HWND button, void *data)
 {
+    if(strcmp((char *)DWCurrNode->name, "DynamicWindows") == 0)
+    {
+        dw_messagebox(DWIB_NAME, DW_MB_OK, "No node selected.");
+        return FALSE;
+    }
     if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to remove the current node (%s)?", 
                      DWCurrNode && DWCurrNode->name ? (char *)DWCurrNode->name : ""))
     {
