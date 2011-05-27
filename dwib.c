@@ -210,6 +210,19 @@ char *defvalstr = "", *defvalint = "-1", *defvaltrue = "1", *defvalzero = "0";
 
 extern char *Colors[];
 
+/* Populate the properties dialog with nothing */
+void properties_none(int refresh)
+{
+    HWND item, vbox = dw_box_new(DW_VERT, 0);
+    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
+    dw_window_set_data(hwndProperties, "box", vbox);
+    item = dw_text_new("No item selected", 0);
+    dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+    
+    if(refresh)
+        dw_window_redraw(hwndProperties);
+}
+
 /* Populate the properties window with generic item fields */
 void properties_item(xmlNodePtr node, HWND scrollbox, int box)
 {
@@ -2197,6 +2210,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     item = dw_text_new("Data name", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
     if((this = _dwib_find_child(node, "dataname")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
@@ -2770,6 +2784,11 @@ int DWSIGNAL delete_clicked(HWND button, void *data)
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
         xmlNodePtr node = DWCurrNode;
+        HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+        
+        /* Remove the properties */
+        dw_window_destroy(vbox);
+        properties_none(TRUE);
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
         xmlUnlinkNode(node);
@@ -3119,11 +3138,7 @@ void dwib_init(void)
     dw_window_show(hwndToolbar);
     
     hwndProperties = dw_window_new(DW_DESKTOP, "Properties Inspector", DW_FCF_TITLEBAR | DW_FCF_SIZEBORDER);
-    vbox = dw_box_new(DW_VERT, 0);
-    dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
-    dw_window_set_data(hwndProperties, "box", vbox);
-    item = dw_text_new("No item selected", 0);
-    dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
+    properties_none(FALSE);
     dw_signal_connect(hwndToolbar, DW_SIGNAL_SET_FOCUS, DW_SIGNAL_FUNC(toolbar_focus), NULL);
     dw_window_set_pos_size(hwndProperties, 650, 20, 300, 500);
     dw_window_show(hwndProperties);
