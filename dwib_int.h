@@ -31,6 +31,7 @@ enum DWTYPES
 xmlNodePtr findChildName(xmlNodePtr node, char *name);
 int _dwib_get_color(char *color);
 xmlNodePtr _dwib_find_child(xmlNodePtr node, char *name);
+void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc);
 
 HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc);
 void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);

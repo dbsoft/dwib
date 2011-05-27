@@ -370,6 +370,25 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
     return entryfield;
 }
 
+/* Fills in a listbox/combobox with items from the List node */
+void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc)
+{
+    xmlNodePtr p;
+    
+    for(p=node->children;p;p = p->next)
+    {
+        if(strcmp((char *)p->name, "Item") == 0)
+        {
+            char *thisval;
+            
+            if((thisval = (char *)xmlNodeListGetString(doc, p->children, 1)))
+            {
+                dw_listbox_append(list, thisval);
+            }
+        }
+    }
+}
+
 /* Internal function for creating a combobox widget from an XML tree node */
 HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
 {
@@ -378,13 +397,15 @@ HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
     char *thisval, *deftext = "";
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-    {
         deftext = thisval;
-    }
     
     combobox = dw_combobox_new(deftext, 0);
     
     _dwib_item_pack(node, doc, window, packbox, combobox);
+    
+    if((this = _dwib_find_child(node, "List")))
+        _dwib_populate_list(combobox, this, doc);
+                            
     return combobox;
 }
 
@@ -488,6 +509,10 @@ HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
     listbox = dw_listbox_new(0, multi);
     
     _dwib_item_pack(node, doc, window, packbox, listbox);
+    
+    if((this = _dwib_find_child(node, "List")))
+        _dwib_populate_list(listbox, this, doc);
+    
     return listbox;
 }
 

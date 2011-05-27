@@ -34,6 +34,34 @@ int is_packable(int message)
     return FALSE;
 }
 
+/* Gets the contents of the list and puts it into the XML tree...
+ * replacing any previous contents of the list.
+ */
+void saveList(xmlNodePtr node, HWND vbox)
+{
+    HWND list = (HWND)dw_window_get_data(vbox, "list");
+    xmlNodePtr this = _dwib_find_child(node, "List");
+    
+    if(node && list)
+    {
+        int x, count = dw_listbox_count(list);
+        char buf[100];
+        
+        if(this)
+        {
+            xmlUnlinkNode(this);
+            xmlFreeNode(this);
+        }
+        this = xmlNewTextChild(node, NULL, (xmlChar *)"List", (xmlChar *)"");
+        
+        for(x=0;x<count;x++)
+        {
+            dw_listbox_get_text(list, x, buf, 100);
+            xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)buf);
+        }
+    }
+}
+
 /* Checks the values on the properties and updates
  * the XML node data.
  */
@@ -134,10 +162,12 @@ void save_properties(void)
         case TYPE_COMBOBOX:
             save_item(node, vbox);
             updateNode(node, vbox, "deftext", FALSE);
+            saveList(node, vbox);
             break;
         case TYPE_LISTBOX:
             save_item(node, vbox);
             updateNode(node, vbox, "multi", TRUE);
+            saveList(node, vbox);
             break;
         case TYPE_CONTAINER:
             save_item(node, vbox);
@@ -687,6 +717,9 @@ int DWSIGNAL combobox_create(HWND window, void *data)
     if(!thisNode)
         return FALSE;
     
+    /* Create a sub-node for holding children */
+    xmlNewTextChild(thisNode, NULL, (xmlChar *)"List", (xmlChar *)"");
+    
     treeitem = dw_tree_insert(tree, "Combobox", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
@@ -713,9 +746,12 @@ int DWSIGNAL add_clicked(HWND window, void *data)
         
         if(text)
         {
-            dw_listbox_append(list, text);
+            if(*text)
+            {
+                dw_listbox_append(list, text);
+                dw_window_set_text(entry, "");
+            }
             dw_free(text);
-            dw_window_set_text(entry, "");
         }
     }
     return FALSE;
@@ -784,6 +820,10 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     item = dw_listbox_new(0, FALSE);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, 200, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "list", item);
+    if((this = _dwib_find_child(node, "List")))
+    {
+        _dwib_populate_list(item, this, DWDoc);
+    }
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     item = dw_entryfield_new("", 0);
@@ -822,6 +862,9 @@ int DWSIGNAL listbox_create(HWND window, void *data)
     
     if(!thisNode)
         return FALSE;
+    
+    /* Create a sub-node for holding children */
+    xmlNewTextChild(thisNode, NULL, (xmlChar *)"List", (xmlChar *)"");
     
     treeitem = dw_tree_insert(tree, "Listbox", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
@@ -881,6 +924,10 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     item = dw_listbox_new(0, FALSE);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, 200, TRUE, FALSE, 0);
+    if((this = _dwib_find_child(node, "List")))
+    {
+        _dwib_populate_list(item, this, DWDoc);
+    }
     dw_window_set_data(vbox, "list", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
