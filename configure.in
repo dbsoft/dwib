@@ -1,6 +1,12 @@
 AC_INIT(dwib.c)
 AC_CONFIG_HEADER(config.h)
 
+DWIB_MAJOR_VERSION=0
+DWIB_MINOR_VERSION=5
+DWIB_SUB_VERSION=0
+
+TARGET="dwib"
+
 INCLUDES="-I."
 
 AC_PROG_CC
@@ -24,12 +30,19 @@ CFLAGS=`dwindows-config --cflags`
 
 AC_CHECK_LIB(dwindows, dw_main,LIBS="$LIBS",AC_MSG_ERROR(Dynamic Windows library not found. Interface Builder cannot build without it.))
 
+LIBSUFFIX=a
+LIBPREFIX=lib
+
 PLATFORM=`uname -s`
 
 if test x"$PLATFORM" = x"Darwin"; then
   LIBXML2_CFLAGS="-I/usr/include/libxml2"
   LIBXML2_LIBS="-L/usr/lib -lxml2"
+  SHAREDFLAG="-dynamiclib -flat_namespace -undefined suppress"
+  SOSUFFIX=dylib
 else
+  SHAREDFLAG=-shared
+  SOSUFFIX=so
   LIBXML2_LIBS=`pkg-config libxml-2.0 --libs`
   LIBXML2_CFLAGS=`pkg-config libxml-2.0 --cflags`
 fi
@@ -37,28 +50,10 @@ fi
 LIBS="$LIBXML2_LIBS $LIBS"
 CFLAGS="$LIBXML2_CFLAGS $CFLAGS"
 
+SYSCONF_LINK_TARGET_SHARED="lib$TARGET.$SOSUFFIX.$DWIB_MAJOR_VERSION.$DWIB_MINOR_VERSION"
+SYSCONF_LINK_TARGET_STATIC="lib$TARGET.a"
+
 AC_CHECK_LIB(xml2, xmlNewDoc,LIBS="$LIBS",AC_MSG_ERROR(XML2 library not found. Interface Builder cannot build without it.))
-
-AC_CHECK_FUNCS(connect)
-if test x"$ac_cv_func_connect" = x"no"; then
-  if test -z "$libsocket"; then
-    AC_CHECK_LIB(socket, socket, LIBS="$LIBS -lsocket",)
-  fi
-
-  dnl this is for isc.  need the nsl_s library as well.
-  if test -z "$libinet"; then
-    AC_CHECK_LIB(inet, socket, libnsl=1; LIBS="$LIBS -linet -lnsl_s",)
-  fi
-
-  if test -z "$libnsl"; then
-    AC_CHECK_LIB(nsl, gethostname, LIBS="$LIBS -lnsl",)
-  fi
-fi
-
-AC_CHECK_LIB(sun, getpwnam, LIBS="$LIBS -lsun",)
-AC_CHECK_LIB(dgc, inet_addr, LIBS="$LIBS -ldgc",)
-AC_CHECK_LIB(resolv, gethostbyname, LIBS="$LIBS -lresolv",)
-AC_CHECK_LIB(dwcompat, locale_string, LIBS="$LIBS -ldwcompat",)
 
 RM="rm -f"
 LN="ln -s"
@@ -66,12 +61,22 @@ CP="cp"
 MV="mv"
 MKDIR="mkdir"
 
+AC_SUBST(SYSCONF_LINK_TARGET_SHARED)
+AC_SUBST(SYSCONF_LINK_TARGET_STATIC)
 
+AC_SUBST(DWIB_MAJOR_VERSION)
+AC_SUBST(DWIB_MINOR_VERSION)
+AC_SUBST(DWIB_SUB_VERSION)
 AC_SUBST(INCLUDES)
 AC_SUBST(RM)
 AC_SUBST(LN)
 AC_SUBST(CP)
 AC_SUBST(MV)
 AC_SUBST(MKDIR)
+AC_SUBST(SHAREDFLAG)
+AC_SUBST(SOSUFFIX)
+AC_SUBST(LIBSUFFIX)
+AC_SUBST(LIBPREFIX)
+AC_SUBST(SONAME)
 
 AC_OUTPUT(Makefile:Makefile.in)

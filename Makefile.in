@@ -7,7 +7,14 @@ MAKE = @MAKE@
 MKDIR = @MKDIR@
 INSTALL = @INSTALL@
 PREFIX = @prefix@
-TARGET = dwib
+TARGET = @TARGET@
+VER_MAJ	=	@DWIB_MAJOR_VERSION@
+VER_MIN	=	@DWIB_MINOR_VERSION@
+SOSUFFIX=	@SOSUFFIX@
+SONAME=	@SONAME@
+LIBPREFIX = @LIBPREFIX@
+LIBSUFFIX = @LIBSUFFIX@
+prefix	=	$(DESTDIR)@prefix@
 DISPLAYNAME = Dynamic Windows Interface Builder
 
 LIBS = @LIBS@
@@ -18,10 +25,47 @@ LDFLAGS = @LDFLAGS@
 
 
 OBJECTS = dwib.o dwib_lib.o
-
 SOURCES = dwib.c dwib_lib.c
 
-all: $(TARGET)
+LIBOBJECTS = dwib_lib.o
+LIBSOURCES = dwib_lib.c
+
+# Link flags shared objects
+SYSCONF_LFLAGS_SHOBJ	= @SHAREDFLAG@
+
+# Linking shared libraries
+#   - Build the $(TARGET) library, eg. lib$(TARGET).so.0.0
+#   - Usually needs to incorporate $(VER_MAJ) and $(VER_MIN)
+#
+SYSCONF_LINK_SHLIB	= gcc
+SYSCONF_LINK_TARGET_SHARED = @SYSCONF_LINK_TARGET_SHARED@
+SYSCONF_LINK_LIB_SHARED	=  $(SYSCONF_LINK_SHLIB) $(SYSCONF_LFLAGS_SHOBJ) \
+				     -o $(SYSCONF_LINK_TARGET_SHARED) \
+				     $(LIBOBJECTS) $(LFLAGS) $(SONAME); \
+				 rm -f lib$(TARGET).$(SOSUFFIX) lib$(TARGET).$(SOSUFFIX).$(VER_MAJ); \
+				 ln -s $(SYSCONF_LINK_TARGET_SHARED) lib$(TARGET).$(SOSUFFIX); \
+				 ln -s $(SYSCONF_LINK_TARGET_SHARED) lib$(TARGET).$(SOSUFFIX).$(VER_MAJ)
+
+# Linking static libraries
+#   - Build the $(TARGET) library, eg. lib$(TARGET).a
+#
+SYSCONF_AR		= ar $(ARFLAGS)
+SYSCONF_LINK_TARGET_STATIC = @SYSCONF_LINK_TARGET_STATIC@
+SYSCONF_LINK_LIB_STATIC	= rm -f $(SYSCONF_LINK_TARGET_STATIC) ; \
+				 $(SYSCONF_AR) $(SYSCONF_LINK_TARGET_STATIC) $(LIBOBJECTS)
+
+####### Build rules
+
+SYSCONF_LINK_TARGET = $(SYSCONF_LINK_TARGET_SHARED)
+SYSCONF_LINK_LIB = $(SYSCONF_LINK_LIB_SHARED)
+
+all: $(TARGET) $(SYSCONF_LINK_TARGET_SHARED)
+
+$(SYSCONF_LINK_TARGET_SHARED): $(LIBOBJECTS)
+	$(SYSCONF_LINK_LIB_SHARED)
+
+$(SYSCONF_LINK_TARGET_STATIC): $(LIBOBJECTS)
+	$(SYSCONF_LINK_LIB_STATIC)
 
 $(OBJECTS):
 	$(CC) $(CFLAGS) $(INCLUDES) -c $<
@@ -33,7 +77,7 @@ $(TARGET):  $(OBJECTS) resources.o
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJECTS) resources.o $(LDFLAGS) $(LIBS)
 
 clean: 
-	$(RM) $(OBJECTS) resources.o $(TARGET)
+	$(RM) $(OBJECTS) resources.o $(TARGET) *.$(SOSUFFIX) *.$(SOSUFFIX).* *~
 
 distclean: 
 	$(RM) $(OBJECTS) resources.o $(TARGET) *~ os2/*~ win/*~ gtk/*~ config.cache config.log config.status Makefile config.h
