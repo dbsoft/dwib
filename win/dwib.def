@@ -1,5 +1,10 @@
-NAME DWIB WINDOWAPI
+LIBRARY DWIB
            
 DESCRIPTION 'Dynamic Windows Interface Builder'
 
-STACKSIZE 128000
+EXPORTS
+  dwib_load                              @10
+  dwib_show                              @11
+  dwib_open_from_data                    @12
+  dwib_open                              @13
+  dwib_close                             @14

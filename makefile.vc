@@ -37,8 +37,10 @@ DEFFILE = win\dwib.def
 OBJS =	dwib.obj \
         dwib_lib.obj \
         winmain.obj
-	
-all: dwib.exe
+
+LIBOBJS = dwib_lib.obj
+        
+all: dwib.exe dwib.dll
 
 clean:
 	-erase *.dll
@@ -58,13 +60,23 @@ dwib.res: win\dwib.rc
 
 dwib.exe: $(OBJS) win\dwib.res
 	$(LINK) @<<
--out:$(@) -def:$(DEFFILE) -subsystem:windows
+-out:$(@) -subsystem:windows
 $(LINKFLAGS)
 $(OBJS)
 $(LIBS)
 win\dwib.res
 <<
 	mt.exe /manifest dwib.exe.manifest win\dwib.exe.$(TARGET_CPU).manifest /outputresource:dwib.exe;1
-        
+ 
+dwib.dll: $(LIBOBJS) $(DEFFILE)
+	$(LINK) @<<
+-out:$(@) -def:$(DEFFILE)
+$(LINKFLAGS) $(DLLLINKFLAGS)
+$(LIBOBJS) $(RES)
+$(LIBS)
+<<
+	lib /def:$(DEFFILE) /out:dwib.lib
+	mt.exe /manifest dwib.dll.manifest win\dwib.dll.$(TARGET_CPU).manifest /outputresource:dwib.dll;2
+ 
 .c.obj:
 	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $(CFLAGS_COMPILE) $*.c
