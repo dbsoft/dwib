@@ -14,13 +14,13 @@ SOSUFFIX=	@SOSUFFIX@
 SONAME=	@SONAME@
 LIBPREFIX = @LIBPREFIX@
 LIBSUFFIX = @LIBSUFFIX@
-prefix	=	$(DESTDIR)@prefix@
+prefix	= @prefix@
 DISPLAYNAME = Dynamic Windows Interface Builder
 
 LIBS = @LIBS@
 INCLUDES = @INCLUDES@
 
-CFLAGS = @CFLAGS@ -DDW_RESOURCES -DINSTALL_PREFIX=\"$(PREFIX)\" -D__TARGET__=\"$(TARGET)\"
+CFLAGS = @CFLAGS@ @PLATCCFLAGS@ -DDW_RESOURCES -DINSTALL_PREFIX=\"$(PREFIX)\" -D__TARGET__=\"$(TARGET)\"
 LDFLAGS = @LDFLAGS@
 
 
@@ -83,11 +83,17 @@ distclean:
 	$(RM) $(OBJECTS) resources.o $(TARGET) *~ os2/*~ win/*~ gtk/*~ config.cache config.log config.status Makefile config.h
 
 install:
-	$(RM) -rf $(PREFIX)/$(TARGET)
-	$(MKDIR)  $(PREFIX)/$(TARGET)
-	$(INSTALL) $(TARGET) $(PREFIX)/bin
-	$(CP) -f gtk/*.png /usr/share/pixmaps
-        
+	$(INSTALL) -d $(prefix)/include; \
+	$(INSTALL) -d $(prefix)/lib; \
+	$(INSTALL) -d $(prefix)/bin; \
+	$(INSTALL) dwib.h $(prefix)/include; \
+	$(INSTALL) $(TARGET) $(prefix)/bin; \
+	$(INSTALL) $(SYSCONF_LINK_TARGET_SHARED)  $(prefix)/lib; \
+	cd $(prefix)/lib; \
+	rm -f lib$(TARGET).so lib$(TARGET).so.$(VER_MAJ); \
+	ln -sf $(SYSCONF_LINK_TARGET_SHARED) lib$(TARGET).$(SOSUFFIX); \
+	ln -sf $(SYSCONF_LINK_TARGET_SHARED) lib$(TARGET).$(SOSUFFIX).$(VER_MAJ)
+													        
 resources.o: gtk/resources.c
 dwib.o: dwib.c dwib.h dwib_int.h resources.h config.h
 dwib_lib.o: dwib_lib.c dwib.h dwib_int.h config.h
