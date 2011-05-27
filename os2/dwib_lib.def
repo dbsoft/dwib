@@ -1,0 +1,15 @@
+LIBRARY DWIB INITINSTANCE TERMINSTANCE
+
+PROTMODE
+
+DESCRIPTION 'Dynamic Windows Interface Builder for OS/2'
+
+CODE LOADONCALL
+DATA NONSHARED LOADONCALL
+
+EXPORTS
+  dwib_load                              @10
+  dwib_show                              @11
+  dwib_open_from_data                    @12
+  dwib_open                              @13
+  dwib_close                             @14

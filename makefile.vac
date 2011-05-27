@@ -13,13 +13,17 @@ TARGET=dwib
 
 CFLAGS = /Ti /Tm+ /DOS2 /DTCPV40HDRS /D__TARGET__=\"$(TARGET)\" /I. /I$(DWINCPATH) /I$(XML2INCPATH) /Sm /Ss /Q /Gm /Gt /C
 LDFLAGS = /DE /optfunc
+LIBCFLAGS = $(CFLAGS) /Ge-
+LIBLDFLAGS = /NOE /de /DLL /ST:32768 /nologo /li
 
 
 OBJECTS = dwib.obj dwib_lib.obj
-
 SOURCES = dwib.c dwib_lib.c
 
-all: dwib.exe
+LIBOBJECTS = dwib_lib.obj
+LIBSOURCES = dwib_lib.c
+
+all: dwib.exe dwib.dll
 
 $(OBJECTS):
 	icc $(CFLAGS) %s
@@ -33,8 +37,19 @@ dwib.exe:  $(OBJECTS)
 	 $(OBJECTS)
 	 os2\dwib.def
 <<
-	rc -x1 os2\dwib.res dwib.exe
+#	rc -x1 os2\dwib.res dwib.exe
 #	lxlite dwib.exe
+
+dwib.dll:  $(LIBOBJECTS)
+	icc $(LIBCFLAGS) dwib_lib.c
+	icc @<<
+	 /B" $(LIBLDFLAGS)"
+	 /Fe"dwib.dll" os2\dwib_lib.def
+	 $(DWLIBPATH)\dw.lib $(XML2LIBPATH)\libxml2_a.lib
+	 $(LIBOBJECTS)
+<<
+	implib dwib.lib os2\dwib_lib.def
+#	lxlite dwib.dll
 
 clean: 
 	rm $(OBJECTS) dwib.exe os2\dwib.res
