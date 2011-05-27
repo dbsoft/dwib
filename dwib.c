@@ -700,6 +700,45 @@ int DWSIGNAL combobox_create(HWND window, void *data)
     return FALSE;
 }
 
+/* Add to the list */
+int DWSIGNAL add_clicked(HWND window, void *data)
+{
+    HWND vbox = (HWND)data;
+    HWND list = (HWND)dw_window_get_data(vbox, "list");
+    HWND entry = (HWND)dw_window_get_data(vbox, "list_entry");
+    
+    if(vbox && entry && list)
+    {
+        char *text = dw_window_get_text(entry);
+        
+        if(text)
+        {
+            dw_listbox_append(list, text);
+            dw_free(text);
+            dw_window_set_text(entry, "");
+        }
+    }
+    return FALSE;
+}
+
+/* Remove from the list */
+int DWSIGNAL rem_clicked(HWND window, void *data)
+{
+    HWND vbox = (HWND)data;
+    HWND list = (HWND)dw_window_get_data(vbox, "list");
+    
+    if(vbox && list)
+    {
+        int selected = dw_listbox_selected(list);
+        
+        if(selected != DW_LIT_NONE)
+        {
+            dw_listbox_delete(list, selected);
+        }
+    }
+    return FALSE;
+}
+
 /* Populate the properties window for a combobox */
 void DWSIGNAL properties_combobox(xmlNodePtr node)
 {
@@ -747,11 +786,15 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_window_set_data(vbox, "list", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    item = dw_entryfield_new("", 0);
+    dw_window_set_data(vbox, "list_entry", (void *)item);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_button_new("+", 0);
     dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_clicked), (void *)vbox);
     item = dw_button_new("-", 0);
     dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(rem_clicked), (void *)vbox);
     
     /* If it is a new window add button */
     if(!node)
@@ -841,11 +884,15 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     dw_window_set_data(vbox, "list", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    item = dw_entryfield_new("", 0);
+    dw_window_set_data(vbox, "list_entry", (void *)item);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_button_new("+", 0);
     dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_clicked), (void *)vbox);
     item = dw_button_new("-", 0);
     dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(rem_clicked), (void *)vbox);
     
     /* If it is a new window add button */
     if(!node)
