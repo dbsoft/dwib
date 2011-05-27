@@ -18,23 +18,6 @@ xmlNodePtr DWCurrNode = NULL;
 #define snprintf _snprintf
 #endif
 
-/* Returns a child of node with the specified name.
- * Returns NULL on failure.
- */
-xmlNodePtr findChildName(xmlNodePtr node, char *name)
-{
-    xmlNodePtr p = node ? node->children : NULL;
-    
-    for(;p; p = p->next)
-    {
-        if(p->name && strcmp(name, (char *)p->name) == 0)
-        {
-            return p;
-        }
-    }
-    return NULL;
-}
-
 /* Returns TRUE if a packable class is selected */
 int is_packable(int message)
 {
@@ -69,7 +52,7 @@ void updateNode(xmlNodePtr node, HWND vbox, char *name, int toggle)
     
     if((toggle || (val = dw_window_get_text(item))))
     {
-        xmlNodePtr this = findChildName(node, name);
+        xmlNodePtr this = _dwib_find_child(node, name);
         
         if(!this)
             this = xmlNewTextChild(node, NULL, (xmlChar *)name, (xmlChar *)val);
@@ -241,7 +224,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
     item = dw_text_new("Data name", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    if((this = findChildName(node, "dataname")))
+    if((this = _dwib_find_child(node, "dataname")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -258,7 +241,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
         val = defvaltrue;
-        if((this = findChildName(node, "width")))
+        if((this = _dwib_find_child(node, "width")))
         {
             if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
                 val = thisval;
@@ -268,7 +251,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
         dw_spinbutton_set_limits(item, 2000, 0);
         dw_window_set_data(vbox, "width", item);
         val = defvaltrue;
-        if((this = findChildName(node, "height")))
+        if((this = _dwib_find_child(node, "height")))
         {
             if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
                 val = thisval;
@@ -284,7 +267,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
         val = defvaltrue;
-        if((this = findChildName(node, "hexpand")))
+        if((this = _dwib_find_child(node, "hexpand")))
         {
             if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
                 val = thisval;
@@ -297,7 +280,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
         dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
         dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         val = defvaltrue;
-        if((this = findChildName(node, "vexpand")))
+        if((this = _dwib_find_child(node, "vexpand")))
         {
             if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
                 val = thisval;
@@ -313,7 +296,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
         val = defvalzero;
-        if((this = findChildName(node, "padding")))
+        if((this = _dwib_find_child(node, "padding")))
         {
             if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
                 val = thisval;
@@ -331,7 +314,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
         item = dw_checkbox_new("", 0);
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         val = defvaltrue;
-        if((this = findChildName(node, "enabled")))
+        if((this = _dwib_find_child(node, "enabled")))
         {
             if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
                 val = thisval;
@@ -353,7 +336,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
         dw_listbox_append(item, Colors[x]);
     }
     val = defvalstr;
-    if((this = findChildName(node, "fcolor")))
+    if((this = _dwib_find_child(node, "fcolor")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -374,7 +357,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
         dw_listbox_append(item, Colors[x]);
     }
     val = defvalstr;
-    if((this = findChildName(node, "bcolor")))
+    if((this = _dwib_find_child(node, "bcolor")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -396,7 +379,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
 /* Create a new text definition */
 int DWSIGNAL text_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -460,10 +443,14 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_listbox_append(item, "None");
     dw_listbox_append(item, "Status");
     val = defvalstr;
-    if((this = findChildName(node, "subtype")))
+    if((this = _dwib_find_child(node, "subtype")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Status") == 0)
+                val = "1";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", item);    
@@ -477,7 +464,7 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
-    if((this = findChildName(node, "label")))
+    if((this = _dwib_find_child(node, "label")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -497,10 +484,16 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_listbox_append(item, "Center");
     dw_listbox_append(item, "Right");
     val = defvalstr;
-    if((this = findChildName(node, "alignment")))
+    if((this = _dwib_find_child(node, "alignment")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Center") == 0)
+                val = "1";
+            else if(strcmp(val, "Right") == 0)
+                val = "2";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "alignment", item);    
@@ -517,10 +510,16 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_listbox_append(item, "Center");
     dw_listbox_append(item, "Bottom");
     val = defvalstr;
-    if((this = findChildName(node, "valignment")))
+    if((this = _dwib_find_child(node, "valignment")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Center") == 0)
+                val = "1";
+            else if(strcmp(val, "Bottom") == 0)
+                val = "2";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "valignment", item);  
@@ -538,7 +537,7 @@ void DWSIGNAL properties_text(xmlNodePtr node)
 /* Create a new entryfield definition */
 int DWSIGNAL entryfield_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -602,10 +601,14 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_listbox_append(item, "None");
     dw_listbox_append(item, "Password");
     val = defvalstr;
-    if((this = findChildName(node, "subtype")))
+    if((this = _dwib_find_child(node, "subtype")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Password") == 0)
+                val = "1";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", item);    
@@ -619,7 +622,7 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
-    if((this = findChildName(node, "deftext")))
+    if((this = _dwib_find_child(node, "deftext")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -634,7 +637,7 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalint;
-    if((this = findChildName(node, "limit")))
+    if((this = _dwib_find_child(node, "limit")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -657,7 +660,7 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
 /* Create a new combobox definition */
 int DWSIGNAL combobox_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -712,7 +715,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
-    if((this = findChildName(node, "deftext")))
+    if((this = _dwib_find_child(node, "deftext")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -750,7 +753,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
 /* Create a new listbox definition */
 int DWSIGNAL listbox_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -804,7 +807,7 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     item = dw_text_new("Selection", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    if((this = findChildName(node, "multi")))
+    if((this = _dwib_find_child(node, "multi")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -844,7 +847,7 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
 /* Create a new container definition */
 int DWSIGNAL container_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -907,10 +910,14 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_listbox_append(item, "None");
     dw_listbox_append(item, "Filesystem");
     val = defvalzero;
-    if((this = findChildName(node, "subtype")))
+    if((this = _dwib_find_child(node, "subtype")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Filesystem") == 0)
+                val = "1";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", item);    
@@ -924,7 +931,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvaltrue;
-    if((this = findChildName(node, "multi")))
+    if((this = _dwib_find_child(node, "multi")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -947,7 +954,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
 /* Create a new tree definition */
 int DWSIGNAL tree_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1006,7 +1013,7 @@ void DWSIGNAL properties_tree(xmlNodePtr node)
 /* Create a new MLE definition */
 int DWSIGNAL mle_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1061,7 +1068,7 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
-    if((this = findChildName(node, "deftext")))
+    if((this = _dwib_find_child(node, "deftext")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1083,7 +1090,7 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
 /* Create a new render definition */
 int DWSIGNAL render_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1142,7 +1149,7 @@ void DWSIGNAL properties_render(xmlNodePtr node)
 /* Create a new button definition */
 int DWSIGNAL button_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1207,10 +1214,18 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     dw_listbox_append(item, "Check");
     dw_listbox_append(item, "Radio");
     val = defvalstr;
-    if((this = findChildName(node, "subtype")))
+    if((this = _dwib_find_child(node, "subtype")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Bitmap") == 0)
+                val = "1";
+            else if(strcmp(val, "Check") == 0)
+                val = "2";
+            else if(strcmp(val, "Radio") == 0)
+                val = "3";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", item);    
@@ -1224,7 +1239,7 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalzero;
-    if((this = findChildName(node, "checked")))
+    if((this = _dwib_find_child(node, "checked")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1240,7 +1255,7 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
-    if((this = findChildName(node, "setting")))
+    if((this = _dwib_find_child(node, "setting")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1262,7 +1277,7 @@ void DWSIGNAL properties_button(xmlNodePtr node)
 /* Create a new ranged definition */
 int DWSIGNAL ranged_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1327,10 +1342,18 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     dw_listbox_append(item, "Scrollbar");
     dw_listbox_append(item, "Spinbutton");
     val = defvalstr;
-    if((this = findChildName(node, "subtype")))
+    if((this = _dwib_find_child(node, "subtype")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Slider") == 0)
+                val = "1";
+            else if(strcmp(val, "Scrollbar") == 0)
+                val = "2";
+            else if(strcmp(val, "Spinbutton") == 0)
+                val = "3";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", item);    
@@ -1344,7 +1367,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalzero;
-    if((this = findChildName(node, "position")))
+    if((this = _dwib_find_child(node, "position")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1360,7 +1383,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = "100";
-    if((this = findChildName(node, "upper")))
+    if((this = _dwib_find_child(node, "upper")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1376,7 +1399,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalzero;
-    if((this = findChildName(node, "lower")))
+    if((this = _dwib_find_child(node, "lower")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1399,7 +1422,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
 /* Create a new bitmap definition */
 int DWSIGNAL bitmap_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1454,7 +1477,7 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
-    if((this = findChildName(node, "setting")))
+    if((this = _dwib_find_child(node, "setting")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1476,7 +1499,7 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
 /* Create a new HTML definition */
 int DWSIGNAL html_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1531,7 +1554,7 @@ void DWSIGNAL properties_html(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
-    if((this = findChildName(node, "URL")))
+    if((this = _dwib_find_child(node, "URL")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1553,7 +1576,7 @@ void DWSIGNAL properties_html(xmlNodePtr node)
 /* Create a new notebook definition */
 int DWSIGNAL notebook_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1615,10 +1638,14 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
     dw_listbox_append(item, "Top");
     dw_listbox_append(item, "Bottom");
     val = defvalstr;
-    if((this = findChildName(node, "position")))
+    if((this = _dwib_find_child(node, "position")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Bottom") == 0)
+                val = "1";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "position", item);    
@@ -1636,7 +1663,7 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
 /* Create a new notebook page definition */
 int DWSIGNAL notebook_page_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1698,7 +1725,7 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
-    if((this = findChildName(node, "title")))
+    if((this = _dwib_find_child(node, "title")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1716,7 +1743,7 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
-    if((this = findChildName(node, "statustext")))
+    if((this = _dwib_find_child(node, "statustext")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1735,10 +1762,14 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_listbox_append(item, "Horizontal");
     dw_listbox_append(item, "Vertical");
     val = defvalstr;
-    if((this = findChildName(node, "orientation")))
+    if((this = _dwib_find_child(node, "orientation")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Vertical") == 0)
+                val = "1";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "orientation", item);    
@@ -1756,7 +1787,7 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
 /* Create a new calendar definition */
 int DWSIGNAL calendar_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1815,7 +1846,7 @@ void DWSIGNAL properties_calendar(xmlNodePtr node)
 /* Create a new box definition */
 int DWSIGNAL box_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1884,10 +1915,14 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     dw_listbox_append(item, "Scroll");
     dw_listbox_append(item, "Splitbar");
     val = defvalstr;
-    if((this = findChildName(node, "subtype")))
+    if((this = _dwib_find_child(node, "subtype")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Group") == 0)
+                val = "1";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", item);    
@@ -1905,10 +1940,14 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     dw_listbox_append(item, "Horizontal");
     dw_listbox_append(item, "Vertical");
     val = defvalstr;
-    if((this = findChildName(node, "orientation")))
+    if((this = _dwib_find_child(node, "orientation")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Vertical") == 0)
+                val = "1";
+        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "orientation", item);    
@@ -1918,7 +1957,7 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     item = dw_text_new("Group title", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    if((this = findChildName(node, "title")))
+    if((this = _dwib_find_child(node, "title")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -1940,7 +1979,7 @@ void DWSIGNAL properties_box(xmlNodePtr node)
 /* Create a new padding definition */
 int DWSIGNAL padding_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -1996,7 +2035,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvaltrue;
-    if((this = findChildName(node, "width")))
+    if((this = _dwib_find_child(node, "width")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2006,7 +2045,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     dw_spinbutton_set_limits(item, 2000, 0);
     dw_window_set_data(vbox, "width", item);
     val = defvaltrue;
-    if((this = findChildName(node, "height")))
+    if((this = _dwib_find_child(node, "height")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2022,7 +2061,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvaltrue;
-    if((this = findChildName(node, "hexpand")))
+    if((this = _dwib_find_child(node, "hexpand")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2035,7 +2074,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvaltrue;
-    if((this = findChildName(node, "vexpand")))
+    if((this = _dwib_find_child(node, "vexpand")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2058,7 +2097,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
 /* Create a new menu definition */
 int DWSIGNAL menu_create(HWND window, void *data)
 {
-    xmlNodePtr parentNode = findChildName(DWCurrNode, "Children");
+    xmlNodePtr parentNode = _dwib_find_child(DWCurrNode, "Children");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     HTREEITEM treeitem;
@@ -2144,7 +2183,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     item = dw_text_new("Title", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    if((this = findChildName(node, "title")))
+    if((this = _dwib_find_child(node, "title")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2158,7 +2197,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     item = dw_text_new("Data name", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    if((this = findChildName(node, "dataname")))
+    if((this = _dwib_find_child(node, "dataname")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2173,7 +2212,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
-    if((this = findChildName(node, "checkable")))
+    if((this = _dwib_find_child(node, "checkable")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2186,7 +2225,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvalstr;
-    if((this = findChildName(node, "checked")))
+    if((this = _dwib_find_child(node, "checked")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2201,7 +2240,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvaltrue;
-    if((this = findChildName(node, "enabled")))
+    if((this = _dwib_find_child(node, "enabled")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2276,7 +2315,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_text_new("Title", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    if((this = findChildName(node, "title")))
+    if((this = _dwib_find_child(node, "title")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2291,7 +2330,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = "100";
-    if((this = findChildName(node, "width")))
+    if((this = _dwib_find_child(node, "width")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2301,7 +2340,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_spinbutton_set_limits(item, 2000, -1);
     dw_window_set_data(vbox, "width", item);
     val = "100";
-    if((this = findChildName(node, "height")))
+    if((this = _dwib_find_child(node, "height")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2317,7 +2356,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalint;
-    if((this = findChildName(node, "x")))
+    if((this = _dwib_find_child(node, "x")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2327,7 +2366,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_spinbutton_set_limits(item, 2000, -1);
     dw_window_set_data(vbox, "x", item);
     val = defvalint;
-    if((this = findChildName(node, "y")))
+    if((this = _dwib_find_child(node, "y")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2343,7 +2382,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalint;
-    if((this = findChildName(node, "bordersize")))
+    if((this = _dwib_find_child(node, "bordersize")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2361,7 +2400,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_checkbox_new("Close", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvaltrue;
-    if((this = findChildName(node, "close")))
+    if((this = _dwib_find_child(node, "close")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2374,7 +2413,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_checkbox_new("Minimize", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvaltrue;
-    if((this = findChildName(node, "minimize")))
+    if((this = _dwib_find_child(node, "minimize")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2387,7 +2426,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_checkbox_new("Maximize", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvaltrue;
-    if((this = findChildName(node, "maximize")))
+    if((this = _dwib_find_child(node, "maximize")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2400,7 +2439,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_checkbox_new("Hide", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvalstr;
-    if((this = findChildName(node, "hide")))
+    if((this = _dwib_find_child(node, "hide")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2416,7 +2455,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_checkbox_new("Titlebar", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvaltrue;
-    if((this = findChildName(node, "titlebar")))
+    if((this = _dwib_find_child(node, "titlebar")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2429,7 +2468,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_checkbox_new("Resize", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvalstr;
-    if((this = findChildName(node, "resize")))
+    if((this = _dwib_find_child(node, "resize")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2442,7 +2481,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_checkbox_new("Dialog", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvalstr;
-    if((this = findChildName(node, "dialog")))
+    if((this = _dwib_find_child(node, "dialog")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2455,7 +2494,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_checkbox_new("Border", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvalstr;
-    if((this = findChildName(node, "border")))
+    if((this = _dwib_find_child(node, "border")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2468,7 +2507,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_checkbox_new("System Menu", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvaltrue;
-    if((this = findChildName(node, "sysmenu")))
+    if((this = _dwib_find_child(node, "sysmenu")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2481,7 +2520,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_checkbox_new("Task List", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     val = defvaltrue;
-    if((this = findChildName(node, "tasklist")))
+    if((this = _dwib_find_child(node, "tasklist")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
@@ -2499,15 +2538,13 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_listbox_append(item, "Horizontal");
     dw_listbox_append(item, "Vertical");
     val = defvalstr;
-    if((this = findChildName(node, "orientation")))
+    if((this = _dwib_find_child(node, "orientation")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
         {
             val = thisval;
             if(strcmp(val, "Vertical") == 0)
-            {
                 val = "1";
-            }
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -2545,7 +2582,7 @@ int DWSIGNAL save_clicked(HWND button, void *data)
 /* Parse the children if packable widgets... boxes, notebook pages, etc */
 void handleChildren(xmlNodePtr node, HWND tree)
 {
-    xmlNodePtr p = findChildName(node, "Children");
+    xmlNodePtr p = _dwib_find_child(node, "Children");
     char buf[200], *val;
     HTREEITEM treeitem;
     
@@ -2553,7 +2590,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
     {
         if(strcmp((char *)p->name, "Box") == 0)
         {
-            xmlNodePtr this = findChildName(p, "subtype");
+            xmlNodePtr this = _dwib_find_child(p, "subtype");
             
             val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
@@ -2575,7 +2612,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
         }
         else if(strcmp((char *)p->name, "Menu") == 0)
         {
-            xmlNodePtr this = findChildName(p, "title");
+            xmlNodePtr this = _dwib_find_child(p, "title");
             
             val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
@@ -2589,7 +2626,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
         }
         else if(strcmp((char *)p->name, "NotebookPage") == 0)
         {
-            xmlNodePtr this = findChildName(p, "title");
+            xmlNodePtr this = _dwib_find_child(p, "title");
             
             val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
@@ -2607,7 +2644,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
                 strcmp((char *)p->name, "Ranged") == 0 ||
                 strcmp((char *)p->name, "Entryfield") == 0)
         {
-            xmlNodePtr this = findChildName(p, "subtype");
+            xmlNodePtr this = _dwib_find_child(p, "subtype");
             
             val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
@@ -2650,7 +2687,7 @@ void reloadTree(void)
     {
         if(strcmp((char *)p->name, "Window") == 0)
         {
-            xmlNodePtr this = findChildName(p, "title");
+            xmlNodePtr this = _dwib_find_child(p, "title");
             char buf[200], *val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
             snprintf(buf, 200, "Window - (%s)", val ? val : "");
@@ -2696,7 +2733,7 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
 {
     if(strcmp((char *)DWCurrNode->name, "Window") == 0)
     {
-        xmlNodePtr this = findChildName(DWCurrNode, "title");
+        xmlNodePtr this = _dwib_find_child(DWCurrNode, "title");
         char *val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
         
         if(val)

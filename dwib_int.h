@@ -29,6 +29,28 @@ enum DWTYPES
 } DWTypes;
 
 xmlNodePtr findChildName(xmlNodePtr node, char *name);
+int _dwib_get_color(char *color);
+xmlNodePtr _dwib_find_child(xmlNodePtr node, char *name);
+
+HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc);
+void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packbox, HMENUI submenu);
+HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_calendar_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_html_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_mle_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_render_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_tree_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_notebook_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
+HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
 
 void DWSIGNAL properties_window(xmlNodePtr node);
-void DWSIGNAL properties_box(xmlNodePtr node);
+
