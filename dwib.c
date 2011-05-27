@@ -2768,6 +2768,13 @@ int DWSIGNAL delete_clicked(HWND button, void *data)
     if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to remove the current node (%s)?", 
                      DWCurrNode && DWCurrNode->name ? (char *)DWCurrNode->name : ""))
     {
+        HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+        xmlNodePtr node = DWCurrNode;
+        
+        DWCurrNode = xmlDocGetRootElement(DWDoc);
+        xmlUnlinkNode(node);
+        dw_tree_item_delete(tree, (HTREEITEM)node->_private);
+        xmlFreeNode(node);
     }
     return FALSE;
 }
