@@ -3129,6 +3129,55 @@ int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
 	return TRUE;
 }
 
+xmlNodePtr getPrevNode(xmlNodePtr node)
+{
+    return NULL;
+}
+
+xmlNodePtr getNextNode(xmlNodePtr node)
+{
+    return NULL;
+}
+
+/* Handle moving a node up */
+int DWSIGNAL up_clicked(HWND button, void *data)
+{
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    xmlNodePtr node = DWCurrNode, prevNode = getPrevNode(DWCurrNode);
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    
+    if(prevNode)
+    {
+        /* Remove the properties */
+        dw_window_destroy(vbox);
+        properties_none(TRUE);
+        
+        DWCurrNode = xmlDocGetRootElement(DWDoc);
+        dw_tree_clear(tree);
+    }
+    return FALSE;
+}
+
+/* Handle moving a node down */
+int DWSIGNAL down_clicked(HWND button, void *data)
+{
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    xmlNodePtr node = DWCurrNode, nextNode = getNextNode(DWCurrNode);
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    
+    if(nextNode)
+    {
+        /* Remove the properties */
+        dw_window_destroy(vbox);
+        properties_none(TRUE);
+        
+        DWCurrNode = xmlDocGetRootElement(DWDoc);
+        dw_tree_clear(tree);
+    }
+    return FALSE;
+}
+
+
 #define TOOLBAR_WIDTH   100
 #define TOOLBAR_HEIGHT  30
 
@@ -3220,8 +3269,14 @@ void dwib_init(void)
     dw_box_pack_start(hbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
     dw_box_pack_start(hbox, 0, 30, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    item = dw_button_new("Delete", 0);
-    dw_box_pack_start(hbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
+    item = dw_button_new("^", 0);
+    dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(up_clicked), (void *)vbox);
+    item = dw_button_new("v", 0);
+    dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(down_clicked), (void *)vbox);
+    item = dw_button_new("-", 0);
+    dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(delete_clicked), NULL);
     dw_box_pack_start(hbox, 0, 30, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     item = dw_button_new("Refresh", 0);
