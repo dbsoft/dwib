@@ -18,6 +18,43 @@ xmlNodePtr DWCurrNode = NULL;
 #define snprintf _snprintf
 #endif
 
+char *Classes[] =
+{
+    "Box",
+    "Notebook",
+    "NotebookPage",
+    "Button",
+    "Text",
+    "Container"
+    "Ranged"
+    "Entryfield",
+    "Combobox",
+    "Tree",
+    "MLE",
+    "Render",
+    "Bitmap",
+    "HTML",
+    "Calendar",
+    "Listbox",
+    "Padding",
+    "Menu", 
+    NULL
+};
+
+/* Returns TRUE if the node is a valid class */
+int is_valid(xmlNodePtr node)
+{
+    int x = 0;
+    
+    while(Classes[x] && strcmp(Classes[x], (char *)node->name))
+    {
+        x++;
+    }
+    if(Classes[x])
+        return TRUE;
+    return FALSE;
+}
+
 /* Returns TRUE if a packable class is selected */
 int is_packable(int message)
 {
@@ -3129,13 +3166,36 @@ int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
 	return TRUE;
 }
 
+/* Finds the previous valid sibling node */
 xmlNodePtr getPrevNode(xmlNodePtr node)
 {
+    xmlNodePtr p = node->parent;
+    xmlNodePtr last = NULL;
+    int found = 0;
+    
+    for(p=p->children;p;p = p->next)
+    {
+        if(p == node)
+            return last;
+        else if(is_valid(p))
+            last = p;
+    }
     return NULL;
 }
 
+/* Finds the next valid sibling node */
 xmlNodePtr getNextNode(xmlNodePtr node)
 {
+    xmlNodePtr p = node->parent;
+    int found = FALSE;
+    
+    for(p=p->children;p;p = p->next)
+    {
+        if(p == node)
+            found = TRUE;
+        else if(found && is_valid(p))
+            return p;
+    }
     return NULL;
 }
 
@@ -3154,6 +3214,8 @@ int DWSIGNAL up_clicked(HWND button, void *data)
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
         dw_tree_clear(tree);
+        xmlAddPrevSibling(prevNode, node);
+        reloadTree();
     }
     return FALSE;
 }
@@ -3173,6 +3235,8 @@ int DWSIGNAL down_clicked(HWND button, void *data)
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
         dw_tree_clear(tree);
+        xmlAddNextSibling(nextNode, node);
+        reloadTree();
     }
     return FALSE;
 }
