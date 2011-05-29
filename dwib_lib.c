@@ -146,8 +146,6 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
     int orient = DW_HORZ, padding = 0, type = 0;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-        title = thisval;
-    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Group") == 0)
             type = 1;
@@ -204,8 +202,6 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     }
     if((this = _dwib_find_child(node, "setting")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         setting = thisval;
-    if((this = _dwib_find_child(node, "check")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        dw_checkbox_set(button, TRUE);
     
     switch(type)
     {
@@ -219,9 +215,13 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             button = dw_checkbox_new(setting, 0);
             break;
         case 3:
-            dw_radiobutton_new(setting, 0);
+            button = dw_radiobutton_new(setting, 0);
             break;
     }
+
+    if((this = _dwib_find_child(node, "check")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+        dw_checkbox_set(button, TRUE);
+
     _dwib_item_pack(node, doc, window, packbox, button);
     return button;
 }
@@ -419,7 +419,7 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
             type = 1;
     }
     if((this = _dwib_find_child(node, "deftext")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-        entryfield = thisval;
+        deftext = thisval;
     
     switch(type)
     {
