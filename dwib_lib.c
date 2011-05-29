@@ -255,6 +255,83 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
     return text;
 }
 
+/* Fills in a container with columns from the List node */
+void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, int type)
+{
+    xmlNodePtr p;
+    int count = 0;
+    
+    if(node)
+    {
+        char **colnames;
+        unsigned long *colflags;
+        
+        for(p=node->children;p;p = p->next)
+        {
+            if(strcmp((char *)p->name, "Item") == 0)
+            {
+                count++;
+            }
+        }
+        
+        if(count > 0)
+        {
+            colnames = calloc(sizeof(char *), count);
+            colflags = calloc(sizeof(unsigned long), count);
+            count = 0;
+            
+            for(p=node->children;p;p = p->next)
+            {
+                if(strcmp((char *)p->name, "Item") == 0)
+                {
+                    char *thisval;
+                    
+                    if((thisval = (char *)xmlNodeListGetString(doc, p->children, 1)))
+                    {
+                        char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
+                        char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
+                        unsigned long ctype = DW_CFA_STRING;
+                        unsigned long calign = DW_CFA_LEFT;
+                        
+                        if(coltype)
+                        {
+                            if(strcmp(coltype, "Icon") == 0)
+                                ctype = DW_CFA_BITMAPORICON;
+                            else if(strcmp(coltype, "Number") == 0)
+                                ctype = DW_CFA_ULONG;
+                            else if(strcmp(coltype, "Date") == 0)
+                                ctype = DW_CFA_DATE;
+                            else if(strcmp(coltype, "Time") == 0)
+                                ctype = DW_CFA_TIME;
+                        }
+                        if(colalign)
+                        {
+                            if(strcmp(colalign, "Center") == 0)
+                                calign = DW_CFA_CENTER;
+                            else if(strcmp(colalign, "Right") == 0)
+                                calign = DW_CFA_RIGHT;
+                        }
+                        colnames[count] = thisval;
+                        colflags[count] = ctype | calign;
+                        count++;
+                    }
+                }
+            }
+            switch(type)
+            {
+                case 0:
+                    dw_container_setup(container, colflags, colnames, count, 0);
+                    break;
+                case 1:
+                    dw_filesystem_setup(container, colflags, colnames, count);
+                    break;
+            }
+            free(colnames);
+            free(colflags);
+        }
+    }
+}
+
 /* Internal function for creating a container widget from an XML tree node */
 HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
 {
@@ -273,18 +350,9 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     
     container = dw_container_new(0, multi);
     
-#if 0
-    switch(type)
-    {
-        case 0:
-            dw_container_setup(container);
-            break;
-        case 1:
-            dw_filesystem_setup(container);
-            break;
-    }
-#endif
-    
+    if((this = _dwib_find_child(node, "Columns")))
+        _dwib_populate_container(container, this, doc, type);
+        
     _dwib_item_pack(node, doc, window, packbox, container);
     return container;
 }

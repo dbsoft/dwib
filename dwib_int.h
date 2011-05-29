@@ -28,7 +28,7 @@ enum DWTYPES
     TYPE_MENU
 } DWTypes;
 
-xmlNodePtr findChildName(xmlNodePtr node, char *name);
+/* Internal library functions */
 int _dwib_get_color(char *color);
 xmlNodePtr _dwib_find_child(xmlNodePtr node, char *name);
 void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc);
@@ -53,5 +53,7 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
 HWND _dwib_notebook_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
 HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox);
 
+/* Builder app functions */
 void DWSIGNAL properties_window(xmlNodePtr node);
+void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype, char *colalign, int disable);
 

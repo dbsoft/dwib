@@ -99,6 +99,62 @@ void saveList(xmlNodePtr node, HWND vbox)
     }
 }
 
+/* Gets the contents of the list and puts it into the XML tree...
+ * replacing any previous contents of the list.
+ */
+void save_columns(xmlNodePtr node, HWND vbox)
+{
+    int x, count = (int)dw_window_get_data(vbox, "colcount");
+    xmlNodePtr this = _dwib_find_child(node, "Columns");
+    
+    if(node)
+    {
+        char buf[50];
+        
+        if(this)
+        {
+            xmlUnlinkNode(this);
+            xmlFreeNode(this);
+        }
+        
+        this = xmlNewTextChild(node, NULL, (xmlChar *)"Columns", (xmlChar *)"");
+        
+        count++;
+        
+        for(x=0;x<count;x++)
+        {
+            HWND entry, combo1, combo2;
+            
+            snprintf(buf, 50, "entryfield%d", x);
+            entry = (HWND)dw_window_get_data(vbox, buf);
+            snprintf(buf, 50, "coltype%d", x);
+            combo1 = (HWND)dw_window_get_data(vbox, buf);
+            snprintf(buf, 50, "colalign%d", x);
+            combo2 = (HWND)dw_window_get_data(vbox, buf);
+            
+            if(entry && combo1 && combo2)
+            {
+                char *colname = dw_window_get_text(entry);
+                char *coltype = dw_window_get_text(combo1);
+                char *colalign = dw_window_get_text(combo2);
+                
+                if(colname && *colname && coltype && *coltype && colalign && *colalign)
+                {
+                    xmlNodePtr thisNode = xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)colname);
+                    xmlSetProp(thisNode, (xmlChar *)"ColType", (xmlChar *)coltype);
+                    xmlSetProp(thisNode, (xmlChar *)"ColAlign", (xmlChar *)colalign);
+                }
+                if(colname)
+                    dw_free(colname);
+                if(coltype)
+                    dw_free(coltype);
+                if(colalign)
+                    dw_free(colalign);
+            }
+        }
+    }
+}
+
 /* Checks the values on the properties and updates
  * the XML node data.
  */
@@ -207,8 +263,10 @@ void save_properties(void)
             saveList(node, vbox);
             break;
         case TYPE_CONTAINER:
+            updateNode(node, vbox, "subtype", FALSE);
             save_item(node, vbox);
             updateNode(node, vbox, "multi", TRUE);
+            save_columns(node, vbox);
             break;
         case TYPE_TREE:
             save_item(node, vbox);
@@ -272,6 +330,8 @@ void save_properties(void)
 
 #define PROPERTIES_HEIGHT 22
 #define PROPERTIES_WIDTH 120
+#define BUTTON_ICON_WIDTH 40
+#define BUTTON_ICON_HEIGHT 30
 
 char *defvalstr = "", *defvalint = "-1", *defvaltrue = "1", *defvalzero = "0";
 
@@ -867,10 +927,10 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_window_set_data(vbox, "list_entry", (void *)item);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_button_new("+", 0);
-    dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_clicked), (void *)vbox);
     item = dw_button_new("-", 0);
-    dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(rem_clicked), (void *)vbox);
     
     /* If it is a new window add button */
@@ -972,10 +1032,10 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     dw_window_set_data(vbox, "list_entry", (void *)item);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     item = dw_button_new("+", 0);
-    dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_clicked), (void *)vbox);
     item = dw_button_new("-", 0);
-    dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(rem_clicked), (void *)vbox);
     
     /* If it is a new window add button */
@@ -986,6 +1046,112 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(listbox_create), NULL);
     }
     dw_window_redraw(hwndProperties);
+}
+
+char *ColTypes[] =
+{
+    "String",
+    "Icon",
+    "Number",
+    "Date",
+    "Time",
+    NULL
+};
+
+/* When the + is clicked... 
+ * add a new row and disable the previous rows +
+ */
+int DWSIGNAL add_row_clicked(HWND window, void *data)
+{
+    HWND button, scrollbox = (HWND)data;
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    int count = (int)dw_window_get_data(vbox, "colcount");
+    char buf[50];
+    
+    snprintf(buf, 50, "addbutton%d", count);
+    button = (HWND)dw_window_get_data(vbox, buf);
+    dw_window_disable(button);
+    
+    count++;
+    add_row(vbox, scrollbox, count, "", "", "", FALSE);
+    dw_window_set_data(vbox, "colcount", (void *)count);
+    
+    dw_window_redraw(hwndProperties);
+    return FALSE;
+}
+
+/* Add a single row */
+void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype, char *colalign, int disable)
+{
+    HWND item, hbox = dw_box_new(DW_HORZ, 0);
+    char buf[50];
+    int x = 0, which = 0;
+    
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_entryfield_new(colname, 0);
+    snprintf(buf, 50, "entryfield%d", count);
+    dw_window_set_data(vbox, buf, (void *)item);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - BUTTON_ICON_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    item = dw_combobox_new(coltype, 0);
+    snprintf(buf, 50, "coltype%d", count);
+    dw_window_set_data(vbox, buf, (void *)item);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH / 2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    while(ColTypes[x])
+    {
+        dw_listbox_append(item, ColTypes[x]);
+        if(strcmp(ColTypes[x], coltype) == 0)
+            which = x;
+        x++;
+    }
+    dw_listbox_select(item, which, TRUE);
+    item = dw_combobox_new(coltype, 0);
+    snprintf(buf, 50, "colalign%d", count);
+    dw_window_set_data(vbox, buf, (void *)item);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH / 2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Left");
+    dw_listbox_append(item, "Center");
+    dw_listbox_append(item, "Right");
+    which = 0;
+    if(strcmp(colalign, "Center") == 0)
+        which = 1;
+    else if(strcmp(colalign, "Right") == 0)
+        which = 2;
+    dw_listbox_select(item, which, TRUE);
+    item = dw_button_new("+", 0);
+    snprintf(buf, 50, "addbutton%d", count);
+    dw_window_set_data(vbox, buf, (void *)item);
+    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_row_clicked), (void *)scrollbox);
+    if(disable)
+        dw_window_disable(item);
+}
+
+/* Add rows for columns from the XML tree */
+void populate_columns(HWND vbox, HWND scrollbox, xmlNodePtr node)
+{
+    xmlNodePtr p;
+    int count = 0;
+    
+    if(node)
+    {
+        for(p=node->children;p;p = p->next)
+        {
+            if(strcmp((char *)p->name, "Item") == 0)
+            {
+                char *thisval;
+                
+                if((thisval = (char *)xmlNodeListGetString(DWDoc, p->children, 1)))
+                {
+                    char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
+                    char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
+                    add_row(vbox, scrollbox, count, thisval, coltype ? coltype : "", colalign ? colalign : "", TRUE);
+                    count++;
+                }
+            }
+        }
+    }
+    add_row(vbox, scrollbox, count, "", "", "", FALSE);
+    dw_window_set_data(vbox, "colcount", (void *)count);
 }
 
 /* Create a new container definition */
@@ -1084,6 +1250,10 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "multi", item);
+    item = dw_text_new("Columns and types", 0);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    this = _dwib_find_child(node, "Columns");
+    populate_columns(vbox, scrollbox, this);
     
     /* If it is a new window add button */
     if(!node)
@@ -2733,11 +2903,14 @@ void handleChildren(xmlNodePtr node, HWND tree)
     
     for(p=p->children;p;p = p->next)
     {
+        val = NULL;
+        
         if(strcmp((char *)p->name, "Box") == 0)
         {
             xmlNodePtr this = _dwib_find_child(p, "subtype");
             
-            val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            if(this)
+                val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
             snprintf(buf, 200, "Box - (%s)", val ? val : "");
             
@@ -2759,7 +2932,8 @@ void handleChildren(xmlNodePtr node, HWND tree)
         {
             xmlNodePtr this = _dwib_find_child(p, "title");
             
-            val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            if(this)
+                val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
             snprintf(buf, 200, "Menu - (%s)", val ? val : "");
             
@@ -2773,7 +2947,8 @@ void handleChildren(xmlNodePtr node, HWND tree)
         {
             xmlNodePtr this = _dwib_find_child(p, "title");
             
-            val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            if(this)
+                val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
             snprintf(buf, 200, "Page - (%s)", val ? val : "");
             
@@ -2791,7 +2966,8 @@ void handleChildren(xmlNodePtr node, HWND tree)
         {
             xmlNodePtr this = _dwib_find_child(p, "subtype");
             
-            val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            if(this)
+                val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
             snprintf(buf, 200, "%s - (%s)", p->name, val ? val : "");
             
@@ -3171,7 +3347,6 @@ xmlNodePtr getPrevNode(xmlNodePtr node)
 {
     xmlNodePtr p = node->parent;
     xmlNodePtr last = NULL;
-    int found = 0;
     
     for(p=p->children;p;p = p->next)
     {
@@ -3334,13 +3509,13 @@ void dwib_init(void)
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
     dw_box_pack_start(hbox, 0, 30, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     item = dw_button_new("^", 0);
-    dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(up_clicked), (void *)vbox);
     item = dw_button_new("v", 0);
-    dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(down_clicked), (void *)vbox);
     item = dw_button_new("-", 0);
-    dw_box_pack_start(hbox, item, 40, 30, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(delete_clicked), NULL);
     dw_box_pack_start(hbox, 0, 30, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     item = dw_button_new("Refresh", 0);
