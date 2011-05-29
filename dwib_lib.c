@@ -140,7 +140,7 @@ HWND _dwib_notebook_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
 /* Internal function for creating a box widget from an XML tree node */
 HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
 {
-    HWND box, box1, box2;
+    HWND box = 0, box1, box2;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *title = "";
     int orient = DW_HORZ, padding = 0, type = 0;
@@ -179,14 +179,15 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
             dw_window_set_data(box, "_dwib_box2", box2);
             break;
     }
-    _dwib_item_pack(node, doc, window, packbox, box);
+    if(box)
+        _dwib_item_pack(node, doc, window, packbox, box);
     return box;
 }
 
 /* Internal function for creating a button widget from an XML tree node */
 HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
 {
-    HWND button;
+    HWND button = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *setting = "";
     int type = 0;
@@ -219,17 +220,20 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             break;
     }
 
-    if((this = _dwib_find_child(node, "check")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        dw_checkbox_set(button, TRUE);
+    if(button)
+    {
+        if((this = _dwib_find_child(node, "check")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+            dw_checkbox_set(button, TRUE);
 
-    _dwib_item_pack(node, doc, window, packbox, button);
+        _dwib_item_pack(node, doc, window, packbox, button);
+    }
     return button;
 }
 
 /* Internal function for creating a text widget from an XML tree node */
 HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
 {
-    HWND text;
+    HWND text = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *label = "";
     int type = 0;
@@ -251,7 +255,8 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
             text = dw_status_text_new(label, 0);
             break;
     }
-    _dwib_item_pack(node, doc, window, packbox, text);
+    if(text)
+        _dwib_item_pack(node, doc, window, packbox, text);
     return text;
 }
 
@@ -360,7 +365,7 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
 /* Internal function for creating a ranged widget from an XML tree node */
 HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
 {
-    HWND ranged;
+    HWND ranged = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *pos = "";
     int type = 0, upper = 100, lower = 0, position = 0, orient = DW_HORZ;
@@ -401,14 +406,15 @@ HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             break;
             
     }
-    _dwib_item_pack(node, doc, window, packbox, ranged);
+    if(ranged)
+        _dwib_item_pack(node, doc, window, packbox, ranged);
     return ranged;
 }
 
 /* Internal function for creating an entryfield widget from an XML tree node */
 HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
 {
-    HWND entryfield;
+    HWND entryfield = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *deftext = "";
     int type = 0;
@@ -434,7 +440,8 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
     if((this = _dwib_find_child(node, "deftext")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dw_entryfield_set_limit(entryfield, atoi(thisval));
     
-    _dwib_item_pack(node, doc, window, packbox, entryfield);
+    if(entryfield)
+        _dwib_item_pack(node, doc, window, packbox, entryfield);
     return entryfield;
 }
 

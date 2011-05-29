@@ -1250,7 +1250,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "multi", item);
-    item = dw_text_new("Columns and types", 0);
+    item = dw_text_new("Column names, types and alignment", 0);
     dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     this = _dwib_find_child(node, "Columns");
     populate_columns(vbox, scrollbox, this);
