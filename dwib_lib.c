@@ -68,6 +68,7 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
     int fcolor = DW_CLR_DEFAULT, bcolor = DW_CLR_DEFAULT;
     char *thisval, *dataname = NULL;
     xmlNodePtr this;
+    HWND splitbox = (HWND)dw_window_get_data(box, "_dwib_box1");
     
     if((this = _dwib_find_child(node, "width")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         width = atoi(thisval);
@@ -91,6 +92,18 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
     if(fcolor != DW_CLR_DEFAULT || bcolor != DW_CLR_DEFAULT)
         dw_window_set_color(item, fcolor, bcolor);
    
+    /* If it is a splitbox, find the correct sub-box */
+    if(splitbox)
+    {
+        int count = (int)dw_window_get_data(box, "_dwib_count");
+        if(count == 1)
+            splitbox = (HWND)dw_window_get_data(box, "_dwib_box2");
+        else if(count > 1)
+            return;
+        count++;
+        dw_window_set_data(box, "_dwib_count", (void *)count);
+        box = splitbox;                        
+    }
     dw_box_pack_start(box, item, width, height, hexpand, vexpand, padding);
     
     if(dataname && window)
@@ -143,7 +156,7 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
     HWND box = 0, box1, box2;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *title = "";
-    int orient = DW_HORZ, padding = 0, type = 0;
+    int orient = DW_HORZ, padding = 0, type = 0, splitper = 50;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
@@ -159,6 +172,8 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
     if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) 
        && (atoi(thisval) || strcmp(thisval, "Vertical") == 0))
         orient = DW_VERT;
+    if((this = _dwib_find_child(node, "splitper")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+        splitper = atoi(thisval);
     
     switch(type)
     {
@@ -172,11 +187,12 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
             box = dw_scrollbox_new(orient, padding);
             break;
         case 3:
-            box1 = dw_box_new(DW_VERT, 0);
-            box2 = dw_box_new(DW_VERT, 0);
+            box1 = dw_box_new(orient, 0);
+            box2 = dw_box_new(orient, 0);
             box = dw_splitbar_new(orient, box1, box2, 0);
             dw_window_set_data(box, "_dwib_box1", box1);
             dw_window_set_data(box, "_dwib_box2", box2);
+            dw_splitbar_set(box, splitper);
             break;
     }
     if(box)
@@ -189,7 +205,7 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
 {
     HWND button = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
-    char *thisval, *setting = "";
+    char *thisval, *setting = "", *bubblehelp = "";
     int type = 0;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -203,14 +219,23 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     }
     if((this = _dwib_find_child(node, "setting")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         setting = thisval;
-    
+    if((this = _dwib_find_child(node, "bubblehelp")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        bubblehelp = thisval;
+   
     switch(type)
     {
         case 0:
             button = dw_button_new(setting, 0);
             break;
         case 1:
-            button = dw_bitmapbutton_new("", atoi(setting));
+        {
+            int resid = atoi(setting);
+            
+            if(resid)
+                button = dw_bitmapbutton_new(bubblehelp, resid);
+            else
+                button = dw_bitmapbutton_new_from_file(bubblehelp, 0, setting);
+            }
             break;
         case 2:
             button = dw_checkbox_new(setting, 0);
@@ -268,9 +293,6 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
     
     if(node)
     {
-        char **colnames;
-        unsigned long *colflags;
-        
         for(p=node->children;p;p = p->next)
         {
             if(strcmp((char *)p->name, "Item") == 0)
@@ -281,8 +303,8 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
         
         if(count > 0)
         {
-            colnames = calloc(sizeof(char *), count);
-            colflags = calloc(sizeof(unsigned long), count);
+            char **colnames = calloc(sizeof(char *), count);
+            unsigned long *colflags = calloc(sizeof(unsigned long), count);
             count = 0;
             
             for(p=node->children;p;p = p->next)

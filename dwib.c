@@ -25,8 +25,8 @@ char *Classes[] =
     "NotebookPage",
     "Button",
     "Text",
-    "Container"
-    "Ranged"
+    "Container",
+    "Ranged",
     "Entryfield",
     "Combobox",
     "Tree",
@@ -238,6 +238,7 @@ void save_properties(void)
             save_item(node, vbox);
             updateNode(node, vbox, "orientation", FALSE);
             updateNode(node, vbox, "title", FALSE);
+            updateNode(node, vbox, "splitper", FALSE);
             break;
         case TYPE_TEXT:
             updateNode(node, vbox, "subtype", FALSE);
@@ -283,6 +284,7 @@ void save_properties(void)
             save_item(node, vbox);
             updateNode(node, vbox, "checked", TRUE);
             updateNode(node, vbox, "setting", FALSE);
+            updateNode(node, vbox, "bubblehelp", FALSE);
             break;
         case TYPE_RANGED:
             updateNode(node, vbox, "subtype", FALSE);
@@ -1577,6 +1579,21 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     item = dw_entryfield_new(val ? val : "", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "setting", item);
+    /* Bitmap button help */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Bubble Help (Bitmap)", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "bubblehelp")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_entryfield_new(val ? val : "", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "bubblehelp", item);
     
     /* If it is a new window add button */
     if(!node)
@@ -2236,6 +2253,10 @@ void DWSIGNAL properties_box(xmlNodePtr node)
             val = thisval;
             if(strcmp(val, "Group") == 0)
                 val = "1";
+            if(strcmp(val, "Scroll") == 0)
+                val = "2";
+            if(strcmp(val, "Splitbar") == 0)
+                val = "3";
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -2279,6 +2300,22 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     item = dw_entryfield_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "title", item);
+    /* Split % */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Splitbar %", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = "50";
+    if((this = _dwib_find_child(node, "splitper")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_spinbutton_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_spinbutton_set_limits(item, 100, 0);
+    dw_window_set_data(vbox, "splitper", item);
 
     /* If it is a new window add button */
     if(!node)
@@ -2894,12 +2931,32 @@ int DWSIGNAL save_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Count the number of children */
+int count_children(xmlNodePtr node)
+{
+    xmlNodePtr p = _dwib_find_child(node, "Children");
+    int count = 0;
+    
+    if(!p)
+        return count;
+    
+    for(p=p->children;p;p = p->next)
+    {
+        if(is_valid(p))
+            count++;
+    }
+    return count;
+}
+
 /* Parse the children if packable widgets... boxes, notebook pages, etc */
 void handleChildren(xmlNodePtr node, HWND tree)
 {
     xmlNodePtr p = _dwib_find_child(node, "Children");
     char buf[200], *val;
     HTREEITEM treeitem;
+    
+    if(!p)
+        return;
     
     for(p=p->children;p;p = p->next)
     {
@@ -3117,6 +3174,31 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
     
     /* Save existing data... if any... here */
     save_properties();
+    
+    /* Check for special case of splitbar */
+    if(strcmp((char *)DWCurrNode->name, "Box") == 0)
+    {
+        xmlNodePtr this;
+        
+        if((this = _dwib_find_child(DWCurrNode, "subtype")))
+        {
+            char *thisval;
+            
+            if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            {
+                if(strcmp(thisval, "Splitbar") == 0)
+                {
+                    int count = count_children(DWCurrNode);
+                    
+                    if(count > 1)
+                    {
+                        dw_messagebox(DWIB_NAME, DW_MB_ERROR | DW_MB_OK, "Splitbars can't have more than two children packed.");
+                        return FALSE;
+                    }
+                }
+            }
+        }
+    }
     
     if(which == TYPE_WINDOW)
     {
