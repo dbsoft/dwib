@@ -13,6 +13,7 @@
 HWND hwndToolbar, hwndProperties, hwndPreview;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL;
+HICN hIcons[20];
 
 #ifdef MSVC
 #define snprintf _snprintf
@@ -20,22 +21,23 @@ xmlNodePtr DWCurrNode = NULL;
 
 char *Classes[] =
 {
+    "Window",
     "Box",
-    "Notebook",
-    "NotebookPage",
-    "Button",
     "Text",
-    "Container",
-    "Ranged",
     "Entryfield",
     "Combobox",
+    "Listbox",
+    "Container",
     "Tree",
     "MLE",
     "Render",
+    "Button",
+    "Ranged",
     "Bitmap",
+    "Notebook",
+    "NotebookPage",
     "HTML",
     "Calendar",
-    "Listbox",
     "Padding",
     "Menu", 
     NULL
@@ -51,7 +53,7 @@ int is_valid(xmlNodePtr node)
         x++;
     }
     if(Classes[x])
-        return TRUE;
+        return x+1;
     return FALSE;
 }
 
@@ -542,7 +544,7 @@ int DWSIGNAL text_create(HWND window, void *data)
     if(subtype)
         dw_free(subtype);
     
-    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_TEXT], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -700,7 +702,7 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
     if(subtype)
         dw_free(subtype);
     
-    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_ENTRYFIELD], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -819,7 +821,7 @@ int DWSIGNAL combobox_create(HWND window, void *data)
     /* Create a sub-node for holding children */
     xmlNewTextChild(thisNode, NULL, (xmlChar *)"List", (xmlChar *)"");
     
-    treeitem = dw_tree_insert(tree, "Combobox", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, "Combobox", hIcons[TYPE_COMBOBOX], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -965,7 +967,7 @@ int DWSIGNAL listbox_create(HWND window, void *data)
     /* Create a sub-node for holding children */
     xmlNewTextChild(thisNode, NULL, (xmlChar *)"List", (xmlChar *)"");
     
-    treeitem = dw_tree_insert(tree, "Listbox", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, "Listbox", hIcons[TYPE_LISTBOX], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -1179,7 +1181,7 @@ int DWSIGNAL container_create(HWND window, void *data)
     if(subtype)
         dw_free(subtype);
     
-    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_CONTAINER], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -1284,7 +1286,7 @@ int DWSIGNAL tree_create(HWND window, void *data)
     if(!thisNode)
         return FALSE;
     
-    treeitem = dw_tree_insert(tree, "Tree", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, "Tree", hIcons[TYPE_TREE], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -1343,7 +1345,7 @@ int DWSIGNAL mle_create(HWND window, void *data)
     if(!thisNode)
         return FALSE;
     
-    treeitem = dw_tree_insert(tree, "MLE", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, "MLE", hIcons[TYPE_MLE], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -1420,7 +1422,7 @@ int DWSIGNAL render_create(HWND window, void *data)
     if(!thisNode)
         return FALSE;
     
-    treeitem = dw_tree_insert(tree, "Render", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, "Render", hIcons[TYPE_RENDER], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -1485,7 +1487,7 @@ int DWSIGNAL button_create(HWND window, void *data)
     if(subtype)
         dw_free(subtype);
     
-    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BUTTON], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -1628,7 +1630,7 @@ int DWSIGNAL ranged_create(HWND window, void *data)
     if(subtype)
         dw_free(subtype);
     
-    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_RANGED], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -1767,7 +1769,7 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
     if(!thisNode)
         return FALSE;
     
-    treeitem = dw_tree_insert(tree, "Bitmap", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, "Bitmap", hIcons[TYPE_BITMAP], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -1844,7 +1846,7 @@ int DWSIGNAL html_create(HWND window, void *data)
     if(!thisNode)
         return FALSE;
     
-    treeitem = dw_tree_insert(tree, "HTML", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, "HTML", hIcons[TYPE_HTML], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -1924,7 +1926,7 @@ int DWSIGNAL notebook_create(HWND window, void *data)
     /* Create a sub-node for holding children */
     xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
     
-    treeitem = dw_tree_insert(tree, "Notebook", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, "Notebook", hIcons[TYPE_NOTEBOOK], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -2017,7 +2019,7 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
     if(title)
         dw_free(title);
     
-    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_NOTEBOOK_PAGE], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -2132,7 +2134,7 @@ int DWSIGNAL calendar_create(HWND window, void *data)
     if(!thisNode)
         return FALSE;
     
-    treeitem = dw_tree_insert(tree, "Calendar", 0, (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, "Calendar", hIcons[TYPE_CALENDAR], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -2201,7 +2203,7 @@ int DWSIGNAL box_create(HWND window, void *data)
     if(subtype)
         dw_free(subtype);
     
-    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, boxNode);
+    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], (HTREEITEM)DWCurrNode->_private, boxNode);
     boxNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -2347,7 +2349,7 @@ int DWSIGNAL padding_create(HWND window, void *data)
     /* Create a sub-node for holding children */
     xmlNewTextChild(boxNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
     
-    treeitem = dw_tree_insert(tree, "Padding", 0, (HTREEITEM)DWCurrNode->_private, boxNode);
+    treeitem = dw_tree_insert(tree, "Padding", hIcons[TYPE_PADDING], (HTREEITEM)DWCurrNode->_private, boxNode);
     boxNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -2473,7 +2475,7 @@ int DWSIGNAL menu_create(HWND window, void *data)
     if(title)
         dw_free(title);
     
-    treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)DWCurrNode->_private, boxNode);
+    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_MENU], (HTREEITEM)DWCurrNode->_private, boxNode);
     boxNode->_private = (void *)treeitem;
     dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
@@ -2630,7 +2632,7 @@ int DWSIGNAL window_create(HWND window, void *data)
     if(title)
         dw_free(title);
     
-    treeitem = dw_tree_insert(tree, buf, 0, 0, windowNode);
+    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_WINDOW], 0, windowNode);
     windowNode->_private = (void *)treeitem;
     
     dw_window_set_data(vbox, "node", windowNode);
@@ -2971,7 +2973,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
             
             snprintf(buf, 200, "Box - (%s)", val ? val : "");
             
-            treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], (HTREEITEM)node->_private, p);
             p->_private = (void *)treeitem;
             dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
             
@@ -2979,7 +2981,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
         }
         else if(strcmp((char *)p->name, "Notebook") == 0)
         {
-            treeitem = dw_tree_insert(tree, "Notebook", 0, (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, "Notebook", hIcons[TYPE_NOTEBOOK], (HTREEITEM)node->_private, p);
             p->_private = (void *)treeitem;
             dw_tree_item_expand(tree, (HTREEITEM)node->_private);
             
@@ -2994,7 +2996,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
             
             snprintf(buf, 200, "Menu - (%s)", val ? val : "");
             
-            treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_MENU], (HTREEITEM)node->_private, p);
             p->_private = (void *)treeitem;
             dw_tree_item_expand(tree, (HTREEITEM)node->_private);
             
@@ -3009,7 +3011,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
             
             snprintf(buf, 200, "Page - (%s)", val ? val : "");
             
-            treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_NOTEBOOK_PAGE], (HTREEITEM)node->_private, p);
             p->_private = (void *)treeitem;
             dw_tree_item_expand(tree, (HTREEITEM)node->_private);
             
@@ -3022,13 +3024,14 @@ void handleChildren(xmlNodePtr node, HWND tree)
                 strcmp((char *)p->name, "Entryfield") == 0)
         {
             xmlNodePtr this = _dwib_find_child(p, "subtype");
+            int index = is_valid(p);
             
             if(this)
                 val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
             snprintf(buf, 200, "%s - (%s)", p->name, val ? val : "");
             
-            treeitem = dw_tree_insert(tree, buf, 0, (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, buf, hIcons[index], (HTREEITEM)node->_private, p);
             p->_private = (void *)treeitem;
             dw_tree_item_expand(tree, (HTREEITEM)node->_private);
         }
@@ -3042,7 +3045,8 @@ void handleChildren(xmlNodePtr node, HWND tree)
                 strcmp((char *)p->name, "Listbox") == 0 ||
                 strcmp((char *)p->name, "Padding") == 0)
         {
-            treeitem = dw_tree_insert(tree, (char *)p->name, 0, (HTREEITEM)node->_private, p);
+            int index = is_valid(p);
+            treeitem = dw_tree_insert(tree, (char *)p->name, hIcons[index], (HTREEITEM)node->_private, p);
             p->_private = (void *)treeitem;
             dw_tree_item_expand(tree, (HTREEITEM)node->_private);
         }
@@ -3070,7 +3074,7 @@ void reloadTree(void)
             
             snprintf(buf, 200, "Window - (%s)", val ? val : "");
             
-            treeitem = dw_tree_insert(tree, buf, 0, 0, p);
+            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_WINDOW], 0, p);
             p->_private = (void *)treeitem;
             
             handleChildren(p, tree);
@@ -3505,6 +3509,13 @@ int DWSIGNAL down_clicked(HWND button, void *data)
 void dwib_init(void)
 {
     HWND vbox, hbox, item;
+    int x;
+    
+    hIcons[0] = (HICN)0;
+    for(x=1;x<20;x++)
+    {
+        hIcons[x] = dw_icon_load(0, x + 100);
+    }
     
     /* Create a new empty XML document */
     DWDoc = xmlNewDoc((xmlChar *)"1.0");
