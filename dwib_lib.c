@@ -339,7 +339,7 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
                                 calign = DW_CFA_RIGHT;
                         }
                         colnames[count] = thisval;
-                        colflags[count] = ctype | calign;
+                        colflags[count] = ctype | calign | DW_CFA_SEPARATOR;
                         count++;
                     }
                 }

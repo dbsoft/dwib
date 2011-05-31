@@ -10,5 +10,26 @@
 
 #include "resources.h"
 
+ICON ICON_APP                "os2\\Interface Builder.ico"
+
+ICON ICON_WINDOW             "os2\\Window.ico"
+ICON ICON_BOX                "os2\\Box.ico"
+ICON ICON_TEXT               "os2\\Text.ico"
+ICON ICON_ENTRYFIELD         "os2\\Entryfield.ico"
+ICON ICON_COMBOBOX           "os2\\Combobox.ico"
+ICON ICON_LISTBOX            "os2\\Listbox.ico"
+ICON ICON_CONTAINER          "os2\\Container.ico"
+ICON ICON_TREE               "os2\\Tree.ico"
+ICON ICON_MLE                "os2\\MLE.ico"
+ICON ICON_RENDER             "os2\\Render.ico"
+ICON ICON_BUTTON             "os2\\Button.ico"
+ICON ICON_RANGED             "os2\\Ranged.ico"
+ICON ICON_BITMAP             "os2\\Bitmap.ico"
+ICON ICON_NOTEBOOK           "os2\\Notebook.ico"
+ICON ICON_NOTEBOOK_PAGE      "os2\\NotebookPage.ico"
+ICON ICON_HTML               "os2\\HTML.ico"
+ICON ICON_CALENDAR           "os2\\Calendar.ico"
+ICON ICON_PADDING            "os2\\Padding.ico"
+ICON ICON_MENU               "os2\\Menu.ico"
 
 
