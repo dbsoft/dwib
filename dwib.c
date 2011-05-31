@@ -2975,7 +2975,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
             
             treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], (HTREEITEM)node->_private, p);
             p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
             
             handleChildren(p, tree);
         }
