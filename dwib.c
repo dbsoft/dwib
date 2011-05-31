@@ -2294,6 +2294,7 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     item = dw_text_new("Group title", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
     if((this = _dwib_find_child(node, "title")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
