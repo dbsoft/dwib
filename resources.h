@@ -1,3 +1,5 @@
+#define ICON_APP                100
+
 #define ICON_WINDOW             101
 #define ICON_BOX                102
 #define ICON_TEXT               103

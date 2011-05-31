@@ -2,6 +2,8 @@
 
 #include "resources.h"
 
+ICON_APP                ICON    "win\\Interface Builder.ico"
+
 ICON_WINDOW             ICON    "win\\Window.ico"
 ICON_BOX                ICON    "win\\Box.ico"
 ICON_TEXT               ICON    "win\\Text.ico"

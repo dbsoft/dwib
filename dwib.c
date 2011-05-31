@@ -3615,6 +3615,7 @@ void dwib_init(void)
     dw_box_pack_start(hbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), NULL);
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
+    dw_window_set_icon(hwndToolbar, DW_RESOURCE(ICON_APP));
     dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 600);
     dw_window_show(hwndToolbar);
     
