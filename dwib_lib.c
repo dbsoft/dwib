@@ -54,7 +54,7 @@ int xtoi(char c)
     {
         return c - '0';
     }
-    return c - 'a';
+    return (c - 'a') + 10;
 }
 
 /* Return the color index or RGB color */

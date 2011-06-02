@@ -357,12 +357,21 @@ void properties_none(int refresh)
 /* Create a color picker dialog to set the field */
 int DWSIGNAL color_clicked(HWND window, void *data)
 {
-    char buf[50];
-    unsigned long color = dw_color_choose(DW_CLR_DEFAULT);
     HWND item = (HWND)data;
+    char *oldcolor = dw_window_get_text(item);
+    unsigned long color = DW_CLR_WHITE;
+    
+    if(oldcolor)
+    {
+        color = _dwib_get_color(oldcolor);
+        dw_free(oldcolor);
+    }
+    color = dw_color_choose(color == DW_CLR_DEFAULT ? DW_CLR_WHITE : color);
     
     if(color != DW_CLR_DEFAULT)
     {
+        char buf[50];
+        
         snprintf(buf, 50, "#%06x", (int)((DW_RED_VALUE(color) << 16) |
                  (DW_GREEN_VALUE(color) << 8) | (DW_BLUE_VALUE(color))));
         dw_window_set_text(item, buf);
@@ -373,9 +382,12 @@ int DWSIGNAL color_clicked(HWND window, void *data)
 /* Create a color picker dialog to set the field */
 int DWSIGNAL font_clicked(HWND window, void *data)
 {
-    char *font = dw_font_choose(NULL);
     HWND item = (HWND)data;
+    char *oldfont = dw_window_get_text(item);
+    char *font = dw_font_choose(oldfont);
     
+    if(oldfont)
+        dw_free(oldfont);
     if(font)
     {
         dw_window_set_text(item, font);
