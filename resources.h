@@ -19,3 +19,7 @@
 #define ICON_CALENDAR           117
 #define ICON_PADDING            118
 #define ICON_MENU               119
+
+#define ICON_FONT               200
+#define ICON_COLOR              201
+

@@ -6,6 +6,7 @@
 #include <dw.h>
 #include <libxml/tree.h>
 #include <string.h>
+#include <ctype.h>
 #include "dwib.h"
 #include "dwib_int.h"
 
@@ -47,6 +48,15 @@ char *Colors[] =
     "White"
 };
 
+int xtoi(char c)
+{
+    if(isdigit(c))
+    {
+        return c - '0';
+    }
+    return c - 'a';
+}
+
 /* Return the color index or RGB color */
 int _dwib_get_color(char *color)
 {
@@ -57,7 +67,12 @@ int _dwib_get_color(char *color)
         if(strcmp(color, Colors[x]) == 0)
             return x;
     }
-    /* TODO: RGB color */
+    if(*color == '#' && strlen(color) == 7)
+    {
+        return DW_RGB((xtoi(color[1]) * 16) + xtoi(color[2]),
+                       (xtoi(color[3]) * 16) + xtoi(color[4]),
+                        (xtoi(color[5]) * 16) + xtoi(color[6]));
+    }
     return DW_CLR_DEFAULT;
 }
 
