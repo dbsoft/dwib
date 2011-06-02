@@ -23,3 +23,6 @@ ICON_HTML               ICON    "win\\HTML.ico"
 ICON_CALENDAR           ICON    "win\\Calendar.ico"
 ICON_PADDING            ICON    "win\\Padding.ico"
 ICON_MENU               ICON    "win\\Menu.ico"
+
+ICON_FONT               ICON    "win\\Font.ico"
+ICON_COLOR              ICON    "win\\Color.ico"
