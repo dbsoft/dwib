@@ -32,4 +32,5 @@ ICON ICON_CALENDAR           "os2\\Calendar.ico"
 ICON ICON_PADDING            "os2\\Padding.ico"
 ICON ICON_MENU               "os2\\Menu.ico"
 
-
+ICON ICON_FONT		     "os2\\Font.ico"
+ICON ICON_COLOR 	     "os2\\Color.ico"
