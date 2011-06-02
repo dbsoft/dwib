@@ -20,11 +20,13 @@
 #include "Calendar.xpm"
 #include "Padding.xpm"
 #include "Menu.xpm"
+#include "Font.xpm"
+#include "Color.xpm"
 
 /* Associated IDs */
 #include "resources.h"
 
-#define RESOURCE_MAX 20
+#define RESOURCE_MAX 22
 
 long _resource_id[RESOURCE_MAX] = {
 ICON_APP,
@@ -46,7 +48,9 @@ ICON_NOTEBOOK_PAGE,
 ICON_HTML,
 ICON_CALENDAR,
 ICON_PADDING,
-ICON_MENU
+ICON_MENU,
+ICON_FONT,
+ICON_COLOR
 };
 
 char *_resource_data[RESOURCE_MAX] = {
@@ -69,7 +73,9 @@ char *_resource_data[RESOURCE_MAX] = {
 (char *)HTML_xpm,
 (char *)Calendar_xpm,
 (char *)Padding_xpm,
-(char *)Menu_xpm
+(char *)Menu_xpm,
+(char *)Font_xpm,
+(char *)Color_xpm
 };
 
 typedef struct _resource_struct {
