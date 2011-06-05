@@ -3609,7 +3609,7 @@ int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, voi
     item = dw_menu_append_item(menu, "~Refresh", menuid, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), itemdata);
     
-    dw_menu_popup(&menu, window, x, y);
+    dw_menu_popup(&menu, hwndToolbar, x, y);
     return FALSE;
 }
 

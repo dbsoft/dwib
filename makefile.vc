@@ -25,11 +25,11 @@ PLATFORM_DEF = -DWIN64
 
 CC = cl
 CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR) -I$(XML2INCDIR)
-CFLAGS_DEBUG = -Zi
+CFLAGS_DEBUG = -DDEBUG -Z7 -Od 
 CFLAGS_COMPILE = -MTd
 LIBS = wsock32.lib kernel32.lib user32.lib comctl32.lib gdi32.lib advapi32.lib shell32.lib comdlg32.lib $(DWLIBDIR)\dw.lib $(XML2LIBDIR)\libxml2_a.lib
 RES = 
-LINKFLAGS = -machine:$(TARGET_CPU) -manifest -debug -debugtype:cv
+LINKFLAGS = -machine:$(TARGET_CPU) -manifest -debug
 DLLLINKFLAGS = -dll
 LINK = link
 DEFFILE = win\dwib.def
