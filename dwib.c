@@ -3723,12 +3723,12 @@ void dwib_init(void)
     
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
     dw_window_set_icon(hwndToolbar, DW_RESOURCE(ICON_APP));
-    dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 600);
+    dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 650);
     
     hwndProperties = dw_window_new(DW_DESKTOP, "Properties Inspector", DW_FCF_TITLEBAR | DW_FCF_SIZEBORDER);
     properties_none(FALSE);
     dw_signal_connect(hwndToolbar, DW_SIGNAL_SET_FOCUS, DW_SIGNAL_FUNC(toolbar_focus), NULL);
-    dw_window_set_pos_size(hwndProperties, 650, 20, 300, 500);
+    dw_window_set_pos_size(hwndProperties, 650, 20, 300, 550);
     dw_window_show(hwndProperties);
     dw_window_show(hwndToolbar);
 }
