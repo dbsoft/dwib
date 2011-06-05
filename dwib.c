@@ -618,7 +618,7 @@ int DWSIGNAL text_create(HWND window, void *data)
     
     save_properties();
     
-    properties_window(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -776,7 +776,7 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -895,7 +895,7 @@ int DWSIGNAL combobox_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -1041,7 +1041,7 @@ int DWSIGNAL listbox_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -1255,7 +1255,7 @@ int DWSIGNAL container_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -1360,7 +1360,7 @@ int DWSIGNAL tree_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -1419,7 +1419,7 @@ int DWSIGNAL mle_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -1496,7 +1496,7 @@ int DWSIGNAL render_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -1561,7 +1561,7 @@ int DWSIGNAL button_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -1704,7 +1704,7 @@ int DWSIGNAL ranged_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -1843,7 +1843,7 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -1920,7 +1920,7 @@ int DWSIGNAL html_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -2000,7 +2000,7 @@ int DWSIGNAL notebook_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -2093,7 +2093,7 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -2208,7 +2208,7 @@ int DWSIGNAL calendar_create(HWND window, void *data)
     
     save_properties();
     
-    properties_text(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -2277,7 +2277,7 @@ int DWSIGNAL box_create(HWND window, void *data)
     
     save_properties();
     
-    properties_window(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -2424,7 +2424,7 @@ int DWSIGNAL padding_create(HWND window, void *data)
     
     save_properties();
     
-    properties_window(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -2550,7 +2550,7 @@ int DWSIGNAL menu_create(HWND window, void *data)
     
     save_properties();
     
-    properties_window(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -2706,7 +2706,7 @@ int DWSIGNAL window_create(HWND window, void *data)
     
     save_properties();
     
-    properties_window(DWCurrNode);
+    properties_current();
     
     return FALSE;
 }
@@ -3371,14 +3371,9 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
     return FALSE;
 }
 
-/* Handle loading a new item when selectng the tree */
-int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, void *itemdata)
+/* Show the appropriate properties for the currently selected node */
+void properties_current(void)
 {
-    /* Save existing data... if any... here */
-    save_properties();
-    
-    DWCurrNode = itemdata;
-    
     if(DWCurrNode && DWCurrNode->name)
     {
         HWND vbox;
@@ -3479,12 +3474,23 @@ int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, vo
             dw_window_set_data(hwndProperties, "type", (void *)TYPE_MENU);
         }
         else 
-            return FALSE;
+            return;
         
          if((vbox = (HWND)dw_window_get_data(hwndProperties, "box")))
             dw_window_set_data(vbox, "node", DWCurrNode);
     }
+}
 
+/* Handle loading a new item when selectng the tree */
+int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, void *itemdata)
+{
+    /* Save existing data... if any... here */
+    save_properties();
+    
+    DWCurrNode = itemdata;
+    
+    properties_current();
+    
     return FALSE;
 }
 
