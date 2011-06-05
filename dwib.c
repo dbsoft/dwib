@@ -3209,16 +3209,20 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
 /* Handle deleting a node layout */
 int DWSIGNAL delete_clicked(HWND button, void *data)
 {
-    if(strcmp((char *)DWCurrNode->name, "DynamicWindows") == 0)
+    xmlNodePtr node = data;
+    
+    if(!node)
+        return FALSE;
+    
+    if(strcmp((char *)node->name, "DynamicWindows") == 0)
     {
         dw_messagebox(DWIB_NAME, DW_MB_OK, "No node selected.");
         return FALSE;
     }
     if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to remove the current node (%s)?", 
-                     DWCurrNode && DWCurrNode->name ? (char *)DWCurrNode->name : ""))
+                     node && node->name ? (char *)node->name : ""))
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
-        xmlNodePtr node = DWCurrNode;
         HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
         
         /* Remove the properties */
@@ -3531,10 +3535,13 @@ xmlNodePtr getNextNode(xmlNodePtr node)
 int DWSIGNAL up_clicked(HWND button, void *data)
 {
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
-    xmlNodePtr node = DWCurrNode, prevNode = getPrevNode(DWCurrNode);
+    xmlNodePtr node = data, prevNode;
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     
-    if(prevNode)
+    if(!node)
+        return FALSE;
+    
+    if((prevNode = getPrevNode(data)))
     {
         /* Remove the properties */
         dw_window_destroy(vbox);
@@ -3552,10 +3559,13 @@ int DWSIGNAL up_clicked(HWND button, void *data)
 int DWSIGNAL down_clicked(HWND button, void *data)
 {
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
-    xmlNodePtr node = DWCurrNode, nextNode = getNextNode(DWCurrNode);
+    xmlNodePtr node = data, nextNode;
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     
-    if(nextNode)
+    if(!node)
+        return FALSE;
+    
+    if((nextNode = getNextNode(node)))
     {
         /* Remove the properties */
         dw_window_destroy(vbox);
@@ -3569,6 +3579,30 @@ int DWSIGNAL down_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Pop up a tree context menu */
+int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, void *itemdata)
+{
+    HMENUI menu = dw_menu_new(0);
+    int menuid = 1050;
+    HWND item = dw_menu_append_item(menu, "~Up", menuid, 0, TRUE, FALSE, DW_NOMENU);
+    menuid++;
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(up_clicked), itemdata);
+    item = dw_menu_append_item(menu, "~Down", menuid, 0, TRUE, FALSE, DW_NOMENU);
+    menuid++;
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(down_clicked), itemdata);
+    item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, menuid, 0, TRUE, FALSE, DW_NOMENU);
+    menuid++;
+    item = dw_menu_append_item(menu, "D~elete", menuid, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(delete_clicked), itemdata);
+    menuid++;
+    item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, menuid, 0, TRUE, FALSE, DW_NOMENU);
+    menuid++;
+    item = dw_menu_append_item(menu, "~Refresh", menuid, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), itemdata);
+    
+    dw_menu_popup(&menu, window, x, y);
+    return FALSE;
+}
 
 #define TOOLBAR_WIDTH   100
 #define TOOLBAR_HEIGHT  30
@@ -3576,6 +3610,7 @@ int DWSIGNAL down_clicked(HWND button, void *data)
 void dwib_init(void)
 {
     HWND vbox, hbox, item;
+    HMENUI menu, submenu;
     int x;
     
     hIcons[0] = (HICN)0;
@@ -3658,39 +3693,35 @@ void dwib_init(void)
     item = dw_tree_new(0);
     dw_box_pack_start(vbox, item, 1, 1, TRUE, TRUE, 0);
     dw_signal_connect(item, DW_SIGNAL_ITEM_SELECT, DW_SIGNAL_FUNC(tree_select), NULL);
+    dw_signal_connect(item, DW_SIGNAL_ITEM_CONTEXT, DW_SIGNAL_FUNC(tree_context), NULL);
     dw_window_set_data(hwndToolbar, "tree", item);
-    hbox = dw_box_new(DW_HORZ, 0);
-    dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_button_new("Open", 0);
-    dw_box_pack_start(hbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(open_clicked), NULL);
-    item = dw_button_new("Save", 0);
-    dw_box_pack_start(hbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
-    dw_box_pack_start(hbox, 0, 30, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    item = dw_button_new("^", 0);
-    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(up_clicked), (void *)vbox);
-    item = dw_button_new("v", 0);
-    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(down_clicked), (void *)vbox);
-    item = dw_button_new("-", 0);
-    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(delete_clicked), NULL);
-    dw_box_pack_start(hbox, 0, 30, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    item = dw_button_new("Refresh", 0);
-    dw_box_pack_start(hbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
-    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), NULL);
+    
+    x=1000;
+    menu = dw_menubar_new(hwndToolbar);
+    submenu = dw_menu_new(0);
+    item = dw_menu_append_item(submenu, "~Open", x, 0, TRUE, FALSE, DW_NOMENU);
+    x++;
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(open_clicked), NULL);
+    item = dw_menu_append_item(submenu, "~Save", x, 0, TRUE, FALSE, DW_NOMENU);
+    x++;
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
+    x++;
+    item = dw_menu_append_item(submenu, "~Exit", x, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_delete), NULL);
+    x++;
+    item = dw_menu_append_item(menu, "~File", x, 0, TRUE, FALSE, submenu);
+    
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
     dw_window_set_icon(hwndToolbar, DW_RESOURCE(ICON_APP));
     dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 600);
-    dw_window_show(hwndToolbar);
     
     hwndProperties = dw_window_new(DW_DESKTOP, "Properties Inspector", DW_FCF_TITLEBAR | DW_FCF_SIZEBORDER);
     properties_none(FALSE);
     dw_signal_connect(hwndToolbar, DW_SIGNAL_SET_FOCUS, DW_SIGNAL_FUNC(toolbar_focus), NULL);
     dw_window_set_pos_size(hwndProperties, 650, 20, 300, 500);
     dw_window_show(hwndProperties);
+    dw_window_show(hwndToolbar);
 }
 
 /* The main entry point.  Notice we don't use WinMain() on Windows */
