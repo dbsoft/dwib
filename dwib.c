@@ -3180,29 +3180,38 @@ int DWSIGNAL open_clicked(HWND button, void *data)
 /* Handle loading a new layout */
 int DWSIGNAL refresh_clicked(HWND button, void *data)
 {
-    if(strcmp((char *)DWCurrNode->name, "Window") == 0)
+    xmlNodePtr node = data;
+    
+    while(node)
     {
-        xmlNodePtr this = _dwib_find_child(DWCurrNode, "title");
-        char *val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
-        
-        if(val)
+        if(strcmp((char *)node->name, "Window") == 0)
         {
-           /* Make sure the XML tree is up-to-date */
-           save_properties();
-           
-           dw_window_destroy(hwndPreview);
-            hwndPreview = dwib_load((DWIB)DWDoc, val);
+            xmlNodePtr this = _dwib_find_child(node, "title");
             
-            if(hwndPreview)
-                dwib_show(hwndPreview);
-            else
-                dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Failed to load window definition.");
+            if(this)
+            {
+                char *val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+                
+                if(val)
+                {
+                    /* Make sure the XML tree is up-to-date */
+                    save_properties();
+                    
+                    dw_window_destroy(hwndPreview);
+                    hwndPreview = dwib_load((DWIB)DWDoc, val);
+                    
+                    if(hwndPreview)
+                        dwib_show(hwndPreview);
+                    else
+                        dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Failed to load window definition.");
+                }
+                else
+                    dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Could not find a window title to load.");
+            }
+            return FALSE;
         }
-        else
-            dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Could not find a window title to load.");
+        node=node->parent;
     }
-    else
-        dw_messagebox(DWIB_NAME, DW_MB_OK, "You must select the window to refresh in the tree.");
     return FALSE;
 }
 
