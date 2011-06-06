@@ -276,7 +276,7 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
     HWND text = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *label = "";
-    int type = 0;
+    int type = 0, flags = 0;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
@@ -285,6 +285,20 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
     }
     if((this = _dwib_find_child(node, "label")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         label = thisval;
+    if((this = _dwib_find_child(node, "alignment")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(strcmp(thisval, "Center") == 0)
+            flags = DW_DT_CENTER;
+        else if(strcmp(thisval, "Right") == 0)
+            flags = DW_DT_RIGHT;
+    }
+    if((this = _dwib_find_child(node, "valignment")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(strcmp(thisval, "Center") == 0)
+            flags |= DW_DT_VCENTER;
+        else if(strcmp(thisval, "Bottom") == 0)
+            flags |= DW_DT_BOTTOM;
+    }
     
     switch(type)
     {
@@ -297,6 +311,8 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
     }
     if(text)
         _dwib_item_pack(node, doc, window, packbox, text);
+    if(flags)
+        dw_window_set_style(text, flags, flags);
     return text;
 }
 
