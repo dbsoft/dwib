@@ -2492,7 +2492,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     dw_window_set_data(vbox, "hexpand", item);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     val = defvaltrue;
     if((this = _dwib_find_child(node, "vexpand")))
     {
