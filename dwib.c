@@ -12,7 +12,7 @@
 
 HWND hwndToolbar, hwndProperties, hwndPreview;
 xmlDocPtr DWDoc;
-xmlNodePtr DWCurrNode = NULL;
+xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 HICN hIcons[20];
 
 #ifdef MSVC
@@ -58,11 +58,11 @@ int is_valid(xmlNodePtr node)
 }
 
 /* Returns TRUE if a packable class is selected */
-int is_packable(int message)
+int is_packable(xmlNodePtr node, int message)
 {
-    if(strcmp((char *)DWCurrNode->name, "Window") == 0 ||
-       strcmp((char *)DWCurrNode->name, "Box") == 0 ||
-       strcmp((char *)DWCurrNode->name, "NotebookPage") == 0)
+    if(strcmp((char *)node->name, "Window") == 0 ||
+       strcmp((char *)node->name, "Box") == 0 ||
+       strcmp((char *)node->name, "NotebookPage") == 0)
     {
         return TRUE;
     }
@@ -596,7 +596,7 @@ int DWSIGNAL text_create(HWND window, void *data)
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Text", (xmlChar *)subtype);
     }
@@ -754,7 +754,7 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Entryfield", (xmlChar *)subtype);
     }
@@ -876,7 +876,7 @@ int DWSIGNAL combobox_create(HWND window, void *data)
     HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Combobox", (xmlChar *)"");
     }
@@ -1022,7 +1022,7 @@ int DWSIGNAL listbox_create(HWND window, void *data)
     HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Listbox", (xmlChar *)"");
     }
@@ -1234,7 +1234,7 @@ int DWSIGNAL container_create(HWND window, void *data)
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Container", (xmlChar *)subtype);
     }
@@ -1344,7 +1344,7 @@ int DWSIGNAL tree_create(HWND window, void *data)
     HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Tree", (xmlChar *)"");
     }
@@ -1403,7 +1403,7 @@ int DWSIGNAL mle_create(HWND window, void *data)
     HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"MLE", (xmlChar *)"");
     }
@@ -1480,7 +1480,7 @@ int DWSIGNAL render_create(HWND window, void *data)
     HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Render", (xmlChar *)"");
     }
@@ -1540,7 +1540,7 @@ int DWSIGNAL button_create(HWND window, void *data)
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Button", (xmlChar *)subtype);
     }
@@ -1683,7 +1683,7 @@ int DWSIGNAL ranged_create(HWND window, void *data)
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Ranged", (xmlChar *)subtype);
     }
@@ -1827,7 +1827,7 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
     HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Bitmap", (xmlChar *)"");
     }
@@ -1904,7 +1904,7 @@ int DWSIGNAL html_create(HWND window, void *data)
     HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"HTML", (xmlChar *)"");
     }
@@ -1981,7 +1981,7 @@ int DWSIGNAL notebook_create(HWND window, void *data)
     HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Notebook", (xmlChar *)"");
     }
@@ -2192,7 +2192,7 @@ int DWSIGNAL calendar_create(HWND window, void *data)
     HTREEITEM treeitem;
     xmlNodePtr thisNode = NULL;
     
-    if(is_packable(TRUE) && parentNode)
+    if(is_packable(DWCurrNode, TRUE) && parentNode)
     {
         thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Calendar", (xmlChar *)"");
     }
@@ -2252,7 +2252,7 @@ int DWSIGNAL box_create(HWND window, void *data)
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
     xmlNodePtr boxNode = NULL;
     
-    if(is_packable(TRUE))
+    if(is_packable(DWCurrNode, TRUE))
     {
         boxNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Box", (xmlChar *)subtype);
     }
@@ -2405,7 +2405,7 @@ int DWSIGNAL padding_create(HWND window, void *data)
     HTREEITEM treeitem;
     xmlNodePtr boxNode = NULL;
     
-    if(is_packable(TRUE))
+    if(is_packable(DWCurrNode, TRUE))
     {
         boxNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Padding", (xmlChar *)"");
     }
@@ -3246,6 +3246,122 @@ int DWSIGNAL delete_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handle cutting a node layout */
+int DWSIGNAL cut_clicked(HWND button, void *data)
+{
+    xmlNodePtr node = data;
+    
+    if(!node)
+        return FALSE;
+    
+    if(strcmp((char *)node->name, "DynamicWindows") == 0)
+    {
+        dw_messagebox(DWIB_NAME, DW_MB_OK, "No node selected.");
+        return FALSE;
+    }
+    if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to cut the current node (%s) to the clipboard?", 
+                     node && node->name ? (char *)node->name : ""))
+    {
+        HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+        HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+        
+        /* Remove the properties */
+        dw_window_destroy(vbox);
+        properties_none(TRUE);
+        
+        DWCurrNode = xmlDocGetRootElement(DWDoc);
+        xmlUnlinkNode(node);
+        dw_tree_item_delete(tree, (HTREEITEM)node->_private);
+        if(DWClipNode)
+            xmlFreeNode(DWClipNode);
+        DWClipNode = node;
+    }
+    return FALSE;
+}
+
+/* Handle copying a node layout */
+int DWSIGNAL copy_clicked(HWND button, void *data)
+{
+    xmlNodePtr node = data;
+    
+    if(!node)
+        return FALSE;
+    
+    if(strcmp((char *)node->name, "DynamicWindows") == 0)
+    {
+        dw_messagebox(DWIB_NAME, DW_MB_OK, "No node selected.");
+        return FALSE;
+    }
+    if(DWClipNode)
+        xmlFreeNode(DWClipNode);
+    DWClipNode = xmlCopyNode(node, 1);
+    return FALSE;
+}
+
+/* Handle paste a node layout */
+int DWSIGNAL paste_clicked(HWND button, void *data)
+{
+    xmlNodePtr node = data;
+    
+    if(!node || !DWClipNode)
+        return FALSE;
+    
+     /* Check for special case of splitbar */
+    if(strcmp((char *)node->name, "Box") == 0)
+    {
+        xmlNodePtr this;
+        
+        if((this = _dwib_find_child(node, "subtype")))
+        {
+            char *thisval;
+            
+            if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            {
+                if(strcmp(thisval, "Splitbar") == 0)
+                {
+                    int count = count_children(node);
+                    
+                    if(count > 1)
+                    {
+                        dw_messagebox(DWIB_NAME, DW_MB_OK, "Splitbars can't have more than two children packed.");
+                        return FALSE;
+                    }
+                }
+            }
+        }
+    }
+    
+    if(strcmp((char *)node->name, "DynamicWindows") == 0)
+    {
+        dw_messagebox(DWIB_NAME, DW_MB_OK, "No node selected.");
+        return FALSE;
+    }
+    else if(strcmp((char *)node->name, "Window") != 0 && strcmp((char *)DWClipNode->name, "Menu") == 0)
+    {
+        dw_messagebox(DWIB_NAME, DW_MB_OK, "The menu on the clipboard needs to be pasted into a top-level window.");
+        return FALSE;
+    }
+    else if(strcmp((char *)node->name, "Notebook") != 0 && strcmp((char *)DWClipNode->name, "NotebookPage") == 0)
+    {
+        dw_messagebox(DWIB_NAME, DW_MB_OK, "The notebook page on the clipboard needs to be pasted into a notebook widget.");
+        return FALSE;
+    }
+    else if(is_packable(node, FALSE))
+    {
+        xmlNodePtr this = _dwib_find_child(DWCurrNode, "Children");
+        
+        if(this)
+        {
+            xmlNodePtr copy = xmlCopyNode(DWClipNode, 1);
+        
+            xmlAddChild(this, copy);
+        
+            reloadTree();
+        }
+    }
+    return FALSE;
+}
+
 /* One of the buttons on the toolbar was clicked */
 int DWSIGNAL toolbar_clicked(HWND button, void *data)
 {
@@ -3311,7 +3427,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
             dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be a window or menu.");
         }
     }
-    else if(is_packable(TRUE))
+    else if(is_packable(DWCurrNode, TRUE))
     {
         switch(which)
         {
@@ -3605,13 +3721,24 @@ int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, voi
     item = dw_menu_append_item(menu, "~Down", menuid, 0, TRUE, FALSE, DW_NOMENU);
     menuid++;
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(down_clicked), itemdata);
-    item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, menuid, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menu, "C~opy", menuid, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(copy_clicked), itemdata);
+    menuid++;
+    item = dw_menu_append_item(menu, "C~ut", menuid, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(cut_clicked), itemdata);
     menuid++;
     item = dw_menu_append_item(menu, "D~elete", menuid, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(delete_clicked), itemdata);
     menuid++;
-    item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, menuid, 0, TRUE, FALSE, DW_NOMENU);
+    if(DWClipNode)
+    {
+        item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
+        item = dw_menu_append_item(menu, "~Paste", menuid, 0, TRUE, FALSE, DW_NOMENU);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(paste_clicked), itemdata);
+    }
     menuid++;
+    item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(menu, "~Refresh", menuid, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), itemdata);
     
