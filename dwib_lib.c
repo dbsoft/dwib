@@ -69,9 +69,9 @@ int _dwib_get_color(char *color)
     }
     if(*color == '#' && strlen(color) == 7)
     {
-        return DW_RGB((xtoi(color[1]) * 16) + xtoi(color[2]),
-                       (xtoi(color[3]) * 16) + xtoi(color[4]),
-                        (xtoi(color[5]) * 16) + xtoi(color[6]));
+        return DW_RGB(((xtoi(color[1]) * 16) + xtoi(color[2])),
+                      ((xtoi(color[3]) * 16) + xtoi(color[4])),
+                      ((xtoi(color[5]) * 16) + xtoi(color[6])));
     }
     return DW_CLR_DEFAULT;
 }
