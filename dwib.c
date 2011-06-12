@@ -617,7 +617,6 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
         item = dw_text_new(sysfonttext, 0);
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
         dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-        val = "Default";
         if((this = _dwib_find_child(node, sysfont)))
         {
             if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
