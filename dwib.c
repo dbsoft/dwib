@@ -199,6 +199,15 @@ void save_item(xmlNodePtr node, HWND vbox)
     updateNode(node, vbox, "fcolor", FALSE);
     updateNode(node, vbox, "bcolor", FALSE);
     updateNode(node, vbox, "font", FALSE);
+#ifdef __OS2__
+    updateNode(node, vbox, "os2font", FALSE);
+#elif defined(__MAC__)    
+    updateNode(node, vbox, "macfont", FALSE);
+#elif defined(__WIN32__)    
+    updateNode(node, vbox, "winfont", FALSE);
+#elif defined(__UNIX__)    
+    updateNode(node, vbox, "unixfont", FALSE);
+#endif
 }
 
 /* Updates the XML tree with current settings */
@@ -403,6 +412,22 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int x;
+#ifdef __OS2__
+    char *sysfont = "os2font";
+    char *sysfonttext = "OS/2 Font:";
+#elif defined(__MAC__)
+    char *sysfont = "macfont";
+    char *sysfonttext = "Mac Font:";
+#elif defined(__WIN32__)
+    char *sysfont = "winfont";
+    char *sysfonttext = "Windows Font:";
+#elif defined(__UNIX__)
+    char *sysfont = "macfont";
+    char *sysfonttext = "Unix Font:";
+#else
+    char *sysfont = NULL;
+    char *sysfonttext = NULL;
+#endif
     
     /* Data name*/
     hbox = dw_box_new(DW_HORZ, 0);
@@ -584,6 +609,29 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
     dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(font_clicked), tmp);
+    if(sysfont)
+    {
+        /* System Font */
+        hbox = dw_box_new(DW_HORZ, 0);
+        dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+        item = dw_text_new(sysfonttext, 0);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+        dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+        val = "Default";
+        if((this = _dwib_find_child(node, sysfont)))
+        {
+            if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+                val = thisval;
+        }
+        tmp = item = dw_combobox_new(val, 0);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        dw_listbox_append(item, "Default");
+        dw_window_set_data(vbox, sysfont, item);    
+        item = dw_bitmapbutton_new("Font chooser", ICON_FONT);
+        dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+        dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(font_clicked), tmp);
+    }
 }
 
 /* Create a new text definition */

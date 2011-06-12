@@ -97,7 +97,18 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
         padding = atoi(thisval);
     if((this = _dwib_find_child(node, "dataname")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dataname = thisval;
-    if((this = _dwib_find_child(node, "font")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && strcmp(thisval, "Default"))
+#ifdef __OS2__
+    this = _dwib_find_child(node, "os2font");
+#elif defined(__MAC__)
+    this = _dwib_find_child(node, "macfont");
+#elif defined(__WIN32__)
+    this = _dwib_find_child(node, "winfont");
+#elif defined(__UNIX__)
+    this = _dwib_find_child(node, "unixfont");
+#else 
+    this = NULL;
+#endif    
+    if((this || (this = _dwib_find_child(node, "font"))) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && strcmp(thisval, "Default"))
         dw_window_set_font(item, thisval);
     if((this = _dwib_find_child(node, "fcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         fcolor = _dwib_get_color(thisval);
