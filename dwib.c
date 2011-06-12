@@ -10,7 +10,7 @@
 #include "dwib_int.h"
 #include "dwib.h"
 
-HWND hwndToolbar, hwndProperties, hwndPreview;
+HWND hwndToolbar, hwndProperties, hwndPreview = 0;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 HICN hIcons[20];
