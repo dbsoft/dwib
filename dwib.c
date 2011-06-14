@@ -1697,7 +1697,7 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     /* Bitmap button help */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Bubble Help (Bitmap)", 0);
+    item = dw_text_new("Bitmap Tooltip", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
@@ -1919,7 +1919,7 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     /* Default Text */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Resource ID/Filename", 0);
+    item = dw_text_new("Res ID/Filename", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
@@ -3196,6 +3196,33 @@ void reloadTree(void)
     }
 }
 
+/* Handle starting a new layout */
+int DWSIGNAL new_clicked(HWND button, void *data)
+{
+    if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
+    {
+        HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+        HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+
+        /* Remove the current tree */
+        dw_tree_clear(tree);
+        
+        /* Remove the properties */
+        dw_window_destroy(vbox);
+        properties_none(TRUE);
+        
+        /* Free the existing doc */
+        xmlFreeDoc(DWDoc);
+        
+        /* Create a new empty XML document */
+        DWDoc = xmlNewDoc((xmlChar *)"1.0");
+        DWCurrNode = xmlNewNode(NULL, (xmlChar *)"DynamicWindows");
+        xmlDocSetRootElement(DWDoc, DWCurrNode);
+    }
+    return FALSE;
+}
+
+
 /* Handle loading a new layout */
 int DWSIGNAL open_clicked(HWND button, void *data)
 {
@@ -3891,6 +3918,10 @@ void dwib_init(void)
     x=1000;
     menu = dw_menubar_new(hwndToolbar);
     submenu = dw_menu_new(0);
+    item = dw_menu_append_item(submenu, "~New", x, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(new_clicked), NULL);
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
+    x++;
     item = dw_menu_append_item(submenu, "~Open", x, 0, TRUE, FALSE, DW_NOMENU);
     x++;
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(open_clicked), NULL);
