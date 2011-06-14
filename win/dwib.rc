@@ -26,3 +26,5 @@ ICON_MENU               ICON    "win\\Menu.ico"
 
 ICON_FONT               ICON    "win\\Font.ico"
 ICON_COLOR              ICON    "win\\Color.ico"
+
+BITMAP_PLACEHOLD        BITMAP  "win\\Placehold.bmp"
