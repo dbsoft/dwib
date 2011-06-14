@@ -3802,6 +3802,9 @@ void dwib_init(void)
     HMENUI menu, submenu;
     int x;
     
+    /* Enable builder mode */
+    _dwib_builder_toggle(TRUE);
+    
     hIcons[0] = (HICN)0;
     for(x=1;x<20;x++)
     {

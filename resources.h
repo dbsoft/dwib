@@ -23,3 +23,6 @@
 #define ICON_FONT               200
 #define ICON_COLOR              201
 
+#define BITMAP_PLACEHOLD        250
+
+

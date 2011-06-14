@@ -9,7 +9,15 @@
 #include <ctype.h>
 #include "dwib.h"
 #include "dwib_int.h"
+#include "resources.h"
 
+static int _dwib_builder = FALSE;
+
+/* Enable builder mode when linked to the main application. */
+void _dwib_builder_toggle(int val)
+{
+    _dwib_builder = val;
+}
 
 /* Returns a child of node with the specified name.
  * Returns NULL on failure.
@@ -256,6 +264,9 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
         case 1:
         {
             int resid = atoi(setting);
+            
+            if(_dwib_builder && resid)
+                resid = BITMAP_PLACEHOLD;
             
             if(resid)
                 button = dw_bitmapbutton_new(bubblehelp, resid);
@@ -622,6 +633,8 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     {
         setting = thisval;
         resid = atoi(setting);
+        if(_dwib_builder && resid)
+            resid = BITMAP_PLACEHOLD;
     }
     
     bitmap = dw_bitmap_new(resid);
