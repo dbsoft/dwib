@@ -22,11 +22,12 @@
 #include "Menu.xpm"
 #include "Font.xpm"
 #include "Color.xpm"
+#include "Placehold.xpm"
 
 /* Associated IDs */
 #include "resources.h"
 
-#define RESOURCE_MAX 22
+#define RESOURCE_MAX 23
 
 long _resource_id[RESOURCE_MAX] = {
 ICON_APP,
@@ -50,7 +51,8 @@ ICON_CALENDAR,
 ICON_PADDING,
 ICON_MENU,
 ICON_FONT,
-ICON_COLOR
+ICON_COLOR,
+BITMAP_PLACEHOLD
 };
 
 char *_resource_data[RESOURCE_MAX] = {
@@ -75,7 +77,8 @@ char *_resource_data[RESOURCE_MAX] = {
 (char *)Padding_xpm,
 (char *)Menu_xpm,
 (char *)Font_xpm,
-(char *)Color_xpm
+(char *)Color_xpm,
+(char *)Placehold_xpm
 };
 
 typedef struct _resource_struct {
