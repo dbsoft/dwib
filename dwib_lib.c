@@ -85,7 +85,7 @@ int _dwib_get_color(char *color)
 }
 
 /* Internal function for handling packing of items into boxes */
-void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND item)
+void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND item, int index)
 {
     int width = 1, height = 1, hexpand = TRUE, vexpand = TRUE, padding = 0;
     int fcolor = DW_CLR_DEFAULT, bcolor = DW_CLR_DEFAULT;
@@ -138,7 +138,7 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
         dw_window_set_data(box, "_dwib_count", (void *)count);
         box = splitbox;                        
     }
-    dw_box_pack_start(box, item, width, height, hexpand, vexpand, padding);
+    dw_box_pack_at_index(box, item, 65536, width, height, hexpand, vexpand, padding);
     
     if(dataname && window)
         dw_window_set_data(window, dataname, item);
@@ -168,7 +168,7 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
 }
 
 /* Internal function for creating a notebook widget from an XML tree node */
-HWND _dwib_notebook_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_notebook_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND notebook;
     xmlNodePtr this = _dwib_find_child(node, "position");
@@ -180,12 +180,12 @@ HWND _dwib_notebook_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
     
     notebook = dw_notebook_new(0, top);
     
-    _dwib_item_pack(node, doc, window, packbox, notebook);
+    _dwib_item_pack(node, doc, window, packbox, notebook, index);
     return notebook;
 }
 
 /* Internal function for creating a box widget from an XML tree node */
-HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND box = 0, box1, box2;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
@@ -230,12 +230,12 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
             break;
     }
     if(box)
-        _dwib_item_pack(node, doc, window, packbox, box);
+        _dwib_item_pack(node, doc, window, packbox, box, index);
     return box;
 }
 
 /* Internal function for creating a button widget from an XML tree node */
-HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND button = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
@@ -287,13 +287,13 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
         if((this = _dwib_find_child(node, "check")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
             dw_checkbox_set(button, TRUE);
 
-        _dwib_item_pack(node, doc, window, packbox, button);
+        _dwib_item_pack(node, doc, window, packbox, button, index);
     }
     return button;
 }
 
 /* Internal function for creating a text widget from an XML tree node */
-HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND text = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
@@ -332,7 +332,7 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
             break;
     }
     if(text)
-        _dwib_item_pack(node, doc, window, packbox, text);
+        _dwib_item_pack(node, doc, window, packbox, text, index);
     if(flags)
         dw_window_set_style(text, flags, flags);
     return text;
@@ -413,7 +413,7 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
 }
 
 /* Internal function for creating a container widget from an XML tree node */
-HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND container;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
@@ -433,12 +433,12 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     if((this = _dwib_find_child(node, "Columns")))
         _dwib_populate_container(container, this, doc, type);
         
-    _dwib_item_pack(node, doc, window, packbox, container);
+    _dwib_item_pack(node, doc, window, packbox, container, index);
     return container;
 }
 
 /* Internal function for creating a ranged widget from an XML tree node */
-HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND ranged = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
@@ -482,12 +482,12 @@ HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             
     }
     if(ranged)
-        _dwib_item_pack(node, doc, window, packbox, ranged);
+        _dwib_item_pack(node, doc, window, packbox, ranged, index);
     return ranged;
 }
 
 /* Internal function for creating an entryfield widget from an XML tree node */
-HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND entryfield = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
@@ -516,7 +516,7 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
         dw_entryfield_set_limit(entryfield, atoi(thisval));
     
     if(entryfield)
-        _dwib_item_pack(node, doc, window, packbox, entryfield);
+        _dwib_item_pack(node, doc, window, packbox, entryfield, index);
     return entryfield;
 }
 
@@ -540,7 +540,7 @@ void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc)
 }
 
 /* Internal function for creating a combobox widget from an XML tree node */
-HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND combobox;
     xmlNodePtr this = _dwib_find_child(node, "deftext");
@@ -551,7 +551,7 @@ HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
     
     combobox = dw_combobox_new(deftext, 0);
     
-    _dwib_item_pack(node, doc, window, packbox, combobox);
+    _dwib_item_pack(node, doc, window, packbox, combobox, index);
     
     if((this = _dwib_find_child(node, "List")))
         _dwib_populate_list(combobox, this, doc);
@@ -560,25 +560,25 @@ HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
 }
 
 /* Internal function for creating a tree widget from an XML tree node */
-HWND _dwib_tree_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_tree_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND tree = dw_tree_new(0);
     
-    _dwib_item_pack(node, doc, window, packbox, tree);
+    _dwib_item_pack(node, doc, window, packbox, tree, index);
     return tree;
 }
 
 /* Internal function for creating a render widget from an XML tree node */
-HWND _dwib_render_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_render_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND render = dw_render_new(0);
     
-    _dwib_item_pack(node, doc, window, packbox, render);
+    _dwib_item_pack(node, doc, window, packbox, render, index);
     return render;
 }
 
 /* Internal function for creating an mle widget from an XML tree node */
-HWND _dwib_mle_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_mle_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND mle;
     xmlNodePtr this = _dwib_find_child(node, "deftext");
@@ -592,12 +592,12 @@ HWND _dwib_mle_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
     mle = dw_mle_new(0);
     dw_mle_import(mle, deftext, -1);
     
-    _dwib_item_pack(node, doc, window, packbox, mle);
+    _dwib_item_pack(node, doc, window, packbox, mle, index);
     return mle;
 }
 
 /* Internal function for creating a html widget from an XML tree node */
-HWND _dwib_html_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_html_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND html;
     xmlNodePtr this = _dwib_find_child(node, "URL");
@@ -608,21 +608,21 @@ HWND _dwib_html_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dw_html_url(html, thisval);
     
-    _dwib_item_pack(node, doc, window, packbox, html);
+    _dwib_item_pack(node, doc, window, packbox, html, index);
     return html;
 }
 
 /* Internal function for creating a calendar widget from an XML tree node */
-HWND _dwib_calendar_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_calendar_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND calendar = dw_calendar_new(0);
     
-    _dwib_item_pack(node, doc, window, packbox, calendar);
+    _dwib_item_pack(node, doc, window, packbox, calendar, index);
     return calendar;
 }
 
 /* Internal function for creating a bitmap widget from an XML tree node */
-HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND bitmap;
     xmlNodePtr this = _dwib_find_child(node, "setting");
@@ -643,12 +643,12 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     else
         dw_window_set_bitmap(bitmap, resid, NULL);
 
-    _dwib_item_pack(node, doc, window, packbox, bitmap);
+    _dwib_item_pack(node, doc, window, packbox, bitmap, index);
     return bitmap;
 }
 
 /* Internal function for creating a listbox widget from an XML tree node */
-HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND listbox;
     xmlNodePtr this = _dwib_find_child(node, "multi");
@@ -660,7 +660,7 @@ HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
     
     listbox = dw_listbox_new(0, multi);
     
-    _dwib_item_pack(node, doc, window, packbox, listbox);
+    _dwib_item_pack(node, doc, window, packbox, listbox, index);
     
     if((this = _dwib_find_child(node, "List")))
         _dwib_populate_list(listbox, this, doc);
@@ -698,9 +698,101 @@ HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packb
 }
 
 /* Internal function for packing padding from an XML tree node */
-void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
+void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
-    _dwib_item_pack(node, doc, window, packbox, 0);
+    _dwib_item_pack(node, doc, window, packbox, 0, index);
+}
+
+/* Internal function that handles creation on a single node */
+HMENUI _dwib_child(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int windowlevel, xmlNodePtr p, HMENUI menu, int index)
+{
+    if(strcmp((char *)p->name, "Box") == 0)
+    {
+        HWND newbox = _dwib_box_create(p, doc, window, box, index);
+        _dwib_children(p, doc, window, newbox, FALSE);
+    }
+    else if(strcmp((char *)p->name, "Notebook") == 0)
+    {
+        HWND notebook = _dwib_notebook_create(p, doc, window, box, index);
+        _dwib_children(p, doc, window, notebook, FALSE);
+    }
+    else if(strcmp((char *)p->name, "NotebookPage") == 0)
+    {
+        HWND notebookpage = _dwib_notebook_page_create(p, doc, window, box);
+        _dwib_children(p, doc, window, notebookpage, FALSE);
+    }
+    else if(strcmp((char *)p->name, "Button") == 0)
+    {
+        _dwib_button_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Text") == 0)
+    {
+        _dwib_text_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Container") == 0)
+    {
+        _dwib_container_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Ranged") == 0)
+    {
+        _dwib_ranged_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Entryfield") == 0)
+    {
+        _dwib_entryfield_create(p, doc, window, box, index);
+    }
+    /* No subtype */
+    else if(strcmp((char *)p->name, "Combobox") == 0)
+    {
+        _dwib_combobox_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Tree") == 0)
+    {
+        _dwib_tree_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "MLE") == 0)
+    {
+        _dwib_mle_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Render") == 0)
+    {
+        _dwib_render_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Bitmap") == 0)
+    {
+        _dwib_bitmap_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "HTML") == 0)
+    {
+        _dwib_html_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Calendar") == 0)
+    {
+        _dwib_calendar_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Listbox") == 0)
+    {
+        _dwib_listbox_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Padding") == 0)
+    {
+        _dwib_padding_create(p, doc, window, box, index);
+    }
+    else if(strcmp((char *)p->name, "Menu") == 0)
+    {
+        HMENUI submenu;
+
+        if(!menu)
+        {
+            if(windowlevel)
+                menu = dw_menubar_new(window);
+            else
+                menu = dw_menu_new(0);
+        }
+        submenu = _dwib_children(p, doc, window, 0, FALSE);
+        _dwib_menu_create(p, doc, window, menu, submenu);
+    }
+    return menu;
 }
 
 /* Internal function fo parsing the children of packable widgets... boxes, notebook pages, etc */
@@ -711,92 +803,7 @@ HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int
     
     for(p=p->children;p;p = p->next)
     {
-        if(strcmp((char *)p->name, "Box") == 0)
-        {
-            HWND newbox = _dwib_box_create(p, doc, window, box);
-            _dwib_children(p, doc, window, newbox, FALSE);
-        }
-        else if(strcmp((char *)p->name, "Notebook") == 0)
-        {
-            HWND notebook = _dwib_notebook_create(p, doc, window, box);
-            _dwib_children(p, doc, window, notebook, FALSE);
-        }
-        else if(strcmp((char *)p->name, "NotebookPage") == 0)
-        {
-            HWND notebookpage = _dwib_notebook_page_create(p, doc, window, box);
-            _dwib_children(p, doc, window, notebookpage, FALSE);
-        }
-        else if(strcmp((char *)p->name, "Button") == 0)
-        {
-            _dwib_button_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Text") == 0)
-        {
-            _dwib_text_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Container") == 0)
-        {
-            _dwib_container_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Ranged") == 0)
-        {
-            _dwib_ranged_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Entryfield") == 0)
-        {
-            _dwib_entryfield_create(p, doc, window, box);
-        }
-        /* No subtype */
-        else if(strcmp((char *)p->name, "Combobox") == 0)
-        {
-            _dwib_combobox_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Tree") == 0)
-        {
-            _dwib_tree_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "MLE") == 0)
-        {
-            _dwib_mle_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Render") == 0)
-        {
-            _dwib_render_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Bitmap") == 0)
-        {
-            _dwib_bitmap_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "HTML") == 0)
-        {
-            _dwib_html_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Calendar") == 0)
-        {
-            _dwib_calendar_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Listbox") == 0)
-        {
-            _dwib_listbox_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Padding") == 0)
-        {
-            _dwib_padding_create(p, doc, window, box);
-        }
-        else if(strcmp((char *)p->name, "Menu") == 0)
-        {
-            HMENUI submenu;
-
-            if(!menu)
-            {
-                if(windowlevel)
-                    menu = dw_menubar_new(window);
-                else
-                    menu = dw_menu_new(0);
-            }
-            submenu = _dwib_children(p, doc, window, 0, FALSE);
-            _dwib_menu_create(p, doc, window, menu, submenu);
-        }
+        menu = _dwib_child(node, doc, window, box, windowlevel, p, menu, 65536);
     }
     return menu;
 }
@@ -897,6 +904,85 @@ HWND API dwib_load(DWIB handle, char *name)
                 HWND window = _dwib_window_create(p, doc);
                 _dwib_children(p, doc, window, (HWND)dw_window_get_data(window, "_dwib_box"), TRUE);
                 return window;
+            }
+        }
+    }
+    return 0;
+}
+
+int _dwib_check_dataname(xmlNodePtr node, xmlDocPtr doc, char *dataname)
+{
+    char *thisval = NULL;
+    xmlNodePtr this;
+
+    if((this = _dwib_find_child(node, "dataname")) && 
+        (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) &&
+        (strcmp(dataname, thisval) == 0))
+        return TRUE;
+    return FALSE;
+}
+
+/* Internal function fo parsing the children of packable widgets... boxes, notebook pages, etc */
+int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dataname, HWND box, int index)
+{
+    xmlNodePtr p = _dwib_find_child(node, "Children");
+    
+    for(p=p->children;p;p = p->next)
+    {
+        if(_dwib_check_dataname(node, doc, dataname))
+        {
+            _dwib_child(node, doc, window, box, FALSE, p, 0, index);
+            return TRUE;
+        }
+        else
+        {
+            if(strcmp((char *)p->name, "Box") == 0)
+            {
+                _dwib_children_search(p, doc, window, dataname, box, index);
+            }
+            else if(strcmp((char *)p->name, "Notebook") == 0)
+            {
+                _dwib_children_search(p, doc, window, dataname, box, index);
+            }
+            else if(strcmp((char *)p->name, "NotebookPage") == 0)
+            {
+                _dwib_children_search(p, doc, window, dataname, box, index);
+            }
+        }
+    }
+    return FALSE;
+}
+
+/*
+ * Loads a window with the specified name from an XML tree.
+ * Parameters:
+ *       handle: A handle to an XML tree.
+ *       name: The name of the window to load.
+ *       dataname: Data name of the item to load and pack.
+ *       window: Top-level window handle to set the data on.
+ *       box: Handle to the box to insert the layout into.
+ *       index: Index in the box to insert the layout into.
+ * Returns:
+ *       A handle to a top-level window or NULL on failure.
+ */
+int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window, HWND box, int index)
+{
+    xmlDocPtr doc = handle;
+    xmlNodePtr p, rootNode = xmlDocGetRootElement(doc);
+    
+    if(!rootNode)
+        return 0;
+    
+    for(p=rootNode->children;p;p = p->next)
+    {
+        if(strcmp((char *)p->name, "Window") == 0)
+        {
+            xmlNodePtr this = _dwib_find_child(p, "title");
+            char *val = (char *)xmlNodeListGetString(doc, this->children, 1);
+            
+            if(val && strcmp(name, val) == 0)
+            {
+                return _dwib_children_search(p, doc, window, dataname, box, index);
             }
         }
     }

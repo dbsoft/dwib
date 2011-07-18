@@ -1,10 +1,14 @@
 LIBRARY DWIB
            
-DESCRIPTION 'Dynamic Windows Interface Builder'
+DESCRIPTION 'Dynamic Windows Interface Builder for Windows'
 
 EXPORTS
-  dwib_load                              @10
-  dwib_show                              @11
-  dwib_open_from_data                    @12
-  dwib_open                              @13
-  dwib_close                             @14
+  dwib_open                              @10
+  dwib_open_from_data                    @11
+  
+  dwib_close                             @20
+  
+  dwib_load                              @30
+  dwib_load_at_index                     @31
+  
+  dwib_show                              @40
