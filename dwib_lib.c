@@ -926,31 +926,35 @@ int _dwib_check_dataname(xmlNodePtr node, xmlDocPtr doc, char *dataname)
 int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dataname, HWND box, int index)
 {
     xmlNodePtr p = _dwib_find_child(node, "Children");
+    int retval = DW_ERROR_GENERAL;
     
     for(p=p->children;p;p = p->next)
     {
         if(_dwib_check_dataname(node, doc, dataname))
         {
             _dwib_child(node, doc, window, box, FALSE, p, 0, index);
-            return TRUE;
+            return DW_ERROR_NONE;
         }
         else
         {
             if(strcmp((char *)p->name, "Box") == 0)
             {
-                _dwib_children_search(p, doc, window, dataname, box, index);
+                retval = _dwib_children_search(p, doc, window, dataname, box, index);
             }
             else if(strcmp((char *)p->name, "Notebook") == 0)
             {
-                _dwib_children_search(p, doc, window, dataname, box, index);
+                retval = _dwib_children_search(p, doc, window, dataname, box, index);
             }
             else if(strcmp((char *)p->name, "NotebookPage") == 0)
             {
-                _dwib_children_search(p, doc, window, dataname, box, index);
+                retval = _dwib_children_search(p, doc, window, dataname, box, index);
             }
         }
+        /* If we found the dataname... drop out of the loop */
+        if(retval == DW_ERROR_NONE)
+            return retval;
     }
-    return FALSE;
+    return retval;
 }
 
 /*
@@ -963,7 +967,7 @@ int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dat
  *       box: Handle to the box to insert the layout into.
  *       index: Index in the box to insert the layout into.
  * Returns:
- *       A handle to a top-level window or NULL on failure.
+ *       DW_ERROR_GENERAL on error or DW_ERROR_NONE on success.
  */
 int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window, HWND box, int index)
 {
@@ -971,7 +975,7 @@ int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window,
     xmlNodePtr p, rootNode = xmlDocGetRootElement(doc);
     
     if(!rootNode)
-        return 0;
+        return DW_ERROR_GENERAL;
     
     for(p=rootNode->children;p;p = p->next)
     {
@@ -986,7 +990,7 @@ int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window,
             }
         }
     }
-    return 0;
+    return DW_ERROR_GENERAL;
 }
 
 /*
