@@ -815,7 +815,7 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     char *thisval, *title = "";
     unsigned long flags = 0;
     int bordersize = -1, orient = DW_HORZ, padding = 0;
-    int x = -1, y = -1, width = -1, height = -1;
+    int x = -1, y = -1, width = -1, height = -1, center = 0;
     HWND ret, box;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -847,6 +847,8 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
         x = atoi(thisval);
     if((this = _dwib_find_child(node, "y")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         y = atoi(thisval);
+    if((this = _dwib_find_child(node, "center")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        center = atoi(thisval);
     if((this = _dwib_find_child(node, "width")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         width = atoi(thisval);
     if((this = _dwib_find_child(node, "height")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -862,6 +864,7 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     
     dw_window_set_data(ret, "_dwib_x", (void *)x);
     dw_window_set_data(ret, "_dwib_y", (void *)y);
+    dw_window_set_data(ret, "_dwib_center", (void *)center);
     dw_window_set_data(ret, "_dwib_width", (void *)width);
     dw_window_set_data(ret, "_dwib_height", (void *)height);
     
@@ -1000,13 +1003,29 @@ int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window,
  */
 void API dwib_show(HWND window)
 {
-    int x, y, width, height;
+    int x, y, width, height, center;
     
+    /* Get the loaded window settings set on the window handle */
     x = (int)dw_window_get_data(window, "_dwib_x");
     y = (int)dw_window_get_data(window, "_dwib_y");
+    center = (int)dw_window_get_data(window, "_dwib_center");
     width = (int)dw_window_get_data(window, "_dwib_width");
     height = (int)dw_window_get_data(window, "_dwib_height");
+
+    /* Calculate new positions if center is enabled */
+    if(center && width > 0 && height > 0)
+    {
+    	int cx = dw_screen_width() - width;
+	    int cy = dw_screen_height() - height;
+
+        if(cx > 1 && cy > 1)
+        {
+            x = cx / 2;
+            y = cy / 2;
+        }
+    }
     
+    /* Set size and/or position if possible */
     if(width > 0 && height > 0 && x >= 0 && y >= 0)
         dw_window_set_pos_size(window, x, y, width, height);
     else if (width > 0 && height > 0)
@@ -1014,6 +1033,7 @@ void API dwib_show(HWND window)
     else if(x >= 0 && y >= 0)
         dw_window_set_pos(window, x, y);
     
+    /* Finally show the window */
     dw_window_show(window);
 }
 
