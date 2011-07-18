@@ -3,6 +3,9 @@
  * Author: Brian Smith
  */
 
+#ifndef DWIB_INT_H
+#define DWIB_INT_H
+
 #define DWIB_NAME "Dynamic Windows Interface Builder"
 
 enum DWTYPES
@@ -60,3 +63,4 @@ void DWSIGNAL properties_window(xmlNodePtr node);
 void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype, char *colalign, int disable);
 void properties_current(void);
 
+#endif
