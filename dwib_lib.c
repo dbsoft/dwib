@@ -961,7 +961,7 @@ int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dat
 }
 
 /*
- * Loads a window with the specified name from an XML tree.
+ * Loads a part of a window layout specified by dataname with the specified window name from an XML tree and packs it into box at index.
  * Parameters:
  *       handle: A handle to an XML tree.
  *       name: The name of the window to load.
