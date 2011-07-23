@@ -103,6 +103,8 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
         vexpand = atoi(thisval);
     if((this = _dwib_find_child(node, "padding")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         padding = atoi(thisval);
+    if((this = _dwib_find_child(node, "enabled")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval) == 0)
+        dw_window_disable(item);
     if((this = _dwib_find_child(node, "dataname")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dataname = thisval;
 #ifdef __OS2__
@@ -684,7 +686,7 @@ HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packb
     if((this = _dwib_find_child(node, "checked")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
         flags |= DW_MIS_CHECKED;
     if((this = _dwib_find_child(node, "enabled")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-        flags |= DW_MIS_ENABLED;
+        flags |= (atoi(thisval) ? DW_MIS_ENABLED : DW_MIS_DISABLED);
     if((this = _dwib_find_child(node, "dataname")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dataname = thisval;
     
