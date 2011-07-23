@@ -933,7 +933,7 @@ int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dat
     
     for(p=p->children;p;p = p->next)
     {
-        if(_dwib_check_dataname(node, doc, dataname))
+        if(_dwib_check_dataname(p, doc, dataname))
         {
             _dwib_child(node, doc, window, box, FALSE, p, 0, index);
             return DW_ERROR_NONE;

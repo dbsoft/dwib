@@ -1,3 +1,4 @@
+#ifndef __MAC__
 /* XPMs */
 
 /* Associated IDs */
@@ -17,3 +18,4 @@ typedef struct _resource_struct {
 } DWResources;
 
 DWResources _resources = { RESOURCE_MAX, (long)_resource_id, (char **)_resource_data };
+#endif
