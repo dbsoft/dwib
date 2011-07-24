@@ -3083,9 +3083,21 @@ int count_children(xmlNodePtr node)
 /* Parse the children if packable widgets... boxes, notebook pages, etc */
 void handleChildren(xmlNodePtr node, HWND tree)
 {
-    xmlNodePtr p = _dwib_find_child(node, "Children");
     char buf[200], *val;
     HTREEITEM treeitem;
+    xmlNodePtr p;
+    int clear = 0;
+    
+    if(strcmp((char *)node->name, "Children") == 0)
+    {
+        p = node;
+        clear = TRUE;
+        
+    }
+    else
+    {
+        p = _dwib_find_child(node, "Children");
+    }
     
     if(!p)
         return;
@@ -3094,6 +3106,8 @@ void handleChildren(xmlNodePtr node, HWND tree)
     {
         val = NULL;
         
+        if(clear && p->_private)
+            dw_tree_item_delete(tree, (HTREEITEM)p->_private);
         if(strcmp((char *)p->name, "Box") == 0)
         {
             xmlNodePtr this = _dwib_find_child(p, "subtype");
@@ -3102,7 +3116,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
                 val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
             
             snprintf(buf, 200, "Box - (%s)", val ? val : "");
-            
+           
             treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], (HTREEITEM)node->_private, p);
             p->_private = (void *)treeitem;
             dw_tree_item_expand(tree, (HTREEITEM)node->_private);
@@ -3769,9 +3783,9 @@ int DWSIGNAL up_clicked(HWND button, void *data)
         properties_none(TRUE);
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
-        dw_tree_clear(tree);
         xmlAddPrevSibling(prevNode, node);
-        reloadTree();
+        if(node->parent)
+            handleChildren(node->parent, tree);
     }
     return FALSE;
 }
@@ -3793,9 +3807,9 @@ int DWSIGNAL down_clicked(HWND button, void *data)
         properties_none(TRUE);
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
-        dw_tree_clear(tree);
         xmlAddNextSibling(nextNode, node);
-        reloadTree();
+        if(node->parent)
+            handleChildren(node->parent, tree);
     }
     return FALSE;
 }
