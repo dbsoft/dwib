@@ -3289,6 +3289,13 @@ int DWSIGNAL open_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Reset the preview window handle when deleted */
+int DWSIGNAL preview_delete(HWND window, void *data)
+{
+    hwndPreview = 0;
+    return FALSE;
+}
+
 /* Handle loading a new layout */
 int DWSIGNAL refresh_clicked(HWND button, void *data)
 {
@@ -3309,8 +3316,11 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
                     /* Make sure the XML tree is up-to-date */
                     save_properties();
                     
-                    dw_window_destroy(hwndPreview);
+                    if(hwndPreview)
+                        dw_window_destroy(hwndPreview);
                     hwndPreview = dwib_load((DWIB)DWDoc, val);
+                    
+                    dw_signal_connect(hwndPreview, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(preview_delete), NULL);
                     
                     if(hwndPreview)
                         dwib_show(hwndPreview);
@@ -3779,21 +3789,16 @@ int DWSIGNAL up_clicked(HWND button, void *data)
 {
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     xmlNodePtr node = data, prevNode;
-    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     
     if(!node)
         return FALSE;
     
     if((prevNode = getPrevNode(data)))
     {
-        /* Remove the properties */
-        /*dw_window_destroy(vbox);
-        properties_none(TRUE);
-        
-        DWCurrNode = xmlDocGetRootElement(DWDoc);*/
         xmlAddPrevSibling(prevNode, node);
         if(node->parent)
             handleChildren(node->parent, tree, prevNode, node);
+        dw_tree_item_select(tree, (HTREEITEM)node->_private);
     }
     return FALSE;
 }
@@ -3803,21 +3808,16 @@ int DWSIGNAL down_clicked(HWND button, void *data)
 {
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     xmlNodePtr node = data, nextNode;
-    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     
     if(!node)
         return FALSE;
     
     if((nextNode = getNextNode(node)))
     {
-        /* Remove the properties */
-        /*dw_window_destroy(vbox);
-        properties_none(TRUE);
-        
-        DWCurrNode = xmlDocGetRootElement(DWDoc);*/
         xmlAddNextSibling(nextNode, node);
         if(node->parent)
             handleChildren(node->parent, tree, node, nextNode);
+        dw_tree_item_select(tree, (HTREEITEM)node->_private);
     }
     return FALSE;
 }
