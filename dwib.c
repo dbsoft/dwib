@@ -3080,18 +3080,23 @@ int count_children(xmlNodePtr node)
     return count;
 }
 
+HTREEITEM _tree_insert(HWND handle, HTREEITEM item, char *title, HICN icon, HTREEITEM parent, void *itemdata)
+{
+    if(item)
+        return dw_tree_insert_after(handle, item, title, icon, parent, itemdata);
+    return dw_tree_insert(handle, title, icon, parent, itemdata);
+}
+
 /* Parse the children if packable widgets... boxes, notebook pages, etc */
-void handleChildren(xmlNodePtr node, HWND tree)
+void handleChildren(xmlNodePtr node, HWND tree, xmlNodePtr thisnode, xmlNodePtr afternode)
 {
     char buf[200], *val;
-    HTREEITEM treeitem, parent = (HTREEITEM)node->_private;
+    HTREEITEM treeitem, after = (thisnode && afternode) ? afternode->_private : 0, parent = (HTREEITEM)node->_private;
     xmlNodePtr p;
-    int clear = 0;
     
     if(strcmp((char *)node->name, "Children") == 0)
     {
         p = node;
-        clear = TRUE;
         parent = node->parent ? node->parent->_private : 0;
     }
     else
@@ -3106,93 +3111,96 @@ void handleChildren(xmlNodePtr node, HWND tree)
     {
         val = NULL;
         
-        if(clear && p->_private)
-            dw_tree_item_delete(tree, (HTREEITEM)p->_private);
-        if(strcmp((char *)p->name, "Box") == 0)
+        if(!thisnode || p == thisnode)
         {
-            xmlNodePtr this = _dwib_find_child(p, "subtype");
-            
-            if(this)
-                val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
-            
-            snprintf(buf, 200, "Box - (%s)", val ? val : "");
-           
-            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], parent, p);
-            p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, parent);
-            
-            handleChildren(p, tree);
-        }
-        else if(strcmp((char *)p->name, "Notebook") == 0)
-        {
-            treeitem = dw_tree_insert(tree, "Notebook", hIcons[TYPE_NOTEBOOK], parent, p);
-            p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, parent);
-            
-            handleChildren(p, tree);
-        }
-        else if(strcmp((char *)p->name, "Menu") == 0)
-        {
-            xmlNodePtr this = _dwib_find_child(p, "title");
-            
-            if(this)
-                val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
-            
-            snprintf(buf, 200, "Menu - (%s)", val ? val : "");
-            
-            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_MENU], parent, p);
-            p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, parent);
-            
-            handleChildren(p, tree);
-        }
-        else if(strcmp((char *)p->name, "NotebookPage") == 0)
-        {
-            xmlNodePtr this = _dwib_find_child(p, "title");
-            
-            if(this)
-                val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
-            
-            snprintf(buf, 200, "Page - (%s)", val ? val : "");
-            
-            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_NOTEBOOK_PAGE], parent, p);
-            p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, parent);
-            
-            handleChildren(p, tree);
-        }
-        else if(strcmp((char *)p->name, "Button") == 0 ||
-                strcmp((char *)p->name, "Text") == 0 ||
-                strcmp((char *)p->name, "Container") == 0 ||
-                strcmp((char *)p->name, "Ranged") == 0 ||
-                strcmp((char *)p->name, "Entryfield") == 0)
-        {
-            xmlNodePtr this = _dwib_find_child(p, "subtype");
-            int index = is_valid(p);
-            
-            if(this)
-                val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
-            
-            snprintf(buf, 200, "%s - (%s)", p->name, val ? val : "");
-            
-            treeitem = dw_tree_insert(tree, buf, hIcons[index], parent, p);
-            p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, parent);
-        }
-        else if(strcmp((char *)p->name, "Combobox") == 0 ||
-                strcmp((char *)p->name, "Tree") == 0 ||
-                strcmp((char *)p->name, "MLE") == 0 ||
-                strcmp((char *)p->name, "Render") == 0 ||
-                strcmp((char *)p->name, "Bitmap") == 0 ||
-                strcmp((char *)p->name, "HTML") == 0 ||
-                strcmp((char *)p->name, "Calendar") == 0 ||
-                strcmp((char *)p->name, "Listbox") == 0 ||
-                strcmp((char *)p->name, "Padding") == 0)
-        {
-            int index = is_valid(p);
-            treeitem = dw_tree_insert(tree, (char *)p->name, hIcons[index], parent, p);
-            p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, parent);
+            if(p == thisnode)
+                dw_tree_item_delete(tree, (HTREEITEM)p->_private);
+            if(strcmp((char *)p->name, "Box") == 0)
+            {
+                xmlNodePtr this = _dwib_find_child(p, "subtype");
+                
+                if(this)
+                    val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+                
+                snprintf(buf, 200, "Box - (%s)", val ? val : "");
+               
+                treeitem = _tree_insert(tree, after, buf, hIcons[TYPE_BOX], parent, p);
+                p->_private = (void *)treeitem;
+                dw_tree_item_expand(tree, parent);
+                
+                handleChildren(p, tree, NULL, NULL);
+            }
+            else if(strcmp((char *)p->name, "Notebook") == 0)
+            {
+                treeitem = _tree_insert(tree, after, "Notebook", hIcons[TYPE_NOTEBOOK], parent, p);
+                p->_private = (void *)treeitem;
+                dw_tree_item_expand(tree, parent);
+                
+                handleChildren(p, tree, NULL, NULL);
+            }
+            else if(strcmp((char *)p->name, "Menu") == 0)
+            {
+                xmlNodePtr this = _dwib_find_child(p, "title");
+                
+                if(this)
+                    val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+                
+                snprintf(buf, 200, "Menu - (%s)", val ? val : "");
+                
+                treeitem = _tree_insert(tree, after, buf, hIcons[TYPE_MENU], parent, p);
+                p->_private = (void *)treeitem;
+                dw_tree_item_expand(tree, parent);
+                
+                handleChildren(p, tree, NULL, NULL);
+            }
+            else if(strcmp((char *)p->name, "NotebookPage") == 0)
+            {
+                xmlNodePtr this = _dwib_find_child(p, "title");
+                
+                if(this)
+                    val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+                
+                snprintf(buf, 200, "Page - (%s)", val ? val : "");
+                
+                treeitem = _tree_insert(tree, after, buf, hIcons[TYPE_NOTEBOOK_PAGE], parent, p);
+                p->_private = (void *)treeitem;
+                dw_tree_item_expand(tree, parent);
+                
+                handleChildren(p, tree, NULL, NULL);
+            }
+            else if(strcmp((char *)p->name, "Button") == 0 ||
+                    strcmp((char *)p->name, "Text") == 0 ||
+                    strcmp((char *)p->name, "Container") == 0 ||
+                    strcmp((char *)p->name, "Ranged") == 0 ||
+                    strcmp((char *)p->name, "Entryfield") == 0)
+            {
+                xmlNodePtr this = _dwib_find_child(p, "subtype");
+                int index = is_valid(p);
+                
+                if(this)
+                    val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+                
+                snprintf(buf, 200, "%s - (%s)", p->name, val ? val : "");
+                
+                treeitem = _tree_insert(tree, after, buf, hIcons[index], parent, p);
+                p->_private = (void *)treeitem;
+                dw_tree_item_expand(tree, parent);
+            }
+            else if(strcmp((char *)p->name, "Combobox") == 0 ||
+                    strcmp((char *)p->name, "Tree") == 0 ||
+                    strcmp((char *)p->name, "MLE") == 0 ||
+                    strcmp((char *)p->name, "Render") == 0 ||
+                    strcmp((char *)p->name, "Bitmap") == 0 ||
+                    strcmp((char *)p->name, "HTML") == 0 ||
+                    strcmp((char *)p->name, "Calendar") == 0 ||
+                    strcmp((char *)p->name, "Listbox") == 0 ||
+                    strcmp((char *)p->name, "Padding") == 0)
+            {
+                int index = is_valid(p);
+                treeitem = _tree_insert(tree, after, (char *)p->name, hIcons[index], parent, p);
+                p->_private = (void *)treeitem;
+                dw_tree_item_expand(tree, parent);
+            }
         }
     }
 }
@@ -3221,7 +3229,7 @@ void reloadTree(void)
             treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_WINDOW], 0, p);
             p->_private = (void *)treeitem;
             
-            handleChildren(p, tree);
+            handleChildren(p, tree, NULL, NULL);
         }
     }
 }
@@ -3779,13 +3787,13 @@ int DWSIGNAL up_clicked(HWND button, void *data)
     if((prevNode = getPrevNode(data)))
     {
         /* Remove the properties */
-        dw_window_destroy(vbox);
+        /*dw_window_destroy(vbox);
         properties_none(TRUE);
         
-        DWCurrNode = xmlDocGetRootElement(DWDoc);
+        DWCurrNode = xmlDocGetRootElement(DWDoc);*/
         xmlAddPrevSibling(prevNode, node);
         if(node->parent)
-            handleChildren(node->parent, tree);
+            handleChildren(node->parent, tree, prevNode, node);
     }
     return FALSE;
 }
@@ -3803,13 +3811,13 @@ int DWSIGNAL down_clicked(HWND button, void *data)
     if((nextNode = getNextNode(node)))
     {
         /* Remove the properties */
-        dw_window_destroy(vbox);
+        /*dw_window_destroy(vbox);
         properties_none(TRUE);
         
-        DWCurrNode = xmlDocGetRootElement(DWDoc);
+        DWCurrNode = xmlDocGetRootElement(DWDoc);*/
         xmlAddNextSibling(nextNode, node);
         if(node->parent)
-            handleChildren(node->parent, tree);
+            handleChildren(node->parent, tree, node, nextNode);
     }
     return FALSE;
 }
