@@ -3084,7 +3084,7 @@ int count_children(xmlNodePtr node)
 void handleChildren(xmlNodePtr node, HWND tree)
 {
     char buf[200], *val;
-    HTREEITEM treeitem;
+    HTREEITEM treeitem, parent = (HTREEITEM)node->_private;
     xmlNodePtr p;
     int clear = 0;
     
@@ -3092,7 +3092,7 @@ void handleChildren(xmlNodePtr node, HWND tree)
     {
         p = node;
         clear = TRUE;
-        
+        parent = node->parent ? node->parent->_private : 0;
     }
     else
     {
@@ -3117,17 +3117,17 @@ void handleChildren(xmlNodePtr node, HWND tree)
             
             snprintf(buf, 200, "Box - (%s)", val ? val : "");
            
-            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], parent, p);
             p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+            dw_tree_item_expand(tree, parent);
             
             handleChildren(p, tree);
         }
         else if(strcmp((char *)p->name, "Notebook") == 0)
         {
-            treeitem = dw_tree_insert(tree, "Notebook", hIcons[TYPE_NOTEBOOK], (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, "Notebook", hIcons[TYPE_NOTEBOOK], parent, p);
             p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+            dw_tree_item_expand(tree, parent);
             
             handleChildren(p, tree);
         }
@@ -3140,9 +3140,9 @@ void handleChildren(xmlNodePtr node, HWND tree)
             
             snprintf(buf, 200, "Menu - (%s)", val ? val : "");
             
-            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_MENU], (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_MENU], parent, p);
             p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+            dw_tree_item_expand(tree, parent);
             
             handleChildren(p, tree);
         }
@@ -3155,9 +3155,9 @@ void handleChildren(xmlNodePtr node, HWND tree)
             
             snprintf(buf, 200, "Page - (%s)", val ? val : "");
             
-            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_NOTEBOOK_PAGE], (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_NOTEBOOK_PAGE], parent, p);
             p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+            dw_tree_item_expand(tree, parent);
             
             handleChildren(p, tree);
         }
@@ -3175,9 +3175,9 @@ void handleChildren(xmlNodePtr node, HWND tree)
             
             snprintf(buf, 200, "%s - (%s)", p->name, val ? val : "");
             
-            treeitem = dw_tree_insert(tree, buf, hIcons[index], (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, buf, hIcons[index], parent, p);
             p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+            dw_tree_item_expand(tree, parent);
         }
         else if(strcmp((char *)p->name, "Combobox") == 0 ||
                 strcmp((char *)p->name, "Tree") == 0 ||
@@ -3190,9 +3190,9 @@ void handleChildren(xmlNodePtr node, HWND tree)
                 strcmp((char *)p->name, "Padding") == 0)
         {
             int index = is_valid(p);
-            treeitem = dw_tree_insert(tree, (char *)p->name, hIcons[index], (HTREEITEM)node->_private, p);
+            treeitem = dw_tree_insert(tree, (char *)p->name, hIcons[index], parent, p);
             p->_private = (void *)treeitem;
-            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+            dw_tree_item_expand(tree, parent);
         }
     }
 }
