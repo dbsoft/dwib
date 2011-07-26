@@ -11,7 +11,7 @@ TARGET=dwib
 .SUFFIXES: \
 	.c .obj
 
-CFLAGS = /Ti /Tm+ /DOS2 /DTCPV40HDRS /D__TARGET__=\"$(TARGET)\" /I. /I$(DWINCPATH) /I$(XML2INCPATH) /Sm /Ss /Q /Gm /Gt /C
+CFLAGS = /Ti /Tm+ /DOS2 /Wcnd- /DTCPV40HDRS /D__TARGET__=\"$(TARGET)\" /I. /I$(DWINCPATH) /I$(XML2INCPATH) /Sm /Ss /Q /Gm /Gt /C
 LDFLAGS = /DE /optfunc
 LIBCFLAGS = $(CFLAGS) /Ge-
 LIBLDFLAGS = /NOE /de /DLL /ST:32768 /nologo /li
