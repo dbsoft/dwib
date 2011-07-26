@@ -3292,6 +3292,7 @@ int DWSIGNAL open_clicked(HWND button, void *data)
 /* Reset the preview window handle when deleted */
 int DWSIGNAL preview_delete(HWND window, void *data)
 {
+    dw_window_destroy(hwndPreview);
     hwndPreview = 0;
     return FALSE;
 }
