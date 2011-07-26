@@ -143,7 +143,7 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
     dw_box_pack_at_index(box, item, 65536, width, height, hexpand, vexpand, padding);
     
     if(dataname && window)
-        dw_window_set_data(window, dataname, item);
+        dw_window_set_data(window, dataname, (void *)item);
 }
 
 /* Internal function for creating a notebook page widget from an XML tree node */
@@ -226,8 +226,8 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
             box1 = dw_box_new(orient, 0);
             box2 = dw_box_new(orient, 0);
             box = dw_splitbar_new(orient, box1, box2, 0);
-            dw_window_set_data(box, "_dwib_box1", box1);
-            dw_window_set_data(box, "_dwib_box2", box2);
+            dw_window_set_data(box, "_dwib_box1", (void *)box1);
+            dw_window_set_data(box, "_dwib_box2", (void *)box2);
             dw_splitbar_set(box, splitper);
             break;
     }
@@ -694,7 +694,7 @@ HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packb
     menuid++;
     
     if(dataname && window)
-        dw_window_set_data(window, dataname, menuitem);
+        dw_window_set_data(window, dataname, (void *)menuitem);
     
     return menuitem;
 }
@@ -873,7 +873,7 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     box = dw_box_new(orient, padding);
     
     dw_box_pack_start(ret, box, 1, 1, TRUE, TRUE, 0);
-    dw_window_set_data(ret, "_dwib_box", box);
+    dw_window_set_data(ret, "_dwib_box", (void *)box);
     
     if(bordersize != -1)
         dw_window_set_border(ret, bordersize);
