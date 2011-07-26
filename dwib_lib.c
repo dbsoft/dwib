@@ -131,13 +131,13 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
     /* If it is a splitbox, find the correct sub-box */
     if(splitbox)
     {
-        int count = (int)dw_window_get_data(box, "_dwib_count");
+        int count = DW_POINTER_TO_INT(dw_window_get_data(box, "_dwib_count"));
         if(count == 1)
             splitbox = (HWND)dw_window_get_data(box, "_dwib_box2");
         else if(count > 1)
             return;
         count++;
-        dw_window_set_data(box, "_dwib_count", (void *)count);
+        dw_window_set_data(box, "_dwib_count", DW_INT_TO_POINTER(count));
         box = splitbox;                        
     }
     dw_box_pack_at_index(box, item, 65536, width, height, hexpand, vexpand, padding);
@@ -864,11 +864,11 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
 
     ret = dw_window_new(DW_DESKTOP, title, flags);
     
-    dw_window_set_data(ret, "_dwib_x", (void *)x);
-    dw_window_set_data(ret, "_dwib_y", (void *)y);
-    dw_window_set_data(ret, "_dwib_center", (void *)center);
-    dw_window_set_data(ret, "_dwib_width", (void *)width);
-    dw_window_set_data(ret, "_dwib_height", (void *)height);
+    dw_window_set_data(ret, "_dwib_x", DW_INT_TO_POINTER(x));
+    dw_window_set_data(ret, "_dwib_y", DW_INT_TO_POINTER(y));
+    dw_window_set_data(ret, "_dwib_center", DW_INT_TO_POINTER(center));
+    dw_window_set_data(ret, "_dwib_width", DW_INT_TO_POINTER(width));
+    dw_window_set_data(ret, "_dwib_height", DW_INT_TO_POINTER(height));
     
     box = dw_box_new(orient, padding);
     
@@ -1008,11 +1008,11 @@ void API dwib_show(HWND window)
     int x, y, width, height, center;
     
     /* Get the loaded window settings set on the window handle */
-    x = (int)dw_window_get_data(window, "_dwib_x");
-    y = (int)dw_window_get_data(window, "_dwib_y");
-    center = (int)dw_window_get_data(window, "_dwib_center");
-    width = (int)dw_window_get_data(window, "_dwib_width");
-    height = (int)dw_window_get_data(window, "_dwib_height");
+    x = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_x"));
+    y = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_y"));
+    center = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_center"));
+    width = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_width"));
+    height = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_height"));
 
     /* Calculate new positions if center is enabled */
     if(center && width > 0 && height > 0)

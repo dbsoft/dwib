@@ -106,7 +106,7 @@ void saveList(xmlNodePtr node, HWND vbox)
  */
 void save_columns(xmlNodePtr node, HWND vbox)
 {
-    int x, count = (int)dw_window_get_data(vbox, "colcount");
+    int x, count = DW_POINTER_TO_INT(dw_window_get_data(vbox, "colcount"));
     xmlNodePtr this = _dwib_find_child(node, "Columns");
     
     if(node)
@@ -213,7 +213,7 @@ void save_item(xmlNodePtr node, HWND vbox)
 /* Updates the XML tree with current settings */
 void save_properties(void)
 {
-    int which = (int)dw_window_get_data(hwndProperties, "type");
+    int which = DW_POINTER_TO_INT(dw_window_get_data(hwndProperties, "type"));
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     xmlNodePtr node;
     
@@ -1183,7 +1183,7 @@ int DWSIGNAL add_row_clicked(HWND window, void *data)
 {
     HWND button, scrollbox = (HWND)data;
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
-    int count = (int)dw_window_get_data(vbox, "colcount");
+    int count = DW_POINTER_TO_INT(dw_window_get_data(vbox, "colcount"));
     char buf[50];
     
     snprintf(buf, 50, "addbutton%d", count);
@@ -1192,7 +1192,7 @@ int DWSIGNAL add_row_clicked(HWND window, void *data)
     
     count++;
     add_row(vbox, scrollbox, count, "", "", "", FALSE);
-    dw_window_set_data(vbox, "colcount", (void *)count);
+    dw_window_set_data(vbox, "colcount", DW_INT_TO_POINTER(count));
     
     dw_window_redraw(hwndProperties);
     return FALSE;
@@ -1269,7 +1269,7 @@ void populate_columns(HWND vbox, HWND scrollbox, xmlNodePtr node)
         }
     }
     add_row(vbox, scrollbox, count, "", "", "", FALSE);
-    dw_window_set_data(vbox, "colcount", (void *)count);
+    dw_window_set_data(vbox, "colcount", DW_INT_TO_POINTER(count));
 }
 
 /* Create a new container definition */
@@ -3487,7 +3487,7 @@ int DWSIGNAL paste_clicked(HWND button, void *data)
 /* One of the buttons on the toolbar was clicked */
 int DWSIGNAL toolbar_clicked(HWND button, void *data)
 {
-    int which = (int)data;
+    int which = DW_POINTER_TO_INT(data);
     
     if(!data)
     {
@@ -3605,7 +3605,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
                 return FALSE;
         }
     }
-    dw_window_set_data(hwndProperties, "type", (void *)which);
+    dw_window_set_data(hwndProperties, "type", DW_INT_TO_POINTER(which));
     return FALSE;
 }
 
