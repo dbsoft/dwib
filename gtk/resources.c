@@ -1,3 +1,4 @@
+#ifndef __MAC__
 /* XPMs */
 #include "Interface Builder.xpm"
 
@@ -87,3 +88,4 @@ typedef struct _resource_struct {
 } DWResources;
 
 DWResources _resources = { RESOURCE_MAX, (long)_resource_id, (char **)_resource_data };
+#endif
