@@ -3421,9 +3421,42 @@ int DWSIGNAL copy_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Finds the previous valid sibling node */
+xmlNodePtr getPrevNode(xmlNodePtr node)
+{
+    xmlNodePtr p = node->parent;
+    xmlNodePtr last = NULL;
+    
+    for(p=p->children;p;p = p->next)
+    {
+        if(p == node)
+            return last;
+        else if(is_valid(p))
+            last = p;
+    }
+    return NULL;
+}
+
+/* Finds the next valid sibling node */
+xmlNodePtr getNextNode(xmlNodePtr node)
+{
+    xmlNodePtr p = node->parent;
+    int found = FALSE;
+    
+    for(p=p->children;p;p = p->next)
+    {
+        if(p == node)
+            found = TRUE;
+        else if(found && is_valid(p))
+            return p;
+    }
+    return NULL;
+}
+
 /* Handle paste a node layout */
 int DWSIGNAL paste_clicked(HWND button, void *data)
 {
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     xmlNodePtr node = data;
     
     if(!node || !DWClipNode)
@@ -3471,7 +3504,7 @@ int DWSIGNAL paste_clicked(HWND button, void *data)
     }
     else if(is_packable(node, FALSE))
     {
-        xmlNodePtr this = _dwib_find_child(DWCurrNode, "Children");
+        xmlNodePtr this = _dwib_find_child(node, "Children");
         
         if(this)
         {
@@ -3479,7 +3512,9 @@ int DWSIGNAL paste_clicked(HWND button, void *data)
         
             xmlAddChild(this, copy);
         
-            reloadTree();
+            handleChildren(node, tree, copy, getPrevNode(copy));
+
+            dw_tree_item_select(tree, (HTREEITEM)node->_private);
         }
     }
     return FALSE;
@@ -3751,38 +3786,6 @@ int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
         dw_exit(0);
 	}
 	return TRUE;
-}
-
-/* Finds the previous valid sibling node */
-xmlNodePtr getPrevNode(xmlNodePtr node)
-{
-    xmlNodePtr p = node->parent;
-    xmlNodePtr last = NULL;
-    
-    for(p=p->children;p;p = p->next)
-    {
-        if(p == node)
-            return last;
-        else if(is_valid(p))
-            last = p;
-    }
-    return NULL;
-}
-
-/* Finds the next valid sibling node */
-xmlNodePtr getNextNode(xmlNodePtr node)
-{
-    xmlNodePtr p = node->parent;
-    int found = FALSE;
-    
-    for(p=p->children;p;p = p->next)
-    {
-        if(p == node)
-            found = TRUE;
-        else if(found && is_valid(p))
-            return p;
-    }
-    return NULL;
 }
 
 /* Handle moving a node up */
