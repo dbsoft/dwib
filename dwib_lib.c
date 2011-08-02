@@ -140,7 +140,7 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
         dw_window_set_data(box, "_dwib_count", DW_INT_TO_POINTER(count));
         box = splitbox;                        
     }
-    dw_box_pack_at_index(box, item, 65536, width, height, hexpand, vexpand, padding);
+    dw_box_pack_at_index(box, item, index, width, height, hexpand, vexpand, padding);
     
     if(dataname && window)
         dw_window_set_data(window, dataname, (void *)item);
