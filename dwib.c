@@ -3113,7 +3113,7 @@ void handleChildren(xmlNodePtr node, HWND tree, xmlNodePtr thisnode, xmlNodePtr 
         
         if(!thisnode || p == thisnode)
         {
-            if(p == thisnode)
+            if(p == thisnode && p->_private)
                 dw_tree_item_delete(tree, (HTREEITEM)p->_private);
             if(strcmp((char *)p->name, "Box") == 0)
             {
