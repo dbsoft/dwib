@@ -3087,6 +3087,58 @@ HTREEITEM _tree_insert(HWND handle, HTREEITEM item, char *title, HICN icon, HTRE
     return dw_tree_insert(handle, title, icon, parent, itemdata);
 }
 
+
+int generateNode(char *buf, xmlNodePtr p)
+{
+    xmlNodePtr this;
+    char *val = NULL, buf2[100];
+    int which = is_valid(p);
+    
+    if(which == TYPE_NOTEBOOK_PAGE)
+        strcpy(buf, "Page");
+    else
+        strcpy(buf, (char *)p->name);
+    
+    if((this = _dwib_find_child(p, "dataname")) &&
+       (val = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+    {
+        snprintf(buf2, 100, " [%s]", val ? val : "");
+        strcat(buf, buf2);
+    }
+    
+    this = _dwib_find_child(p, "title");
+    if(!this)
+        this = _dwib_find_child(p, "label");        
+    
+    if(this && (val = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+    {
+        snprintf(buf2, 100, " \"%s\"", val ? val : "");
+        strcat(buf, buf2);
+    }
+    
+    switch(which)
+    {
+        case TYPE_BOX:
+        case TYPE_BUTTON:
+        case TYPE_TEXT:
+        case TYPE_CONTAINER:
+        case TYPE_RANGED:
+        case TYPE_ENTRYFIELD:
+        {
+            this = _dwib_find_child(p, "subtype");
+            val = NULL;
+            
+            if(this)
+                val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            
+            snprintf(buf2, 100, " (%s)", val ? val : "None");
+            strcat(buf, buf2);
+        }
+            break;
+    }
+    return which;
+}
+
 /* Parse the children if packable widgets... boxes, notebook pages, etc */
 void handleChildren(xmlNodePtr node, HWND tree, xmlNodePtr thisnode, xmlNodePtr afternode)
 {
@@ -3113,93 +3165,32 @@ void handleChildren(xmlNodePtr node, HWND tree, xmlNodePtr thisnode, xmlNodePtr 
         
         if(!thisnode || p == thisnode)
         {
-            if(p == thisnode && p->_private)
-                dw_tree_item_delete(tree, (HTREEITEM)p->_private);
-            if(strcmp((char *)p->name, "Box") == 0)
+            /* Create the title for the node */
+            int index = generateNode(buf, p);
+            
+            if(index)
             {
-                xmlNodePtr this = _dwib_find_child(p, "subtype");
+                /* Delete the old node if we are recreating */
+                if(p == thisnode && p->_private)
+                    dw_tree_item_delete(tree, (HTREEITEM)p->_private);
                 
-                if(this)
-                    val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
-                
-                snprintf(buf, 200, "Box - (%s)", val ? val : "");
-               
-                treeitem = _tree_insert(tree, after, buf, hIcons[TYPE_BOX], parent, p);
-                p->_private = (void *)treeitem;
-                dw_tree_item_expand(tree, parent);
-                
-                handleChildren(p, tree, NULL, NULL);
-            }
-            else if(strcmp((char *)p->name, "Notebook") == 0)
-            {
-                treeitem = _tree_insert(tree, after, "Notebook", hIcons[TYPE_NOTEBOOK], parent, p);
-                p->_private = (void *)treeitem;
-                dw_tree_item_expand(tree, parent);
-                
-                handleChildren(p, tree, NULL, NULL);
-            }
-            else if(strcmp((char *)p->name, "Menu") == 0)
-            {
-                xmlNodePtr this = _dwib_find_child(p, "title");
-                
-                if(this)
-                    val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
-                
-                snprintf(buf, 200, "Menu - (%s)", val ? val : "");
-                
-                treeitem = _tree_insert(tree, after, buf, hIcons[TYPE_MENU], parent, p);
-                p->_private = (void *)treeitem;
-                dw_tree_item_expand(tree, parent);
-                
-                handleChildren(p, tree, NULL, NULL);
-            }
-            else if(strcmp((char *)p->name, "NotebookPage") == 0)
-            {
-                xmlNodePtr this = _dwib_find_child(p, "title");
-                
-                if(this)
-                    val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
-                
-                snprintf(buf, 200, "Page - (%s)", val ? val : "");
-                
-                treeitem = _tree_insert(tree, after, buf, hIcons[TYPE_NOTEBOOK_PAGE], parent, p);
-                p->_private = (void *)treeitem;
-                dw_tree_item_expand(tree, parent);
-                
-                handleChildren(p, tree, NULL, NULL);
-            }
-            else if(strcmp((char *)p->name, "Button") == 0 ||
-                    strcmp((char *)p->name, "Text") == 0 ||
-                    strcmp((char *)p->name, "Container") == 0 ||
-                    strcmp((char *)p->name, "Ranged") == 0 ||
-                    strcmp((char *)p->name, "Entryfield") == 0)
-            {
-                xmlNodePtr this = _dwib_find_child(p, "subtype");
-                int index = is_valid(p);
-                
-                if(this)
-                    val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
-                
-                snprintf(buf, 200, "%s - (%s)", p->name, val ? val : "");
-                
+                /* Create the new node */
                 treeitem = _tree_insert(tree, after, buf, hIcons[index], parent, p);
                 p->_private = (void *)treeitem;
                 dw_tree_item_expand(tree, parent);
-            }
-            else if(strcmp((char *)p->name, "Combobox") == 0 ||
-                    strcmp((char *)p->name, "Tree") == 0 ||
-                    strcmp((char *)p->name, "MLE") == 0 ||
-                    strcmp((char *)p->name, "Render") == 0 ||
-                    strcmp((char *)p->name, "Bitmap") == 0 ||
-                    strcmp((char *)p->name, "HTML") == 0 ||
-                    strcmp((char *)p->name, "Calendar") == 0 ||
-                    strcmp((char *)p->name, "Listbox") == 0 ||
-                    strcmp((char *)p->name, "Padding") == 0)
-            {
-                int index = is_valid(p);
-                treeitem = _tree_insert(tree, after, (char *)p->name, hIcons[index], parent, p);
-                p->_private = (void *)treeitem;
-                dw_tree_item_expand(tree, parent);
+                
+                /* For the special cases with children... */
+                switch(index)
+                {
+                    case TYPE_BOX:
+                    case TYPE_NOTEBOOK:
+                    case TYPE_NOTEBOOK_PAGE:
+                    case TYPE_MENU:
+                    {
+                        handleChildren(p, tree, NULL, NULL);
+                    }
+                        break;
+                }
             }
         }
     }
@@ -3221,11 +3212,9 @@ void reloadTree(void)
     {
         if(strcmp((char *)p->name, "Window") == 0)
         {
-            xmlNodePtr this = _dwib_find_child(p, "title");
-            char buf[200], *val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            char buf[200];
             
-            snprintf(buf, 200, "Window - (%s)", val ? val : "");
-            
+            generateNode(buf, p);
             treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_WINDOW], 0, p);
             p->_private = (void *)treeitem;
             
