@@ -62,5 +62,6 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
 void DWSIGNAL properties_window(xmlNodePtr node);
 void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype, char *colalign, int disable);
 void properties_current(void);
+int generateNode(char *buf, xmlNodePtr p);
 
 #endif

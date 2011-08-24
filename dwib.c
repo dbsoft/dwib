@@ -215,6 +215,7 @@ void save_properties(void)
 {
     int which = DW_POINTER_TO_INT(dw_window_get_data(hwndProperties, "type"));
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
     xmlNodePtr node;
     
     if(!vbox || !which)
@@ -339,6 +340,17 @@ void save_properties(void)
             updateNode(node, vbox, "checked", TRUE);
             updateNode(node, vbox, "enabled", TRUE);
             break;
+    }
+    if(tree)
+    {
+        char buf[200];
+        /* Create the title for the node */
+        int index = generateNode(buf, node);
+        
+        if(index && node->_private)
+        {
+            dw_tree_item_change(tree, (HTREEITEM)node->_private, buf, hIcons[index]);
+        }
     }
 }
 
@@ -3094,23 +3106,26 @@ int generateNode(char *buf, xmlNodePtr p)
     char *val = NULL, buf2[100];
     int which = is_valid(p);
     
+    /* Shorten "NotebookPage" to just "Page" */
     if(which == TYPE_NOTEBOOK_PAGE)
         strcpy(buf, "Page");
     else
         strcpy(buf, (char *)p->name);
     
+    /* If there is a dataname include it in brackets [] */
     if((this = _dwib_find_child(p, "dataname")) &&
-       (val = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+       (val = (char *)xmlNodeListGetString(DWDoc, this->children, 1)) && *val)
     {
         snprintf(buf2, 100, " [%s]", val ? val : "");
         strcat(buf, buf2);
     }
     
+    /* If there is a title or label include it in quotes "" */
     this = _dwib_find_child(p, "title");
     if(!this)
         this = _dwib_find_child(p, "label");        
     
-    if(this && (val = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+    if(this && (val = (char *)xmlNodeListGetString(DWDoc, this->children, 1)) && *val)
     {
         snprintf(buf2, 100, " \"%s\"", val ? val : "");
         strcat(buf, buf2);
