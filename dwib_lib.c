@@ -288,6 +288,8 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     {
         if((this = _dwib_find_child(node, "check")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
             dw_checkbox_set(button, TRUE);
+        if((this = _dwib_find_child(node, "borderless")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+            dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
 
         _dwib_item_pack(node, doc, window, packbox, button, index);
     }

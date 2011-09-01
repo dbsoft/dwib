@@ -298,6 +298,7 @@ void save_properties(void)
             updateNode(node, vbox, "checked", TRUE);
             updateNode(node, vbox, "setting", FALSE);
             updateNode(node, vbox, "bubblehelp", FALSE);
+            updateNode(node, vbox, "borderless", TRUE);
             break;
         case TYPE_RANGED:
             updateNode(node, vbox, "subtype", FALSE);
@@ -1722,6 +1723,22 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     item = dw_entryfield_new(val ? val : "", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "bubblehelp", (void *)item);
+    /* Border */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Border", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalzero;
+    if((this = _dwib_find_child(node, "borderless")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_checkbox_new("Borderless", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "borderless", (void *)item);
     
     /* If it is a new window add button */
     if(!node)
