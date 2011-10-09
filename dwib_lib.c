@@ -433,7 +433,7 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
             type = 1;
     }
     if((this = _dwib_find_child(node, "multi")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-        multi = 1;
+        multi = atoi(thisval);
     
     container = dw_container_new(0, multi);
     
