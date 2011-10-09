@@ -280,6 +280,8 @@ void save_properties(void)
             updateNode(node, vbox, "subtype", FALSE);
             save_item(node, vbox);
             updateNode(node, vbox, "multi", TRUE);
+            updateNode(node, vbox, "oddcolor", FALSE);
+            updateNode(node, vbox, "evencolor", FALSE);
             save_columns(node, vbox);
             break;
         case TYPE_TREE:
@@ -1324,9 +1326,10 @@ int DWSIGNAL container_create(HWND window, void *data)
 /* Populate the properties window for a container */
 void DWSIGNAL properties_container(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, tmp, hbox, vbox = dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int x;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -1381,6 +1384,69 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "multi", (void *)item);
+    /* Odd Color */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Odd Row Color", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = "None";
+    if((this = _dwib_find_child(node, "oddcolor")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    tmp = item = dw_combobox_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "None");
+    dw_listbox_append(item, "Default");
+    for(x=0;x<16;x++)
+    {
+        dw_listbox_append(item, Colors[x]);
+    }
+    if((x = _dwib_get_color(val)) != DW_RGB_TRANSPARENT && x < 16 && x > -1)
+    {
+        dw_listbox_select(item, x + 2, TRUE);
+    }
+    else if(x == DW_CLR_DEFAULT)
+        dw_listbox_select(item, 1, TRUE);
+    dw_window_set_data(vbox, "oddcolor", (void *)item);    
+    item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
+    dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), tmp);
+    /* Even Color */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Even Color", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = "None";
+    if((this = _dwib_find_child(node, "evencolor")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    tmp = item = dw_combobox_new(val, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "None");
+    dw_listbox_append(item, "Default");
+    for(x=0;x<16;x++)
+    {
+        dw_listbox_append(item, Colors[x]);
+    }
+    if((x = _dwib_get_color(val)) != DW_RGB_TRANSPARENT && x < 16 && x > -1)
+    {
+        dw_listbox_select(item, x + 2, TRUE);
+    }
+    else if(x == DW_CLR_DEFAULT)
+        dw_listbox_select(item, 1, TRUE);
+    dw_window_set_data(vbox, "evencolor", (void *)item);    
+    item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
+    dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), tmp);
+    /* Columns */
     item = dw_text_new("Column names, types and alignment", 0);
     dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     this = _dwib_find_child(node, "Columns");

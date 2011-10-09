@@ -70,6 +70,8 @@ int _dwib_get_color(char *color)
 {
     int x;
     
+    if(strcmp(color, "None") == 0)
+        return DW_RGB_TRANSPARENT;
     for(x=0;x<16;x++)
     {
         if(strcmp(color, Colors[x]) == 0)
@@ -423,6 +425,7 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval;
     int type = 0, multi = 0;
+    unsigned long oddcolor, evencolor;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
@@ -437,6 +440,14 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     if((this = _dwib_find_child(node, "Columns")))
         _dwib_populate_container(container, this, doc, type);
         
+    if((this = _dwib_find_child(node, "oddcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        oddcolor = _dwib_get_color(thisval);
+    if((this = _dwib_find_child(node, "evencolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        evencolor = _dwib_get_color(thisval);
+    
+    if(oddcolor != DW_RGB_TRANSPARENT || evencolor != DW_RGB_TRANSPARENT)
+        dw_container_set_row_bg(container, oddcolor, evencolor);
+    
     _dwib_item_pack(node, doc, window, packbox, container, index);
     return container;
 }
