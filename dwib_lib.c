@@ -425,7 +425,7 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval;
     int type = 0, multi = 0;
-    unsigned long oddcolor, evencolor;
+    unsigned long oddcolor = DW_RGB_TRANSPARENT, evencolor = DW_RGB_TRANSPARENT;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {

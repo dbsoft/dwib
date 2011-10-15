@@ -3240,7 +3240,7 @@ int generateNode(char *buf, xmlNodePtr p)
 /* Parse the children if packable widgets... boxes, notebook pages, etc */
 void handleChildren(xmlNodePtr node, HWND tree, xmlNodePtr thisnode, xmlNodePtr afternode)
 {
-    char buf[200], *val;
+    char buf[200];
     HTREEITEM treeitem, after = (thisnode && afternode) ? afternode->_private : 0, parent = (HTREEITEM)node->_private;
     xmlNodePtr p;
     
@@ -3259,8 +3259,6 @@ void handleChildren(xmlNodePtr node, HWND tree, xmlNodePtr thisnode, xmlNodePtr 
     
     for(p=p->children;p;p = p->next)
     {
-        val = NULL;
-        
         if(!thisnode || p == thisnode)
         {
             /* Create the title for the node */
