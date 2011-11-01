@@ -446,7 +446,7 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
         evencolor = _dwib_get_color(thisval);
     
     if(oddcolor != DW_RGB_TRANSPARENT || evencolor != DW_RGB_TRANSPARENT)
-        dw_container_set_row_bg(container, oddcolor, evencolor);
+        dw_container_set_stripe(container, oddcolor, evencolor);
     
     _dwib_item_pack(node, doc, window, packbox, container, index);
     return container;
