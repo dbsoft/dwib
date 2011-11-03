@@ -339,6 +339,7 @@ void save_properties(void)
         case TYPE_MENU:
             updateNode(node, vbox, "title", FALSE);
             updateNode(node, vbox, "dataname", FALSE);
+            updateNode(node, vbox, "menuid", FALSE);
             updateNode(node, vbox, "checkable", TRUE);
             updateNode(node, vbox, "checked", TRUE);
             updateNode(node, vbox, "enabled", TRUE);
@@ -2769,6 +2770,23 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     item = dw_entryfield_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "dataname", (void *)item);
+    /* Menu ID */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Menu ID", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "menuid")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_spinbutton_new(val, 0);
+    dw_spinbutton_set_limits(item, 29999, 0);
+    dw_spinbutton_set_pos(item, atoi(val));
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "menuid", (void *)item);
     /* Style */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);

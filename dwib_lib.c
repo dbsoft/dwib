@@ -689,13 +689,14 @@ HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packb
     HWND menuitem;
     xmlNodePtr this = _dwib_find_child(node, "title");
     char *thisval, *title = "", *dataname = NULL;
-    static int menuid = 1000;
-    int flags = 0, checkable = 0;
+    int flags = 0, checkable = 0, menuid = 0;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         title = thisval;
     if((this = _dwib_find_child(node, "checkable")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         checkable = atoi(thisval);
+    if((this = _dwib_find_child(node, "menuid")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        menuid = atoi(thisval);
     if((this = _dwib_find_child(node, "checked")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
         flags |= DW_MIS_CHECKED;
     if((this = _dwib_find_child(node, "enabled")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -704,7 +705,6 @@ HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packb
         dataname = thisval;
     
     menuitem = dw_menu_append_item(packbox, title, menuid, flags, TRUE, checkable, submenu);
-    menuid++;
     
     if(dataname && window)
         dw_window_set_data(window, dataname, (void *)menuitem);
