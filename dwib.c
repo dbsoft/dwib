@@ -431,16 +431,16 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box)
     int x;
 #ifdef __OS2__
     char *sysfont = "os2font";
-    char *sysfonttext = "OS/2 Font:";
+    char *sysfonttext = "OS/2 Font";
 #elif defined(__MAC__)
     char *sysfont = "macfont";
-    char *sysfonttext = "Mac Font:";
+    char *sysfonttext = "Mac Font";
 #elif defined(__WIN32__)
     char *sysfont = "winfont";
-    char *sysfonttext = "Windows Font:";
+    char *sysfonttext = "Windows Font";
 #elif defined(__UNIX__)
     char *sysfont = "macfont";
-    char *sysfonttext = "Unix Font:";
+    char *sysfonttext = "Unix Font";
 #else
     char *sysfont = NULL;
     char *sysfonttext = NULL;
@@ -1922,7 +1922,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     /* Ranger - Upper */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Range", 0);
+    item = dw_text_new("Range Upper", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = "100";
@@ -1938,7 +1938,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     /* Ranger - Lower */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Range", 0);
+    item = dw_text_new("Range Lower", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalzero;
