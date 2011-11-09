@@ -186,6 +186,35 @@ void updateNode(xmlNodePtr node, HWND vbox, char *name, int toggle)
     }
 }
 
+void updateNodeText(xmlNodePtr node, HWND vbox, char *name)
+{
+    HWND item = (HWND)dw_window_get_data(vbox, name);
+    unsigned long bytes;
+    char *val = NULL;
+    
+    if(!item)
+        return;
+    
+    dw_mle_get_size(item, &bytes, NULL);
+    
+    if(bytes)
+    {
+        val = calloc(bytes + 1, 1);
+        dw_mle_export(item, val, 0, (int)bytes);
+    }
+    
+    if(val)
+    {
+        xmlNodePtr this = _dwib_find_child(node, name);
+        
+        if(!this)
+            this = xmlNewTextChild(node, NULL, (xmlChar *)name, (xmlChar *)val);
+        else
+            xmlNodeSetContent(this, (xmlChar *)val);
+        free(val);
+    }
+}
+
 /* Save the properties for general items */
 void save_item(xmlNodePtr node, HWND vbox)
 {
@@ -289,7 +318,7 @@ void save_properties(void)
             break;
         case TYPE_MLE:
             save_item(node, vbox);
-            updateNode(node, vbox, "deftext", FALSE);
+            updateNodeText(node, vbox, "deftext");
             break;
         case TYPE_RENDER:
             save_item(node, vbox);
@@ -1555,7 +1584,7 @@ int DWSIGNAL mle_create(HWND window, void *data)
 /* Populate the properties window for a MLE */
 void DWSIGNAL properties_mle(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, vbox = dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -1574,10 +1603,8 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     properties_item(node, scrollbox, TRUE);
     
     /* Default Text */
-    hbox = dw_box_new(DW_HORZ, 0);
-    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     item = dw_text_new("Default text", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
     if((this = _dwib_find_child(node, "deftext")))
@@ -1585,8 +1612,9 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
     }
-    item = dw_entryfield_new(val ? val : "", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    item = dw_mle_new(0);
+    dw_mle_import(item, val ? val : "", 0);
+    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, TRUE, 0);
     dw_window_set_data(vbox, "deftext", (void *)item);
     
     /* If it is a new window add button */
