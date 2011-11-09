@@ -191,6 +191,7 @@ void updateNodeText(xmlNodePtr node, HWND vbox, char *name)
     HWND item = (HWND)dw_window_get_data(vbox, name);
     unsigned long bytes;
     char *val = NULL;
+    xmlNodePtr this;
     
     if(!item)
         return;
@@ -203,16 +204,15 @@ void updateNodeText(xmlNodePtr node, HWND vbox, char *name)
         dw_mle_export(item, val, 0, (int)bytes);
     }
     
+    this = _dwib_find_child(node, name);
+    
+    if(!this)
+        this = xmlNewTextChild(node, NULL, (xmlChar *)name, (xmlChar *)(val ? val : ""));
+    else
+        xmlNodeSetContent(this, (xmlChar *)(val ? val : ""));
+    
     if(val)
-    {
-        xmlNodePtr this = _dwib_find_child(node, name);
-        
-        if(!this)
-            this = xmlNewTextChild(node, NULL, (xmlChar *)name, (xmlChar *)val);
-        else
-            xmlNodeSetContent(this, (xmlChar *)val);
         free(val);
-    }
 }
 
 /* Save the properties for general items */
