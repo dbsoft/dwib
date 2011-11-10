@@ -3961,32 +3961,25 @@ int DWSIGNAL down_clicked(HWND button, void *data)
 int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, void *itemdata)
 {
     HMENUI menu = dw_menu_new(0);
-    int menuid = 1050;
-    HWND item = dw_menu_append_item(menu, "~Up", menuid, 0, TRUE, FALSE, DW_NOMENU);
-    menuid++;
+    HWND item = dw_menu_append_item(menu, "~Up", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(up_clicked), itemdata);
-    item = dw_menu_append_item(menu, "~Down", menuid, 0, TRUE, FALSE, DW_NOMENU);
-    menuid++;
+    item = dw_menu_append_item(menu, "~Down", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(down_clicked), itemdata);
     item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
-    item = dw_menu_append_item(menu, "C~opy", menuid, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menu, "C~opy", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(copy_clicked), itemdata);
-    menuid++;
-    item = dw_menu_append_item(menu, "C~ut", menuid, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menu, "C~ut", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(cut_clicked), itemdata);
-    menuid++;
-    item = dw_menu_append_item(menu, "D~elete", menuid, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menu, "D~elete", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(delete_clicked), itemdata);
-    menuid++;
     if(DWClipNode)
     {
         item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
-        item = dw_menu_append_item(menu, "~Paste", menuid, 0, TRUE, FALSE, DW_NOMENU);
+        item = dw_menu_append_item(menu, "~Paste", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(paste_clicked), itemdata);
     }
-    menuid++;
     item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
-    item = dw_menu_append_item(menu, "~Refresh", menuid, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menu, "~Refresh", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), itemdata);
     
     dw_menu_popup(&menu, hwndToolbar, x, y);
@@ -4088,25 +4081,19 @@ void dwib_init(void)
     dw_signal_connect(item, DW_SIGNAL_ITEM_CONTEXT, DW_SIGNAL_FUNC(tree_context), NULL);
     dw_window_set_data(hwndToolbar, "tree", (void *)item);
     
-    x=1000;
     menu = dw_menubar_new(hwndToolbar);
     submenu = dw_menu_new(0);
-    item = dw_menu_append_item(submenu, "~New", x, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "~New", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(new_clicked), NULL);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
-    x++;
-    item = dw_menu_append_item(submenu, "~Open", x, 0, TRUE, FALSE, DW_NOMENU);
-    x++;
+    item = dw_menu_append_item(submenu, "~Open", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(open_clicked), NULL);
-    item = dw_menu_append_item(submenu, "~Save", x, 0, TRUE, FALSE, DW_NOMENU);
-    x++;
+    item = dw_menu_append_item(submenu, "~Save", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
-    x++;
-    item = dw_menu_append_item(submenu, "~Exit", x, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "~Exit", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_delete), NULL);
-    x++;
-    item = dw_menu_append_item(menu, "~File", x, 0, TRUE, FALSE, submenu);
+    item = dw_menu_append_item(menu, "~File", DW_MENU_AUTO, 0, TRUE, FALSE, submenu);
     
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
     dw_window_set_icon(hwndToolbar, DW_RESOURCE(ICON_APP));
