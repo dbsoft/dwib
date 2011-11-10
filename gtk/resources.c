@@ -1,4 +1,6 @@
 #ifndef __MAC__
+#include <gtk/gtk.h>
+
 /* XPMs */
 #include "Interface Builder.xpm"
 
@@ -21,8 +23,8 @@
 #include "Calendar.xpm"
 #include "Padding.xpm"
 #include "Menu.xpm"
-#include "Font.xpm"
-#include "Color.xpm"
+#include "Font.h"
+#include "Color.h"
 #include "Placehold.xpm"
 
 /* Associated IDs */
@@ -77,8 +79,13 @@ char *_resource_data[RESOURCE_MAX] = {
 (char *)Calendar_xpm,
 (char *)Padding_xpm,
 (char *)Menu_xpm,
+#if GTK_MAJOR_VERSION > 1
+(char *)Font,
+(char *)Color,
+#else
 (char *)Font_xpm,
 (char *)Color_xpm,
+#endif
 (char *)Placehold_xpm
 };
 
