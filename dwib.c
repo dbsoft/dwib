@@ -14,6 +14,7 @@ HWND hwndToolbar, hwndProperties, hwndPreview = 0;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 HICN hIcons[20];
+int AutoExpand = FALSE;
 
 #ifdef MSVC
 #define snprintf _snprintf
@@ -3374,6 +3375,31 @@ void handleChildren(xmlNodePtr node, HWND tree, xmlNodePtr thisnode, xmlNodePtr 
     }
 }
 
+/* Cycle all nodes, expanding or collapsing them all */
+void expandCollapseTree(xmlNodePtr node, HWND tree, int expand)
+{
+    xmlNodePtr p;
+    
+    if(!node)
+        return;
+    
+    for(p=node;p;p = p->next)
+    {
+        /* Recurse deeper if there are children */
+        if(p->children)
+            expandCollapseTree(p->children, tree, expand);
+        /* If there is a tree item handle */
+        if(p->_private)
+        {
+            /* Expand or collapse as necessary */
+            if(expand)
+                dw_tree_item_expand(tree, (HTREEITEM)p->_private);
+            else
+                dw_tree_item_expand(tree, (HTREEITEM)p->_private);
+        }
+    }
+}
+
 /* Clears and reloads the tree data from XML */
 void reloadTree(void)
 {
@@ -4024,6 +4050,157 @@ int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, voi
     return FALSE;
 }
 
+/* Handle toggling auto-expand */
+int DWSIGNAL auto_expand_clicked(HWND button, void *data)
+{
+    AutoExpand = !AutoExpand;
+    dw_window_set_style(button, DW_MIS_CHECKED, DW_MIS_CHECKED);
+    return FALSE;
+}
+
+/* Handle expanding or collapsing all */
+int DWSIGNAL expand_all_clicked(HWND button, void *data)
+{
+    int expand = DW_POINTER_TO_INT(data);
+    xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    
+    if(rootNode && tree)
+        expandCollapseTree(rootNode, tree, expand);
+    return FALSE;
+}
+
+/* Generic window close handler */
+int DWSIGNAL generic_delete(HWND window, void *data)
+{
+    HWND item = (HWND)data;
+    
+    if(item)
+        dw_window_destroy(item);
+    else
+        dw_window_destroy(window);
+    return FALSE;
+}
+
+/* Handle web back navigation */
+int DWSIGNAL web_back_clicked(HWND button, void *data)
+{
+    HWND html = (HWND)data;
+    
+    dw_html_action(html, DW_HTML_GOBACK);
+    return FALSE;
+}
+
+/* Handle web forward navigation */
+int DWSIGNAL web_forward_clicked(HWND button, void *data)
+{
+    HWND html = (HWND)data;
+    
+    dw_html_action(html, DW_HTML_GOFORWARD);
+    return FALSE;
+}
+
+/* Handle web reload */
+int DWSIGNAL web_reload_clicked(HWND button, void *data)
+{
+    HWND html = (HWND)data;
+    
+    dw_html_action(html, DW_HTML_RELOAD);
+    return FALSE;
+}
+
+/* Handle loading a web page */
+int DWSIGNAL web_page_clicked(HWND button, void *data)
+{
+    char *url = data;
+    
+    if(url)
+    {
+        HWND html = dw_html_new(0);
+        
+        if(html)
+        {
+            /* We have access to the HTML widget so create a browser window */
+            HWND window = dw_window_new(DW_DESKTOP, DWIB_NAME " Browser", 
+                                        DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
+            HWND vbox = dw_box_new(DW_VERT, 0);
+            HWND hbox = dw_box_new(DW_HORZ, 0);
+            HWND item;
+            
+            dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
+            dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+            
+            /* Add navigation buttons */
+            item = dw_button_new("Back", 0);
+            dw_box_pack_start(hbox, item, 50, 22, FALSE, FALSE, 0);
+            dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_back_clicked), (void *)html);
+            
+            item = dw_button_new("Forward", 0);
+            dw_box_pack_start(hbox, item, 50, 22, FALSE, FALSE, 0);
+            dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_forward_clicked), (void *)html);
+            
+            /* Put in some extra space */
+            dw_box_pack_start(hbox, 0, 5, 22, FALSE, FALSE, 0);
+            
+            item = dw_button_new("Reload", 0);
+            dw_box_pack_start(hbox, item, 50, 22, FALSE, FALSE, 0);
+            dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_reload_clicked), (void *)html);
+              
+            /* Pack in the HTML widget */
+            dw_box_pack_start(vbox, html, 1, 1, TRUE, TRUE, 0);
+            
+            dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(generic_delete), NULL);
+            
+            dw_html_url(html, url);
+            
+            /* Setup the size */
+            dw_window_set_size(window, 800, 600);
+            dw_window_show(window);
+        }
+        else
+        {
+            /* Otherwise fall back to launching a browser */
+            dw_browse(url);
+        }
+    }
+    return FALSE;
+}
+
+/* Handle creating about box */
+int DWSIGNAL about_clicked(HWND button, void *data)
+{
+    /* We have access to the HTML widget so create a browser window */
+    HWND window = dw_window_new(DW_DESKTOP, "About", 
+                                DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST);
+    HWND vbox = dw_box_new(DW_VERT, 0);
+    HWND hbox = dw_box_new(DW_HORZ, 0);
+    HWND item = dw_text_new(DWIB_NAME, 0);
+    
+    /* About text */
+    dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
+    dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
+    dw_box_pack_start(vbox, item, 100, 22, TRUE, FALSE, 0);
+    item = dw_text_new("Brian Smith (c) 2011", 0);
+    dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
+    dw_box_pack_start(vbox, item, 100, 22, TRUE, FALSE, 0);
+    dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
+    
+    /* Button box */
+    dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+    item = dw_button_new("Ok", 0);
+    dw_box_pack_start(hbox, item, 40, 22, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+    
+    /* Delete handlers */
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(generic_delete), (void *)window);
+    dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(generic_delete), NULL);
+    
+    dw_window_set_size(window, 250, 100);
+    dw_window_show(window);
+    return FALSE;
+}
+
 #define TOOLBAR_WIDTH   100
 #define TOOLBAR_HEIGHT  30
 
@@ -4120,6 +4297,7 @@ void dwib_init(void)
     dw_window_set_data(hwndToolbar, "tree", (void *)item);
     
     menu = dw_menubar_new(hwndToolbar);
+    /* Add File menu */
     submenu = dw_menu_new(0);
     item = dw_menu_append_item(submenu, "~New", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(new_clicked), NULL);
@@ -4132,6 +4310,29 @@ void dwib_init(void)
     item = dw_menu_append_item(submenu, "~Exit", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_delete), NULL);
     item = dw_menu_append_item(menu, "~File", DW_MENU_AUTO, 0, TRUE, FALSE, submenu);
+    
+    /* Add View menu */
+    submenu = dw_menu_new(0);
+    item = dw_menu_append_item(submenu, "Auto Expand", DW_MENU_AUTO, 0, TRUE, TRUE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(auto_expand_clicked), NULL);
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "Expand All", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(expand_all_clicked), DW_INT_TO_POINTER(1));
+    item = dw_menu_append_item(submenu, "Collapse All", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(expand_all_clicked), NULL);
+    item = dw_menu_append_item(menu, "~View", DW_MENU_AUTO, 0, TRUE, FALSE, submenu);
+    
+    /* Add Help menu */
+    submenu = dw_menu_new(0);
+    item = dw_menu_append_item(submenu, "Web Page", DW_MENU_AUTO, 0, TRUE, TRUE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_page_clicked), (void *)"http://dbsoft.org/");
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "Help Contents", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_page_clicked), (void *)"http://www.dbsoft.org/newsitem.php?id=41");
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "About", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(about_clicked), NULL);
+    item = dw_menu_append_item(menu, "~Help", DW_MENU_AUTO, 0, TRUE, FALSE, submenu);
     
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
     dw_window_set_icon(hwndToolbar, DW_RESOURCE(ICON_APP));
