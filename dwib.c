@@ -3404,9 +3404,6 @@ void expandCollapseTree(xmlNodePtr node, HWND tree, int expand)
     
     for(p=node;p;p = p->next)
     {
-        /* Recurse deeper if there are children */
-        if(p->children)
-            expandCollapseTree(p->children, tree, expand);
         /* If there is a tree item handle */
         if(p->_private)
         {
@@ -3416,6 +3413,9 @@ void expandCollapseTree(xmlNodePtr node, HWND tree, int expand)
             else
                 dw_tree_item_collapse(tree, (HTREEITEM)p->_private);
         }
+        /* Recurse deeper if there are children */
+        if(p->children)
+            expandCollapseTree(p->children, tree, expand);
     }
 }
 
