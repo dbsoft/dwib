@@ -3509,6 +3509,37 @@ int DWSIGNAL preview_delete(HWND window, void *data)
     return FALSE;
 }
 
+/* Handle expanding all children of an item */
+int DWSIGNAL expand_item_clicked(HWND button, void *data)
+{
+    xmlNodePtr node = data;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    
+    if(node)
+    {
+        if(node->_private)
+            dw_tree_item_expand(tree, (HTREEITEM)node->_private);
+        expandCollapseTree(node->children, tree, TRUE);
+    }
+        
+    return FALSE;
+}
+
+/* Handle collapsing all children of an item */
+int DWSIGNAL collapse_item_clicked(HWND button, void *data)
+{
+    xmlNodePtr node = data;
+    HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+   
+    if(node)
+    {
+        if(node->_private)
+            dw_tree_item_collapse(tree, (HTREEITEM)node->_private);
+        expandCollapseTree(node->children, tree, FALSE);
+    }
+    return FALSE;
+}
+
 /* Handle loading a new layout */
 int DWSIGNAL refresh_clicked(HWND button, void *data)
 {
@@ -4062,6 +4093,11 @@ int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, voi
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(paste_clicked), itemdata);
     }
     item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menu, "Expand All", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(expand_item_clicked), itemdata);
+    item = dw_menu_append_item(menu, "Collapse All", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(collapse_item_clicked), itemdata);
+    item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(menu, "~Refresh", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), itemdata);
     
@@ -4343,7 +4379,7 @@ void dwib_init(void)
     
     /* Add Help menu */
     submenu = dw_menu_new(0);
-    item = dw_menu_append_item(submenu, "Web Page", DW_MENU_AUTO, 0, TRUE, TRUE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "Web Page", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_page_clicked), (void *)"http://dbsoft.org/");
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Help Contents", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
