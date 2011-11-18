@@ -14,7 +14,7 @@ HWND hwndToolbar, hwndProperties, hwndPreview = 0;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 HICN hIcons[20];
-int AutoExpand = FALSE;
+int AutoExpand = TRUE;
 
 #ifdef MSVC
 #define snprintf _snprintf
@@ -744,7 +744,8 @@ int DWSIGNAL text_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_TEXT], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -901,7 +902,8 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_ENTRYFIELD], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -1020,7 +1022,8 @@ int DWSIGNAL combobox_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Combobox", hIcons[TYPE_COMBOBOX], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -1166,7 +1169,8 @@ int DWSIGNAL listbox_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Listbox", hIcons[TYPE_LISTBOX], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -1380,7 +1384,8 @@ int DWSIGNAL container_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_CONTAINER], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -1549,7 +1554,8 @@ int DWSIGNAL tree_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Tree", hIcons[TYPE_TREE], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -1608,7 +1614,8 @@ int DWSIGNAL mle_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "MLE", hIcons[TYPE_MLE], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -1684,7 +1691,8 @@ int DWSIGNAL render_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Render", hIcons[TYPE_RENDER], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -1749,7 +1757,8 @@ int DWSIGNAL button_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BUTTON], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -1908,7 +1917,8 @@ int DWSIGNAL ranged_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_RANGED], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -2047,7 +2057,8 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Bitmap", hIcons[TYPE_BITMAP], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -2124,7 +2135,8 @@ int DWSIGNAL html_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "HTML", hIcons[TYPE_HTML], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -2204,7 +2216,8 @@ int DWSIGNAL notebook_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Notebook", hIcons[TYPE_NOTEBOOK], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -2297,7 +2310,8 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_NOTEBOOK_PAGE], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -2412,7 +2426,8 @@ int DWSIGNAL calendar_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Calendar", hIcons[TYPE_CALENDAR], (HTREEITEM)DWCurrNode->_private, thisNode);
     thisNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)thisNode);
     
@@ -2480,7 +2495,8 @@ int DWSIGNAL box_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], (HTREEITEM)DWCurrNode->_private, boxNode);
     boxNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)boxNode);
     
@@ -2627,7 +2643,8 @@ int DWSIGNAL padding_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Padding", hIcons[TYPE_PADDING], (HTREEITEM)DWCurrNode->_private, boxNode);
     boxNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)boxNode);
     
@@ -2753,7 +2770,8 @@ int DWSIGNAL menu_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_MENU], (HTREEITEM)DWCurrNode->_private, boxNode);
     boxNode->_private = (void *)treeitem;
-    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    if(AutoExpand)
+        dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
     dw_window_set_data(vbox, "node", (void *)boxNode);
     
@@ -3356,7 +3374,8 @@ void handleChildren(xmlNodePtr node, HWND tree, xmlNodePtr thisnode, xmlNodePtr 
                 /* Create the new node */
                 treeitem = _tree_insert(tree, after, buf, hIcons[index], parent, p);
                 p->_private = (void *)treeitem;
-                dw_tree_item_expand(tree, parent);
+                if(AutoExpand)
+                    dw_tree_item_expand(tree, parent);
                 
                 /* For the special cases with children... */
                 switch(index)
@@ -3395,7 +3414,7 @@ void expandCollapseTree(xmlNodePtr node, HWND tree, int expand)
             if(expand)
                 dw_tree_item_expand(tree, (HTREEITEM)p->_private);
             else
-                dw_tree_item_expand(tree, (HTREEITEM)p->_private);
+                dw_tree_item_collapse(tree, (HTREEITEM)p->_private);
         }
     }
 }
@@ -4054,7 +4073,7 @@ int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, voi
 int DWSIGNAL auto_expand_clicked(HWND button, void *data)
 {
     AutoExpand = !AutoExpand;
-    dw_window_set_style(button, DW_MIS_CHECKED, DW_MIS_CHECKED);
+    dw_window_set_style(button, AutoExpand ? DW_MIS_CHECKED : DW_MIS_UNCHECKED, AutoExpand ? DW_MIS_CHECKED : DW_MIS_UNCHECKED);
     return FALSE;
 }
 
@@ -4132,18 +4151,18 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
             
             /* Add navigation buttons */
             item = dw_button_new("Back", 0);
-            dw_box_pack_start(hbox, item, 50, 22, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, item, 70, 25, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_back_clicked), (void *)html);
             
             item = dw_button_new("Forward", 0);
-            dw_box_pack_start(hbox, item, 50, 22, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, item, 70, 25, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_forward_clicked), (void *)html);
             
             /* Put in some extra space */
             dw_box_pack_start(hbox, 0, 5, 22, FALSE, FALSE, 0);
             
             item = dw_button_new("Reload", 0);
-            dw_box_pack_start(hbox, item, 50, 22, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, item, 70, 25, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_reload_clicked), (void *)html);
               
             /* Pack in the HTML widget */
@@ -4171,7 +4190,7 @@ int DWSIGNAL about_clicked(HWND button, void *data)
 {
     /* We have access to the HTML widget so create a browser window */
     HWND window = dw_window_new(DW_DESKTOP, "About", 
-                                DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST);
+                                DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_DLGBORDER);
     HWND vbox = dw_box_new(DW_VERT, 0);
     HWND hbox = dw_box_new(DW_HORZ, 0);
     HWND item = dw_text_new(DWIB_NAME, 0);
@@ -4189,14 +4208,14 @@ int DWSIGNAL about_clicked(HWND button, void *data)
     dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
     item = dw_button_new("Ok", 0);
-    dw_box_pack_start(hbox, item, 40, 22, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, 60, 25, FALSE, FALSE, 0);
     dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
     
     /* Delete handlers */
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(generic_delete), (void *)window);
     dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(generic_delete), NULL);
     
-    dw_window_set_size(window, 250, 100);
+    dw_window_set_size(window, 250, 120);
     dw_window_show(window);
     return FALSE;
 }
@@ -4313,7 +4332,7 @@ void dwib_init(void)
     
     /* Add View menu */
     submenu = dw_menu_new(0);
-    item = dw_menu_append_item(submenu, "Auto Expand", DW_MENU_AUTO, 0, TRUE, TRUE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "Auto Expand", DW_MENU_AUTO, DW_MIS_CHECKED, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(auto_expand_clicked), NULL);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Expand All", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
