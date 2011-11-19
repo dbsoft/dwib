@@ -14,7 +14,7 @@ HWND hwndToolbar, hwndProperties, hwndPreview = 0;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 HICN hIcons[20];
-int AutoExpand = TRUE;
+int AutoExpand = FALSE;
 
 #ifdef MSVC
 #define snprintf _snprintf
@@ -4368,7 +4368,7 @@ void dwib_init(void)
     
     /* Add View menu */
     submenu = dw_menu_new(0);
-    item = dw_menu_append_item(submenu, "Auto Expand", DW_MENU_AUTO, DW_MIS_CHECKED, TRUE, TRUE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "Auto Expand", DW_MENU_AUTO, 0, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(auto_expand_clicked), NULL);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Expand All", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
