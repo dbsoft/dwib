@@ -14,7 +14,8 @@ HWND hwndToolbar, hwndProperties, hwndPreview = 0;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 HICN hIcons[20];
-int AutoExpand = FALSE;
+HMENUI menuWindows;
+int AutoExpand = FALSE, PropertiesInspector = TRUE;
 
 #ifdef MSVC
 #define snprintf _snprintf
@@ -3504,6 +3505,13 @@ int DWSIGNAL open_clicked(HWND button, void *data)
 /* Reset the preview window handle when deleted */
 int DWSIGNAL preview_delete(HWND window, void *data)
 {
+     HWND menu = (HWND)dw_window_get_data(window, "dwib_menu");
+    
+    /* Destroy associated menu if any */ 
+    if(menu)
+        dw_window_destroy(menu);
+    
+    /* And destroy the preview window itself */
     dw_window_destroy(hwndPreview);
     hwndPreview = 0;
     return FALSE;
@@ -3540,6 +3548,16 @@ int DWSIGNAL collapse_item_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handle menu click to show window */
+int DWSIGNAL menu_show_window(HWND button, void *data)
+{
+    HWND window = (HWND)data;
+    
+    dw_window_raise(window);
+    dw_window_show(window);
+    return FALSE;
+}
+
 /* Handle loading a new layout */
 int DWSIGNAL refresh_clicked(HWND button, void *data)
 {
@@ -3564,10 +3582,19 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
                         dw_window_destroy(hwndPreview);
                     hwndPreview = dwib_load((DWIB)DWDoc, val);
                     
-                    dw_signal_connect(hwndPreview, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(preview_delete), NULL);
-                    
                     if(hwndPreview)
+                    {
+                        /* Create an item on the Windows menu */
+                        HWND item = dw_menu_append_item(menuWindows, val, DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+                
+                        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_show_window), (void *)hwndPreview);
+                        dw_window_set_data(hwndPreview, "dwib_menu", (void *)item);
+                       
+                        dw_signal_connect(hwndPreview, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(preview_delete), NULL);
+                        
+                        /* And show the preview window */
                         dwib_show(hwndPreview);
+                    }
                     else
                         dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Failed to load window definition.");
                 }
@@ -4106,6 +4133,18 @@ int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, voi
 }
 
 /* Handle toggling auto-expand */
+int DWSIGNAL properties_inspector_clicked(HWND button, void *data)
+{
+    PropertiesInspector = !PropertiesInspector;
+    dw_window_set_style(button, PropertiesInspector ? DW_MIS_CHECKED : DW_MIS_UNCHECKED, PropertiesInspector ? DW_MIS_CHECKED : DW_MIS_UNCHECKED);
+    if(PropertiesInspector)
+        dw_window_show(hwndProperties);
+    else
+        dw_window_hide(hwndProperties);
+    return FALSE;
+}
+
+/* Handle toggling auto-expand */
 int DWSIGNAL auto_expand_clicked(HWND button, void *data)
 {
     AutoExpand = !AutoExpand;
@@ -4129,6 +4168,11 @@ int DWSIGNAL expand_all_clicked(HWND button, void *data)
 int DWSIGNAL generic_delete(HWND window, void *data)
 {
     HWND item = (HWND)data;
+    HWND menu = (HWND)dw_window_get_data(item ? item : window, "dwib_menu");
+    
+    /* Destroy associated menu if any */ 
+    if(menu)
+        dw_window_destroy(menu);
     
     if(item)
         dw_window_destroy(item);
@@ -4180,7 +4224,10 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
                                         DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
             HWND vbox = dw_box_new(DW_VERT, 0);
             HWND hbox = dw_box_new(DW_HORZ, 0);
-            HWND item;
+            HWND item = dw_menu_append_item(menuWindows, DWIB_NAME " Browser", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+            
+            dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_show_window), (void *)window);
+            dw_window_set_data(window, "dwib_menu", (void *)item);
             
             dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
             dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -4356,12 +4403,12 @@ void dwib_init(void)
     submenu = dw_menu_new(0);
     item = dw_menu_append_item(submenu, "~New", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(new_clicked), NULL);
-    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "~Open", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(open_clicked), NULL);
     item = dw_menu_append_item(submenu, "~Save", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
-    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "~Exit", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_delete), NULL);
     item = dw_menu_append_item(menu, "~File", DW_MENU_AUTO, 0, TRUE, FALSE, submenu);
@@ -4370,21 +4417,29 @@ void dwib_init(void)
     submenu = dw_menu_new(0);
     item = dw_menu_append_item(submenu, "Auto Expand", DW_MENU_AUTO, 0, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(auto_expand_clicked), NULL);
-    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Expand All", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(expand_all_clicked), DW_INT_TO_POINTER(1));
     item = dw_menu_append_item(submenu, "Collapse All", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(expand_all_clicked), NULL);
     item = dw_menu_append_item(menu, "~View", DW_MENU_AUTO, 0, TRUE, FALSE, submenu);
     
+    /* Add Window menu */
+    menuWindows = dw_menu_new(0);
+    item = dw_menu_append_item(menuWindows, "Active Windows", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menuWindows, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menuWindows, "Properties Inspector", DW_MENU_AUTO, DW_MIS_CHECKED, TRUE, TRUE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(properties_inspector_clicked), NULL);
+    item = dw_menu_append_item(menu, "~Windows", DW_MENU_AUTO, 0, TRUE, FALSE, menuWindows);
+    
     /* Add Help menu */
     submenu = dw_menu_new(0);
     item = dw_menu_append_item(submenu, "Web Page", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_page_clicked), (void *)"http://dbsoft.org/");
-    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Help Contents", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_page_clicked), (void *)"http://www.dbsoft.org/newsitem.php?id=41");
-    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, x, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "About", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(about_clicked), NULL);
     item = dw_menu_append_item(menu, "~Help", DW_MENU_AUTO, 0, TRUE, FALSE, submenu);
