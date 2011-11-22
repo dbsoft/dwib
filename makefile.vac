@@ -54,6 +54,23 @@ dwib.dll:  $(LIBOBJECTS)
 clean: 
 	rm $(OBJECTS) dwib.exe os2\dwib.res
 
+# Create an installer using Installer/2...
+# Packinst and ace2 need to be in the path...
+installer:
+    rm -rf install\package
+    md install\package
+    copy dwib.exe install\package
+    copy $(DWINCPATH)\dw.dll install\package
+    copy readme.txt install\package
+    copy readme.txt install\scripts
+    rm -f install\dwib.ace install\misc.ace
+    cd install\package
+    ace2 -r a ..\dwib.ace *
+    cd ..\scripts
+    ace2 a ..\misc.ace *
+    cd ..
+    copy $(SFXPATH)\sfx.exe .\sfx.exe
+    packinst dwib.cfg
 
 dwib.obj: dwib.c dwib.h dwib_int.h resources.h
 dwib_lib.obj: dwib_lib.c dwib.h dwib_int.h resources.h
