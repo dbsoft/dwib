@@ -3505,7 +3505,7 @@ int DWSIGNAL open_clicked(HWND button, void *data)
 /* Reset the preview window handle when deleted */
 int DWSIGNAL preview_delete(HWND window, void *data)
 {
-     HWND menu = (HWND)dw_window_get_data(window, "dwib_menu");
+    HWND menu = (HWND)dw_window_get_data(window, "dwib_menu");
     
     /* Destroy associated menu if any */ 
     if(menu)
@@ -3579,7 +3579,17 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
                     save_properties();
                     
                     if(hwndPreview)
+                    {
+                        HWND menu = (HWND)dw_window_get_data(hwndPreview, "dwib_menu");
+
+                        /* Destroy associated menu if any */
+                        if(menu)
+                        {
+                            dw_window_set_data(hwndPreview, "dwib_menu", NULL);
+                            dw_window_destroy(menu);
+                        }
                         dw_window_destroy(hwndPreview);
+                    }
                     hwndPreview = dwib_load((DWIB)DWDoc, val);
                     
                     if(hwndPreview)
