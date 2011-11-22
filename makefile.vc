@@ -58,13 +58,15 @@ clean:
 # Create a zip file for use with Nullsoft's Install system
 # Requires NSIS and Info-Zip's zip        
 installer:
-	rd /s /q install\package
-	md install\package
-	copy dwib.exe install\package
-	copy $(DWINCDIR)\dw.dll install\package
-	copy readme.txt install\package
-	cd install\package
-	zip -r ..\dwib.zip *
+    rd /s /q install\package
+    md install\package
+    copy dwib.exe install\package
+    copy $(DWINCDIR)\dw.dll install\package
+    copy readme.txt install\package
+    cd install\package
+    copy ..\dwib-$(TARGET_CPU).nsi dwib.nsi
+    makensis dwib.nsi
+    move dwib*win*.exe ..
 
 dwib.res: win\dwib.rc
 	rc -r win\dwib.rc
