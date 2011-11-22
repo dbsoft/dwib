@@ -88,7 +88,9 @@ clean:
 distclean: 
 	$(RM) $(OBJECTS) resources.o $(TARGET) *~ os2/*~ win/*~ gtk/*~ config.cache config.log config.status Makefile config.h
 
-install:
+FORCE:
+
+install: FORCE
 	$(INSTALL) -d $(prefix)/include; \
 	$(INSTALL) -d $(prefix)/lib; \
 	$(INSTALL) -d $(prefix)/bin; \
