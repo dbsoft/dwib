@@ -1,0 +1,6 @@
+Copyright Information About Dynamic Windows Interface Builder.
+
+Copyright (C) 2011 Brian Smith <brian@dbsoft.org>
+
+By using this product you accept that the authors hold no responsibility for damage from use of this product.
+

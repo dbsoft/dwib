@@ -55,6 +55,17 @@ clean:
         -erase win\*.res
         -erase *~
         
+# Create a zip file for use with Nullsoft's Install system
+# Requires NSIS and Info-Zip's zip        
+installer:
+	rd /s /q install\package
+	md install\package
+	copy dwib.exe install\package
+	copy $(DWINCDIR)\dw.dll install\package
+	copy readme.txt install\package
+	cd install\package
+	zip -r ..\dwib.zip *
+
 dwib.res: win\dwib.rc
 	rc -r win\dwib.rc
 

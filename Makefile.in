@@ -76,8 +76,12 @@ resources.o:
 $(TARGET):  $(OBJECTS) resources.o
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJECTS) resources.o $(LDFLAGS) $(LIBS)
 	-chmod +x mac/finishup.sh
-	-mac/finishup.sh
+	-mac/finishup.sh "$(DISPLAYNAME)" "$(TARGET)"
                 
+installer: $(TARGET)
+	-chmod +x mac/installer.sh
+	-mac/installer.sh "$(DISPLAYNAME)" "$(TARGET)"
+
 clean: 
 	$(RM) $(OBJECTS) resources.o $(TARGET) *.$(SOSUFFIX) *.$(SOSUFFIX).* *~
 
