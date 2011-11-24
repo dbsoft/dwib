@@ -1,10 +1,6 @@
 AC_INIT(dwib.c)
 AC_CONFIG_HEADER(config.h)
 
-DWIB_MAJOR_VERSION=0
-DWIB_MINOR_VERSION=5
-DWIB_SUB_VERSION=0
-
 TARGET="dwib"
 
 INCLUDES="-I."
@@ -15,10 +11,28 @@ AC_CHECK_PROG(MAKE, gmake, gmake)
 if test x"$MAKE" = x; then
   AC_CHECK_PROG(MAKE, make, make)
 fi
+if test -d .hg; then 
+   AC_CHECK_PROG(MERCURIAL, hg, hg)
+fi
+if test x"$MERCURIAL" = x; then
+   MERCURIAL=0
+else
+   MERCURIAL="\` $MERCURIAL id -i -n -b -t | cut -d ' ' -f 2 | tr -d '+' \`"
+fi
 
 AC_PROG_INSTALL
 
 AC_SUBST(MAKE)
+
+dnl Checks for system
+AC_CANONICAL_SYSTEM
+
+dnl ---------------------- check for '--with-arch' switch -----------------
+AC_ARG_WITH(arch,
+   [  --with-arch             specify architecture: one of all, 32bit, 64bit, intel, ppc, ppc64, x86_64, i386],
+   [with_arch=$withval],
+   [with_arch=no],
+)
 
 AC_HEADER_STDC
 AC_HEADER_DIRENT
@@ -52,10 +66,37 @@ fi
 LIBS="$LIBXML2_LIBS $LIBS"
 CFLAGS="$LIBXML2_CFLAGS $CFLAGS"
 
-SYSCONF_LINK_TARGET_SHARED="lib$TARGET.$SOSUFFIX.$DWIB_MAJOR_VERSION.$DWIB_MINOR_VERSION"
+SYSCONF_LINK_TARGET_SHARED="lib$TARGET.$SOSUFFIX.\$(VER_MAJ).\$(VER_MIN)"
 SYSCONF_LINK_TARGET_STATIC="lib$TARGET.a"
 
 AC_CHECK_LIB(xml2, xmlNewDoc,LIBS="$LIBS",AC_MSG_ERROR(XML2 library not found. Interface Builder cannot build without it.))
+
+case "$target" in
+   *apple-darwin*)
+      case "$with_arch" in
+         no)
+            ARCH=""
+            ;;
+         all)
+            ARCH="-arch ppc -arch ppc64 -arch x86_64 -arch i386"
+            ;;
+         32bit)
+            ARCH="-arch ppc -arch i386"
+            ;;
+         64bit)
+            ARCH="-arch ppc64 -arch x86_64"
+            ;;
+         intel)
+            ARCH="-arch i386 -arch x86_64"
+            ;;
+         *)
+            ARCH="-arch $with_arch"
+            ;;
+      esac
+   ;;
+   *)
+   ;;
+esac
 
 RM="rm -f"
 LN="ln -s"
@@ -82,5 +123,7 @@ AC_SUBST(LIBSUFFIX)
 AC_SUBST(LIBPREFIX)
 AC_SUBST(SONAME)
 AC_SUBST(TARGET)
+
+AC_SUBST(ARCH)
 
 AC_OUTPUT(Makefile:Makefile.in)
