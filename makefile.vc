@@ -23,8 +23,18 @@ PLATFORM_DEF = -DWIN32
 PLATFORM_DEF = -DWIN64
 !endif
 
+# Check the Mercurial revision number if possible
+!if ![hg log -r . --template="VER_REV={rev}" > HG.REV]
+!include HG.REV
+!message Revision is [$(VER_REV)]
+!else
+VER_REV=0
+!endif
+
+!include Version
+
 CC = cl
-CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR) -I$(XML2INCDIR)
+CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR) -I$(XML2INCDIR) -DVER_MAJ=$(VER_MAJ) -D VER_MIN=$(VER_MIN) -DVER_REV=$(VER_REV)
 CFLAGS_DEBUG = -DDEBUG -Z7 -Od 
 CFLAGS_COMPILE = -MTd
 LIBS = wsock32.lib kernel32.lib user32.lib comctl32.lib gdi32.lib advapi32.lib shell32.lib comdlg32.lib $(DWLIBDIR)\dw.lib $(XML2LIBDIR)\libxml2_a.lib

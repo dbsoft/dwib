@@ -9,7 +9,10 @@ COMPRESS = lxlite
 DEFS =
 LIBS =
 
-CFLAGS = -O -g -Zomf -Zmt -D__ST_MT_ERRNO__ -I. -Wall -I$(DWINCDIR) -o $(@)
+include Version
+VER_REV := $(shell hg log -r . --template={rev})
+
+CFLAGS = -O -g -Zomf -Zmt -D__ST_MT_ERRNO__ -I. -Wall -I$(DWINCDIR) -DVER_MAJ=$(VER_MAJ) -DVER_MIN=$(VER_MIN) -DVER_REV=$(VER_REV) -o $(@)
 LDFLAGS = -ldw -L$(DWLIBDIR)
 RCFLAGS = -r
 
@@ -23,7 +26,7 @@ all: dwib.exe
 $(OBJECTS):
 	$(CC) $(CFLAGS) -c $<	
 
-handyftp.exe:  $(OBJECTS)
+dwib.exe:  $(OBJECTS)
 	$(RC) $(RCFLAGS) os2/dwib.rc
 	$(CC) $(CFLAGS) $(DEFS) -o dwib.exe $(OBJECTS) $(LDFLAGS) os2/dwib.def dwib.res
 #	$(COMPRESS) dwib.exe

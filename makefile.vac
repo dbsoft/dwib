@@ -11,7 +11,16 @@ TARGET=dwib
 .SUFFIXES: \
 	.c .obj
 
-CFLAGS = /Ti /Tm+ /DOS2 /Wcnd- /DTCPV40HDRS /D__TARGET__=\"$(TARGET)\" /I. /I$(DWINCPATH) /I$(XML2INCPATH) /Sm /Ss /Q /Gm /Gt /C
+# Check the Mercurial revision number if possible
+!if ![hg log -r . --template="VER_REV={rev}" > HG.REV]
+!include HG.REV
+!else
+VER_REV=0
+!endif
+
+!include Version
+
+CFLAGS = /Ti /Tm+ /DOS2 /Wcnd- /DTCPV40HDRS /D__TARGET__=\"$(TARGET)\" /I. /I$(DWINCPATH) /I$(XML2INCPATH) /DVER_MAJ=$(VER_MAJ) /DVER_MIN=$(VER_MIN) /DVER_REV=$(VER_REV) /Sm /Ss /Q /Gm /Gt /C
 LDFLAGS = /DE /optfunc
 LIBCFLAGS = $(CFLAGS) /Ge-
 LIBLDFLAGS = /NOE /de /DLL /ST:32768 /nologo /li

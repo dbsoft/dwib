@@ -17,7 +17,7 @@ fi
 if test x"$MERCURIAL" = x; then
    MERCURIAL=0
 else
-   MERCURIAL="\` $MERCURIAL id -i -n -b -t | cut -d ' ' -f 2 | tr -d '+' \`"
+   MERCURIAL="\` $MERCURIAL log -r . --template={rev} \`"
 fi
 
 AC_PROG_INSTALL
