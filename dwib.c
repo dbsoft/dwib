@@ -3187,6 +3187,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     item = dw_checkbox_new("System Menu", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_tooltip(item, "Adding this flag will also add a close button");
     val = defvaltrue;
     if((this = _dwib_find_child(node, "sysmenu")))
     {
