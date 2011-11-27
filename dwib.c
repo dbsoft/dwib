@@ -817,7 +817,7 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", (void *)item);    
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    properties_item(node, scrollbox, TRUE, FALSE);
     
     /* Text */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1660,7 +1660,7 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("MLE Widget", 0);
+    item = dw_text_new("Multi-line Edit Widget", 0);
     dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
     dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     
