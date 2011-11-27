@@ -122,6 +122,8 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
 #endif    
     if((this || (this = _dwib_find_child(node, "font"))) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && strcmp(thisval, "Default"))
         dw_window_set_font(item, thisval);
+    if((this = _dwib_find_child(node, "tooltip")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && *thisval)
+        dw_window_set_tooltip(item, thisval);
     if((this = _dwib_find_child(node, "fcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         fcolor = _dwib_get_color(thisval);
     if((this = _dwib_find_child(node, "bcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -243,7 +245,7 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
 {
     HWND button = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
-    char *thisval, *setting = "", *bubblehelp = "";
+    char *thisval, *setting = "";
     int type = 0;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -257,8 +259,6 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     }
     if((this = _dwib_find_child(node, "setting")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         setting = thisval;
-    if((this = _dwib_find_child(node, "bubblehelp")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-        bubblehelp = thisval;
    
     switch(type)
     {
@@ -273,9 +273,9 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
                 resid = BITMAP_PLACEHOLD;
             
             if(resid)
-                button = dw_bitmapbutton_new(bubblehelp, resid);
+                button = dw_bitmapbutton_new(NULL, resid);
             else
-                button = dw_bitmapbutton_new_from_file(bubblehelp, 0, setting);
+                button = dw_bitmapbutton_new_from_file(NULL, 0, setting);
             }
             break;
         case 2:
