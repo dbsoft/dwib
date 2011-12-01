@@ -62,9 +62,10 @@ int is_valid(xmlNodePtr node)
 /* Returns TRUE if a packable class is selected */
 int is_packable(xmlNodePtr node, int message)
 {
-    if(strcmp((char *)node->name, "Window") == 0 ||
+    if(node->name &&
+       (strcmp((char *)node->name, "Window") == 0 ||
        strcmp((char *)node->name, "Box") == 0 ||
-       strcmp((char *)node->name, "NotebookPage") == 0)
+       strcmp((char *)node->name, "NotebookPage") == 0))
     {
         return TRUE;
     }
@@ -3808,10 +3809,10 @@ int DWSIGNAL paste_clicked(HWND button, void *data)
 int DWSIGNAL toolbar_clicked(HWND button, void *data)
 {
     int which = DW_POINTER_TO_INT(data);
-    xmlNodePtr currentNode = (which == TYPE_NOTEBOOK_PAGE || which == TYPE_MENU || is_menu(DWCurrNode) || is_notebook(DWCurrNode)) 
+    xmlNodePtr currentNode = (which == TYPE_WINDOW || which == TYPE_NOTEBOOK_PAGE || which == TYPE_MENU || is_menu(DWCurrNode) || is_notebook(DWCurrNode)) 
                                 ? DWCurrNode : packableNode(DWCurrNode);
     
-    if(!data)
+    if(!data || !currentNode)
     {
         return FALSE;
     }
