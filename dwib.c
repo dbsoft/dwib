@@ -4298,12 +4298,17 @@ int DWSIGNAL about_clicked(HWND button, void *data)
     HWND vbox = dw_box_new(DW_VERT, 0);
     HWND hbox = dw_box_new(DW_HORZ, 0);
     HWND item = dw_text_new(DWIB_NAME, 0);
+    char verbuf[100] = {0};
     
     /* About text */
     dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
     dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
     dw_box_pack_start(vbox, item, 100, 22, TRUE, FALSE, 0);
     item = dw_text_new("Brian Smith (c) 2011", 0);
+    dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
+    dw_box_pack_start(vbox, item, 100, 22, TRUE, FALSE, 0);
+    sprintf(verbuf, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
+    item = dw_text_new(verbuf, 0);
     dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
     dw_box_pack_start(vbox, item, 100, 22, TRUE, FALSE, 0);
     dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
