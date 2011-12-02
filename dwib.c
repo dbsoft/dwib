@@ -4303,21 +4303,21 @@ int DWSIGNAL about_clicked(HWND button, void *data)
     /* About text */
     dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
     dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
-    dw_box_pack_start(vbox, item, 100, 22, TRUE, FALSE, 0);
+    dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
     item = dw_text_new("Brian Smith (c) 2011", 0);
     dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
-    dw_box_pack_start(vbox, item, 100, 22, TRUE, FALSE, 0);
+    dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
     sprintf(verbuf, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
     item = dw_text_new(verbuf, 0);
     dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
-    dw_box_pack_start(vbox, item, 100, 22, TRUE, FALSE, 0);
+    dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
     dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
     
     /* Button box */
     dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
     item = dw_button_new("Ok", 0);
-    dw_box_pack_start(hbox, item, 60, 25, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, 60, -1, FALSE, FALSE, 0);
     dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
     
     /* Delete handlers */
