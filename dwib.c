@@ -4263,7 +4263,7 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_forward_clicked), (void *)html);
             
             /* Put in some extra space */
-            dw_box_pack_start(hbox, 0, 5, 22, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, 0, 5, 1, FALSE, FALSE, 0);
             
             item = dw_button_new("Reload", 0);
             dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
