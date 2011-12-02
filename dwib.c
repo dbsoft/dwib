@@ -510,7 +510,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     char *sysfont = "winfont";
     char *sysfonttext = "Windows Font";
 #elif defined(__UNIX__)
-    char *sysfont = "macfont";
+    char *sysfont = "unixfont";
     char *sysfonttext = "Unix Font";
 #else
     char *sysfont = NULL;
@@ -4255,18 +4255,18 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
             
             /* Add navigation buttons */
             item = dw_button_new("Back", 0);
-            dw_box_pack_start(hbox, item, 70, 25, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_back_clicked), (void *)html);
             
             item = dw_button_new("Forward", 0);
-            dw_box_pack_start(hbox, item, 70, 25, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_forward_clicked), (void *)html);
             
             /* Put in some extra space */
             dw_box_pack_start(hbox, 0, 5, 22, FALSE, FALSE, 0);
             
             item = dw_button_new("Reload", 0);
-            dw_box_pack_start(hbox, item, 70, 25, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_reload_clicked), (void *)html);
               
             /* Pack in the HTML widget */
