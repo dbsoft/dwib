@@ -23,6 +23,17 @@ PLATFORM_DEF = -DWIN32
 PLATFORM_DEF = -DWIN64
 !endif
 
+#
+# Settings for either debug or release
+#
+!if "$(DEBUG)" == "Y"
+CFLAGS_DEBUG = -Z7 -Od -MTd # was -Zi
+LINK_DEBUG = -debug
+!else
+CFLAGS_DEBUG = -Ox -MT
+LINK_DEBUG = -release
+!endif
+
 # Check the Mercurial revision number if possible
 !if ![hg log -r . --template="VER_REV={rev}" > HG.REV]
 !include HG.REV
@@ -35,11 +46,9 @@ VER_REV=0
 
 CC = cl
 CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR) -I$(XML2INCDIR) -DVER_MAJ=$(VER_MAJ) -D VER_MIN=$(VER_MIN) -DVER_REV=$(VER_REV)
-CFLAGS_DEBUG = -DDEBUG -Z7 -Od 
-CFLAGS_COMPILE = -MTd
 LIBS = wsock32.lib kernel32.lib user32.lib comctl32.lib gdi32.lib advapi32.lib shell32.lib comdlg32.lib $(DWLIBDIR)\dw.lib $(XML2LIBDIR)\libxml2_a.lib
 RES = 
-LINKFLAGS = -machine:$(TARGET_CPU) -manifest -debug
+LINKFLAGS = -machine:$(TARGET_CPU) -manifest $(LINK_DEBUG)
 DLLLINKFLAGS = -dll
 LINK = link
 DEFFILE = win\dwib.def

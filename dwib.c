@@ -439,16 +439,13 @@ char *defvalstr = "", *defvalint = "-1", *defvaltrue = "1", *defvalzero = "0";
 extern char *Colors[];
 
 /* Populate the properties dialog with nothing */
-void properties_none(int refresh)
+void properties_none(void)
 {
     HWND item, vbox = dw_box_new(DW_VERT, 0);
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", (void *)vbox);
     item = dw_text_new("No item selected", 0);
     dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
-    
-    if(refresh)
-        dw_window_redraw(hwndProperties);
 }
 
 /* Create a color picker dialog to set the field */
@@ -896,7 +893,6 @@ void DWSIGNAL properties_text(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(text_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
    
 /* Create a new entryfield definition */
@@ -1019,7 +1015,6 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(entryfield_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new combobox definition */
@@ -1166,7 +1161,6 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(combobox_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new listbox definition */
@@ -1272,7 +1266,6 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(listbox_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 char *ColTypes[] =
@@ -1302,8 +1295,6 @@ int DWSIGNAL add_row_clicked(HWND window, void *data)
     count++;
     add_row(vbox, scrollbox, count, "", "", "", FALSE);
     dw_window_set_data(vbox, "colcount", DW_INT_TO_POINTER(count));
-    
-    dw_window_redraw(hwndProperties);
     return FALSE;
 }
 
@@ -1554,7 +1545,6 @@ void DWSIGNAL properties_container(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(container_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new tree definition */
@@ -1614,7 +1604,6 @@ void DWSIGNAL properties_tree(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(tree_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new MLE definition */
@@ -1691,7 +1680,6 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(mle_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new render definition */
@@ -1751,7 +1739,6 @@ void DWSIGNAL properties_render(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(render_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new button definition */
@@ -1896,7 +1883,6 @@ void DWSIGNAL properties_button(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(button_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new ranged definition */
@@ -2042,7 +2028,6 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(ranged_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new bitmap definition */
@@ -2120,7 +2105,6 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(bitmap_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new HTML definition */
@@ -2198,7 +2182,6 @@ void DWSIGNAL properties_html(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(html_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new notebook definition */
@@ -2286,7 +2269,6 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(notebook_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new notebook page definition */
@@ -2411,7 +2393,6 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(notebook_page_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new calendar definition */
@@ -2471,7 +2452,6 @@ void DWSIGNAL properties_calendar(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(calendar_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new box definition */
@@ -2625,7 +2605,6 @@ void DWSIGNAL properties_box(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(box_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }    
 
 /* Create a new padding definition */
@@ -2744,7 +2723,6 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(padding_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new menu definition */
@@ -2929,7 +2907,6 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Create a new window definition */
@@ -3249,7 +3226,6 @@ void DWSIGNAL properties_window(xmlNodePtr node)
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(window_create), NULL);
     }
-    dw_window_redraw(hwndProperties);
 }
 
 /* Handle saving the current layout */
@@ -3471,7 +3447,7 @@ int DWSIGNAL new_clicked(HWND button, void *data)
         
         /* Remove the properties */
         dw_window_destroy(vbox);
-        properties_none(TRUE);
+        properties_none();
         
         /* Free the existing doc */
         xmlFreeDoc(DWDoc);
@@ -3650,7 +3626,7 @@ int DWSIGNAL delete_clicked(HWND button, void *data)
         
         /* Remove the properties */
         dw_window_destroy(vbox);
-        properties_none(TRUE);
+        properties_none();
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
         xmlUnlinkNode(node);
@@ -3681,7 +3657,7 @@ int DWSIGNAL cut_clicked(HWND button, void *data)
         
         /* Remove the properties */
         dw_window_destroy(vbox);
-        properties_none(TRUE);
+        properties_none();
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
         xmlUnlinkNode(node);
@@ -4475,7 +4451,7 @@ void dwib_init(void)
     dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 650);
     
     hwndProperties = dw_window_new(DW_DESKTOP, "Properties Inspector", DW_FCF_TITLEBAR | DW_FCF_SIZEBORDER);
-    properties_none(FALSE);
+    properties_none();
     dw_signal_connect(hwndToolbar, DW_SIGNAL_SET_FOCUS, DW_SIGNAL_FUNC(toolbar_focus), NULL);
     dw_window_set_pos_size(hwndProperties, 650, 20, 300, 550);
     dw_window_show(hwndProperties);
