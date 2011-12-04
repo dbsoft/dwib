@@ -107,7 +107,7 @@ $(LINKFLAGS) $(DLLLINKFLAGS)
 $(LIBOBJS) $(RES)
 $(LIBS)
 <<
-	lib /def:$(DEFFILE) /out:dwib.lib
+	lib /def:$(DEFFILE) /machine:$(TARGET_CPU) /out:dwib.lib
 	mt.exe /manifest dwib.dll.manifest win\dwib.dll.$(TARGET_CPU).manifest /outputresource:dwib.dll;2
  
 .c.obj:
