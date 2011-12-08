@@ -1041,9 +1041,9 @@ void API dwib_show(HWND window)
     }
     
     /* Set size and/or position if possible */
-    if(width > 0 && height > 0 && x >= 0 && y >= 0)
+    if(width >= -1 && height >= 0 && x >= 0 && y >= 0)
         dw_window_set_pos_size(window, x, y, width, height);
-    else if (width > 0 && height > 0)
+    else if (width >= 0 && height >= 0)
         dw_window_set_size(window, width, height);
     else if(x >= 0 && y >= 0)
         dw_window_set_pos(window, x, y);
