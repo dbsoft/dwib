@@ -493,7 +493,7 @@ int DWSIGNAL font_clicked(HWND window, void *data)
 /* Populate the properties window with generic item fields */
 void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
 {
-    HWND item, tmp, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, tmp, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int x;
@@ -665,7 +665,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
     dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), tmp);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), (void *)tmp);
     /* Background Color */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -693,7 +693,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
     dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), tmp);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), (void *)tmp);
     /* Font */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -713,7 +713,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     item = dw_bitmapbutton_new("Font chooser", ICON_FONT);
     dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(font_clicked), tmp);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(font_clicked), (void *)tmp);
     if(sysfont)
     {
         /* System Font */
@@ -778,7 +778,7 @@ int DWSIGNAL text_create(HWND window, void *data)
 /* Populate the properties window for a text */
 void DWSIGNAL properties_text(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -935,7 +935,7 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
 /* Populate the properties window for a entryfield */
 void DWSIGNAL properties_entryfield(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -1096,7 +1096,7 @@ int DWSIGNAL rem_clicked(HWND window, void *data)
 /* Populate the properties window for a combobox */
 void DWSIGNAL properties_combobox(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -1200,7 +1200,7 @@ int DWSIGNAL listbox_create(HWND window, void *data)
 /* Populate the properties window for a listbox */
 void DWSIGNAL properties_listbox(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *val = defvalzero, *thisval;
     xmlNodePtr this;
     
@@ -1412,7 +1412,7 @@ int DWSIGNAL container_create(HWND window, void *data)
 /* Populate the properties window for a container */
 void DWSIGNAL properties_container(xmlNodePtr node)
 {
-    HWND item, scrollbox, tmp, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, tmp, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int x;
@@ -1500,7 +1500,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
     dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), tmp);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), (void *)tmp);
     /* Even Color */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -1531,7 +1531,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
     dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), tmp);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), (void *)tmp);
     /* Columns */
     item = dw_text_new("Column names, types and alignment", 0);
     dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
@@ -1581,7 +1581,7 @@ int DWSIGNAL tree_create(HWND window, void *data)
 /* Populate the properties window for a tree */
 void DWSIGNAL properties_tree(xmlNodePtr node)
 {
-    HWND item, scrollbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -1640,7 +1640,7 @@ int DWSIGNAL mle_create(HWND window, void *data)
 /* Populate the properties window for a MLE */
 void DWSIGNAL properties_mle(xmlNodePtr node)
 {
-    HWND item, scrollbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -1716,7 +1716,7 @@ int DWSIGNAL render_create(HWND window, void *data)
 /* Populate the properties window for a render */
 void DWSIGNAL properties_render(xmlNodePtr node)
 {
-    HWND item, scrollbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -1781,7 +1781,7 @@ int DWSIGNAL button_create(HWND window, void *data)
 /* Populate the properties window for a button */
 void DWSIGNAL properties_button(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -1925,7 +1925,7 @@ int DWSIGNAL ranged_create(HWND window, void *data)
 /* Populate the properties window for a ranged */
 void DWSIGNAL properties_ranged(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -2064,7 +2064,7 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
 /* Populate the properties window for a bitmap */
 void DWSIGNAL properties_bitmap(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -2141,7 +2141,7 @@ int DWSIGNAL html_create(HWND window, void *data)
 /* Populate the properties window for a HTML */
 void DWSIGNAL properties_html(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -2221,7 +2221,7 @@ int DWSIGNAL notebook_create(HWND window, void *data)
 /* Populate the properties window for a notebook */
 void DWSIGNAL properties_notebook(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -2314,7 +2314,7 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
 /* Populate the properties window for a notebook page */
 void DWSIGNAL properties_notebook_page(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -2429,7 +2429,7 @@ int DWSIGNAL calendar_create(HWND window, void *data)
 /* Populate the properties window for a calendar */
 void DWSIGNAL properties_calendar(xmlNodePtr node)
 {
-    HWND item, scrollbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -2497,7 +2497,7 @@ int DWSIGNAL box_create(HWND window, void *data)
 /* Populate the properties window for a box */
 void DWSIGNAL properties_box(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -2644,7 +2644,7 @@ int DWSIGNAL padding_create(HWND window, void *data)
 /* Populate the properties window for padding */
 void DWSIGNAL properties_padding(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -2793,7 +2793,7 @@ int DWSIGNAL toggle_clicked(HWND window, void *data)
 /* Populate the properties menubar for a menu */
 void DWSIGNAL properties_menu(xmlNodePtr node)
 {
-    HWND item, checkable, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, checkable, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -2942,7 +2942,7 @@ int DWSIGNAL window_create(HWND window, void *data)
 /* Populate the properties window for a window */
 void DWSIGNAL properties_window(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     

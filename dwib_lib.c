@@ -1030,8 +1030,8 @@ void API dwib_show(HWND window)
     /* Calculate new positions if center is enabled */
     if(center && width > 0 && height > 0)
     {
-    	int cx = dw_screen_width() - width;
-	    int cy = dw_screen_height() - height;
+        int cx = dw_screen_width() - width;
+        int cy = dw_screen_height() - height;
 
         if(cx > 1 && cy > 1)
         {
