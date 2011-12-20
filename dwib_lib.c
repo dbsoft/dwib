@@ -830,7 +830,7 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     char *thisval, *title = "";
     unsigned long flags = 0;
     int bordersize = -1, orient = DW_HORZ, padding = 0;
-    int x = -1, y = -1, width = -1, height = -1, center = 0;
+    int x = -1, y = -1, width = -1, height = -1, hgravity = 0, vgravity = 0;
     HWND ret, box;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -862,8 +862,20 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
         x = atoi(thisval);
     if((this = _dwib_find_child(node, "y")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         y = atoi(thisval);
-    if((this = _dwib_find_child(node, "center")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-        center = atoi(thisval);
+    if((this = _dwib_find_child(node, "hgravity")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(strcmp(thisval, "Center") == 0)
+            hgravity = DW_GRAV_CENTER;
+        else if(strcmp(thisval, "Right") == 0)
+            hgravity = DW_GRAV_RIGHT;
+    }
+    if((this = _dwib_find_child(node, "vgravity")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(strcmp(thisval, "Center") == 0)
+            vgravity = DW_GRAV_CENTER;
+        else if(strcmp(thisval, "Bottom") == 0)
+            vgravity = DW_GRAV_BOTTOM;
+    }
     if((this = _dwib_find_child(node, "width")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         width = atoi(thisval);
     if((this = _dwib_find_child(node, "height")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -879,7 +891,6 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     
     dw_window_set_data(ret, "_dwib_x", DW_INT_TO_POINTER(x));
     dw_window_set_data(ret, "_dwib_y", DW_INT_TO_POINTER(y));
-    dw_window_set_data(ret, "_dwib_center", DW_INT_TO_POINTER(center));
     dw_window_set_data(ret, "_dwib_width", DW_INT_TO_POINTER(width));
     dw_window_set_data(ret, "_dwib_height", DW_INT_TO_POINTER(height));
     
@@ -891,6 +902,9 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     if(bordersize != -1)
         dw_window_set_border(ret, bordersize);
     
+    if(hgravity || vgravity)
+      dw_window_set_gravity(ret, hgravity, vgravity);
+      
     return ret;
 }
 
@@ -1023,25 +1037,11 @@ void API dwib_show(HWND window)
     /* Get the loaded window settings set on the window handle */
     x = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_x"));
     y = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_y"));
-    center = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_center"));
     width = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_width"));
     height = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_height"));
 
-    /* Calculate new positions if center is enabled */
-    if(center && width > 0 && height > 0)
-    {
-        int cx = dw_screen_width() - width;
-        int cy = dw_screen_height() - height;
-
-        if(cx > 1 && cy > 1)
-        {
-            x = cx / 2;
-            y = cy / 2;
-        }
-    }
-    
     /* Set size and/or position if possible */
-    if(width >= -1 && height >= 0 && x >= 0 && y >= 0)
+    if(width >= 0 && height >= 0 && x >= 0 && y >= 0)
         dw_window_set_pos_size(window, x, y, width, height);
     else if (width >= 0 && height >= 0)
         dw_window_set_size(window, width, height);

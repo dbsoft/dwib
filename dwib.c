@@ -304,7 +304,8 @@ void save_properties(void)
             updateNode(node, vbox, "height", FALSE);
             updateNode(node, vbox, "x", FALSE);
             updateNode(node, vbox, "y", FALSE);
-            updateNode(node, vbox, "center", TRUE);
+            updateNode(node, vbox, "hgravity", FALSE);
+            updateNode(node, vbox, "vgravity", FALSE);
             updateNode(node, vbox, "bordersize", FALSE);
             updateNode(node, vbox, "close", TRUE);
             updateNode(node, vbox, "minimize", TRUE);
@@ -3028,22 +3029,52 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_spinbutton_set_limits(item, 2000, -1);
     dw_window_set_tooltip(item, "Set to -1 to let the system decide.");
     dw_window_set_data(vbox, "y", (void *)item);
-    /* Center */
+    /* Gravity */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Center", 0);
+    item = dw_text_new("Gravity", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    item = dw_checkbox_new("", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    val = defvalzero;
-    if((this = _dwib_find_child(node, "center")))
+    item = dw_combobox_new("Left", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Left");
+    dw_listbox_append(item, "Center");
+    dw_listbox_append(item, "Right");
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "hgravity")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
             val = thisval;
+            if(strcmp(val, "Center") == 0)
+                val = "1";
+            else if(strcmp(val, "Right") == 0)
+                val = "2";
+        }
     }
-    dw_checkbox_set(item, atoi(val));
-    dw_window_set_data(vbox, "center", (void *)item);
+    dw_listbox_select(item, atoi(val), TRUE);
+    dw_window_set_data(vbox, "hgravity", (void *)item);
+    item = dw_combobox_new("Top", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Top");
+    dw_listbox_append(item, "Center");
+    dw_listbox_append(item, "Bottom");
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "vgravity")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
+            val = thisval;
+            if(strcmp(val, "Center") == 0)
+                val = "1";
+            else if(strcmp(val, "Bottom") == 0)
+                val = "2";
+        }
+    }
+    dw_listbox_select(item, atoi(val), TRUE);
+    dw_window_set_data(vbox, "vgravity", (void *)item);
+    
+    /* Border size */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     item = dw_text_new("Border", 0);
