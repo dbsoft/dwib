@@ -1032,7 +1032,7 @@ int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window,
  */
 void API dwib_show(HWND window)
 {
-    int x, y, width, height, center;
+    int x, y, width, height;
     
     /* Get the loaded window settings set on the window handle */
     x = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_x"));
