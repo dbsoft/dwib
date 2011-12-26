@@ -869,6 +869,8 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
         else if(strcmp(thisval, "Right") == 0)
             hgravity = DW_GRAV_RIGHT;
     }
+    if((this = _dwib_find_child(node, "hobstacles")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+        hgravity |= DW_GRAV_OBSTACLES;
     if((this = _dwib_find_child(node, "vgravity")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Center") == 0)
@@ -876,6 +878,8 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
         else if(strcmp(thisval, "Bottom") == 0)
             vgravity = DW_GRAV_BOTTOM;
     }
+    if((this = _dwib_find_child(node, "vobstacles")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+        vgravity |= DW_GRAV_OBSTACLES;
     if((this = _dwib_find_child(node, "width")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         width = atoi(thisval);
     if((this = _dwib_find_child(node, "height")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -1032,16 +1036,23 @@ int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window,
  */
 void API dwib_show(HWND window)
 {
-    int x, y, width, height;
+    int x, y, width, height, hgravity, vgravity;
     
     /* Get the loaded window settings set on the window handle */
     x = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_x"));
     y = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_y"));
     width = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_width"));
     height = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_height"));
+    hgravity = DW_POINTER_TO_INT(dw_window_get_data(window, "_dw_grav_horz"));
+    vgravity = DW_POINTER_TO_INT(dw_window_get_data(window, "_dw_grav_vert"));
 
-    /* Set size and/or position if possible */
-    if(width >= 0 && height >= 0 && x >= 0 && y >= 0)
+    /* Set size and/or position if possible...
+     * Position needs to be greater than -1 or
+     * gravity needs to be set to CENTER.
+     */
+    if(width >= 0 && height >= 0 && 
+      (x >= 0 || (hgravity & 0xf) == DW_GRAV_CENTER) && 
+      (y >= 0 || (vgravity & 0xf) == DW_GRAV_CENTER))
         dw_window_set_pos_size(window, x, y, width, height);
     else if (width >= 0 && height >= 0)
         dw_window_set_size(window, width, height);

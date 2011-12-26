@@ -306,6 +306,8 @@ void save_properties(void)
             updateNode(node, vbox, "y", FALSE);
             updateNode(node, vbox, "hgravity", FALSE);
             updateNode(node, vbox, "vgravity", FALSE);
+            updateNode(node, vbox, "hobstacles", TRUE);
+            updateNode(node, vbox, "vobstacles", TRUE);
             updateNode(node, vbox, "bordersize", FALSE);
             updateNode(node, vbox, "close", TRUE);
             updateNode(node, vbox, "minimize", TRUE);
@@ -3015,8 +3017,8 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     }
     item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_spinbutton_set_limits(item, 2000, -1);
-    dw_window_set_tooltip(item, "Set to -1 to let the system decide.");
+    dw_spinbutton_set_limits(item, 2000, -1000);
+    dw_window_set_tooltip(item, "Set to -1 to let the system decide when gravity is not CENTER.");
     dw_window_set_data(vbox, "x", (void *)item);
     val = defvalint;
     if((this = _dwib_find_child(node, "y")))
@@ -3026,8 +3028,8 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     }
     item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_spinbutton_set_limits(item, 2000, -1);
-    dw_window_set_tooltip(item, "Set to -1 to let the system decide.");
+    dw_spinbutton_set_limits(item, 2000, -1000);
+    dw_window_set_tooltip(item, "Set to -1 to let the system decide when gravity is not CENTER.");
     dw_window_set_data(vbox, "y", (void *)item);
     /* Gravity */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3073,6 +3075,28 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "vgravity", (void *)item);
+    /* Obstacles */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Obstacles", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    item = dw_checkbox_new("Horizontal", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    if((this = _dwib_find_child(node, "hobstacles")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)) && atoi(thisval))
+            dw_checkbox_set(item, TRUE);
+    }
+    dw_window_set_data(vbox, "hobstacles", (void *)item);
+    item = dw_checkbox_new("Vertical", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    if((this = _dwib_find_child(node, "vobstacles")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)) && atoi(thisval))
+            dw_checkbox_set(item, TRUE);
+    }
+    dw_window_set_data(vbox, "vobstacles", (void *)item);
     
     /* Border size */
     hbox = dw_box_new(DW_HORZ, 0);
