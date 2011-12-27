@@ -536,7 +536,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         /* Required size */
         hbox = dw_box_new(DW_HORZ, 0);
         dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-        item = dw_text_new("Size (width, height)", 0);
+        item = dw_text_new("Size", 0);
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
         dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
         val = defvaltrue;
@@ -548,7 +548,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         item = dw_spinbutton_new(val, 0);
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         dw_spinbutton_set_limits(item, 2000, -1);
-        dw_window_set_tooltip(item, "Set to -1 to calculate the size.");
+        dw_window_set_tooltip(item, "Width: Set to -1 to calculate the size.");
         dw_window_set_data(vbox, "width", (void *)item);
         val = defvaltrue;
         if((this = _dwib_find_child(node, "height")))
@@ -559,7 +559,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         item = dw_spinbutton_new(val, 0);
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         dw_spinbutton_set_limits(item, 2000, -1);
-        dw_window_set_tooltip(item, "Set to -1 to calculate the size.");
+        dw_window_set_tooltip(item, "Height: Set to -1 to calculate the size.");
         dw_window_set_data(vbox, "height", (void *)item);
         /* Expandable */
         hbox = dw_box_new(DW_HORZ, 0);
@@ -2666,7 +2666,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     /* Required size */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Size (width, height)", 0);
+    item = dw_text_new("Size", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvaltrue;
@@ -2678,6 +2678,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_spinbutton_set_limits(item, 2000, 0);
+    dw_window_set_tooltip(item, "Padding width in pixels.");
     dw_window_set_data(vbox, "width", (void *)item);
     val = defvaltrue;
     if((this = _dwib_find_child(node, "height")))
@@ -2688,6 +2689,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_spinbutton_set_limits(item, 2000, 0);
+    dw_window_set_tooltip(item, "Padding height in pixels.");
     dw_window_set_data(vbox, "height", (void *)item);
     /* Expandable */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3006,7 +3008,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     /* Positon */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Position (x, y)", 0);
+    item = dw_text_new("Position", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalint;
@@ -3018,7 +3020,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_spinbutton_set_limits(item, 2000, -1000);
-    dw_window_set_tooltip(item, "Set to -1 to let the system decide when gravity is not CENTER.");
+    dw_window_set_tooltip(item, "X: Set to -1 to let the system decide when gravity is not CENTER.");
     dw_window_set_data(vbox, "x", (void *)item);
     val = defvalint;
     if((this = _dwib_find_child(node, "y")))
@@ -3029,7 +3031,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     item = dw_spinbutton_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_spinbutton_set_limits(item, 2000, -1000);
-    dw_window_set_tooltip(item, "Set to -1 to let the system decide when gravity is not CENTER.");
+    dw_window_set_tooltip(item, "Y: Set to -1 to let the system decide when gravity is not CENTER.");
     dw_window_set_data(vbox, "y", (void *)item);
     /* Gravity */
     hbox = dw_box_new(DW_HORZ, 0);
