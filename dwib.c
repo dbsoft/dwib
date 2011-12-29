@@ -2859,6 +2859,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     dw_spinbutton_set_limits(item, 29999, 0);
     dw_spinbutton_set_pos(item, atoi(val));
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_tooltip(item, "Menu identifier or 0 to auto-generate one.");
     dw_window_set_data(vbox, "menuid", (void *)item);
     /* Style */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3086,7 +3087,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     item = dw_checkbox_new("Horizontal", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     if((this = _dwib_find_child(node, "hobstacles")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)) && atoi(thisval))
@@ -3094,8 +3095,11 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     }
     dw_window_set_tooltip(item, "Avoid system obstacles in the horizontal direction.");
     dw_window_set_data(vbox, "hobstacles", (void *)item);
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     item = dw_checkbox_new("Vertical", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     if((this = _dwib_find_child(node, "vobstacles")))
     {
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)) && atoi(thisval))
