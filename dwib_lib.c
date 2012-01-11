@@ -855,6 +855,8 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
         flags |= DW_FCF_SYSMENU;
     if((this = _dwib_find_child(node, "tasklist")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
         flags |= DW_FCF_TASKLIST;
+    if((this = _dwib_find_child(node, "composited")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+        flags |= DW_FCF_COMPOSITED;
     if((this = _dwib_find_child(node, "titlebar")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
         flags |= DW_FCF_TITLEBAR;
 

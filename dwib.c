@@ -319,6 +319,7 @@ void save_properties(void)
             updateNode(node, vbox, "border", TRUE);
             updateNode(node, vbox, "sysmenu", TRUE);
             updateNode(node, vbox, "tasklist", TRUE);
+            updateNode(node, vbox, "composited", TRUE);
             updateNode(node, vbox, "orientation", FALSE);
             break;
         case TYPE_BOX:
@@ -3262,6 +3263,20 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     }
     dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "tasklist", (void *)item);
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    item = dw_checkbox_new("Composited", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_tooltip(item, "Enables translucent windows on supported platforms");
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "composited")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "composited", (void *)item);
     /* Orientation */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -4283,7 +4298,7 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
         if(html)
         {
             /* We have access to the HTML widget so create a browser window */
-            HWND window = dw_window_new(DW_DESKTOP, DWIB_NAME " Browser", 
+            HWND window = dw_window_new(DW_DESKTOP, DWIB_NAME " Browser", DW_FCF_COMPOSITED |
                                         DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
             HWND vbox = dw_box_new(DW_VERT, 0);
             HWND hbox = dw_box_new(DW_HORZ, 0);
@@ -4335,7 +4350,7 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
 int DWSIGNAL about_clicked(HWND button, void *data)
 {
     /* We have access to the HTML widget so create a browser window */
-    HWND window = dw_window_new(DW_DESKTOP, "About", 
+    HWND window = dw_window_new(DW_DESKTOP, "About", DW_FCF_COMPOSITED |
                                 DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_DLGBORDER);
     HWND vbox = dw_box_new(DW_VERT, 0);
     HWND hbox = dw_box_new(DW_HORZ, 0);
@@ -4394,7 +4409,7 @@ void dwib_init(void)
     DWCurrNode = xmlNewNode(NULL, (xmlChar *)"DynamicWindows");
     xmlDocSetRootElement(DWDoc, DWCurrNode);
     
-    hwndToolbar = dw_window_new(DW_DESKTOP, DWIB_NAME, 
+    hwndToolbar = dw_window_new(DW_DESKTOP, DWIB_NAME, DW_FCF_COMPOSITED |
                                 DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(hwndToolbar, hbox, 1, 1, TRUE, TRUE, 0);
