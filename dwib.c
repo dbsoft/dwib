@@ -365,6 +365,7 @@ void save_properties(void)
             break;
         case TYPE_MLE:
             save_item(node, vbox);
+            updateNode(node, vbox, "wordwrap", TRUE);
             updateNodeText(node, vbox, "deftext");
             break;
         case TYPE_RENDER:
@@ -1644,7 +1645,7 @@ int DWSIGNAL mle_create(HWND window, void *data)
 /* Populate the properties window for a MLE */
 void DWSIGNAL properties_mle(xmlNodePtr node)
 {
-    HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -1662,6 +1663,22 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
+    /* Word wrap */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Word", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvaltrue;
+    if((this = _dwib_find_child(node, "wordwrap")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_checkbox_new("Wrap", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "wordwrap", (void *)item);
     /* Default Text */
     item = dw_text_new("Default text", 0);
     dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);

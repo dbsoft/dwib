@@ -607,7 +607,10 @@ HWND _dwib_mle_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
     mle = dw_mle_new(0);
     dw_mle_import(mle, deftext, -1);
     
-    _dwib_item_pack(node, doc, window, packbox, mle, index);
+   if((this = _dwib_find_child(node, "wordwrap")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+      dw_mle_set_word_wrap(mle, atoi(thisval));
+      
+   _dwib_item_pack(node, doc, window, packbox, mle, index);
     return mle;
 }
 
