@@ -358,6 +358,7 @@ void save_properties(void)
             updateNode(node, vbox, "multi", TRUE);
             updateNode(node, vbox, "oddcolor", FALSE);
             updateNode(node, vbox, "evencolor", FALSE);
+            updateNode(node, vbox, "splitcol", FALSE);
             save_columns(node, vbox);
             break;
         case TYPE_TREE:
@@ -1290,8 +1291,9 @@ int DWSIGNAL add_row_clicked(HWND window, void *data)
 {
     HWND button, scrollbox = (HWND)data;
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND combo = (HWND)dw_window_get_data(vbox, "splitcol");
     int count = DW_POINTER_TO_INT(dw_window_get_data(vbox, "colcount"));
-    char buf[50];
+    char buf[51] = {0};
     
     snprintf(buf, 50, "addbutton%d", count);
     button = (HWND)dw_window_get_data(vbox, buf);
@@ -1300,6 +1302,9 @@ int DWSIGNAL add_row_clicked(HWND window, void *data)
     count++;
     add_row(vbox, scrollbox, count, "", "", "", FALSE);
     dw_window_set_data(vbox, "colcount", DW_INT_TO_POINTER(count));
+    /* Add a final entry for the blank field */
+    snprintf(buf, 50, "%d", count+1);
+    dw_listbox_append(combo, buf);
     return FALSE;
 }
 
@@ -1343,6 +1348,7 @@ void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype,
     item = dw_button_new("+", 0);
     snprintf(buf, 50, "addbutton%d", count);
     dw_window_set_data(vbox, buf, (void *)item);
+    dw_window_set_tooltip(item, "Add a new column");
     dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_row_clicked), (void *)scrollbox);
     if(disable)
@@ -1350,10 +1356,11 @@ void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype,
 }
 
 /* Add rows for columns from the XML tree */
-void populate_columns(HWND vbox, HWND scrollbox, xmlNodePtr node)
+void populate_columns(HWND vbox, HWND scrollbox, HWND combo, xmlNodePtr node)
 {
     xmlNodePtr p;
     int count = 0;
+    char buf[21] = {0};
     
     if(node)
     {
@@ -1367,14 +1374,22 @@ void populate_columns(HWND vbox, HWND scrollbox, xmlNodePtr node)
                 {
                     char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
                     char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
+
                     add_row(vbox, scrollbox, count, thisval, coltype ? coltype : "", colalign ? colalign : "", TRUE);
                     count++;
+
+                    /* Add the column to the OS/2 split column list */
+                    snprintf(buf, 20, "%d", count);
+                    dw_listbox_append(combo, buf);
                 }
             }
         }
     }
     add_row(vbox, scrollbox, count, "", "", "", FALSE);
     dw_window_set_data(vbox, "colcount", DW_INT_TO_POINTER(count));
+    /* Add a final entry for the blank field */
+    snprintf(buf, 20, "%d", count+1);
+    dw_listbox_append(combo, buf);
 }
 
 /* Create a new container definition */
@@ -1537,12 +1552,32 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), (void *)tmp);
+    /* OS/2 Split Column */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("OS/2 Split Column", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    tmp = item = dw_combobox_new("None", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_tooltip(item, "Set the user resizable column on OS/2");
+    dw_listbox_append(item, "None");
+    dw_window_set_data(vbox, "splitcol", (void *)item);
     /* Columns */
     item = dw_text_new("Column names, types and alignment", 0);
     dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     this = _dwib_find_child(node, "Columns");
-    populate_columns(vbox, scrollbox, this);
-    
+    populate_columns(vbox, scrollbox, tmp, this);
+
+    /* Finish up the split column handling */
+    val = defvalzero;
+    if((this = _dwib_find_child(node, "splitcol")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    dw_listbox_select(tmp, atoi(val), TRUE);
+
     /* If it is a new window add button */
     if(!node)
     {

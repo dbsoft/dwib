@@ -345,7 +345,7 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
 }
 
 /* Fills in a container with columns from the List node */
-void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, int type)
+void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, int type, int splitcol)
 {
     xmlNodePtr p;
     int count = 0;
@@ -406,7 +406,7 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
             switch(type)
             {
                 case 0:
-                    dw_container_setup(container, colflags, colnames, count, 0);
+                    dw_container_setup(container, colflags, colnames, count, splitcol);
                     break;
                 case 1:
                     dw_filesystem_setup(container, colflags, colnames, count);
@@ -424,7 +424,7 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     HWND container;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval;
-    int type = 0, multi = 0;
+    int type = 0, multi = 0, splitcol = 0;
     unsigned long oddcolor = DW_RGB_TRANSPARENT, evencolor = DW_RGB_TRANSPARENT;
     
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -434,11 +434,13 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     }
     if((this = _dwib_find_child(node, "multi")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         multi = atoi(thisval);
+    if((this = _dwib_find_child(node, "splitcol")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        splitcol = atoi(thisval);
     
     container = dw_container_new(0, multi);
     
     if((this = _dwib_find_child(node, "Columns")))
-        _dwib_populate_container(container, this, doc, type);
+        _dwib_populate_container(container, this, doc, type, splitcol);
         
     if((this = _dwib_find_child(node, "oddcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         oddcolor = _dwib_get_color(thisval);
