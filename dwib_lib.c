@@ -680,10 +680,10 @@ HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
     
     listbox = dw_listbox_new(0, multi);
     
-    _dwib_item_pack(node, doc, window, packbox, listbox, index);
-    
     if((this = _dwib_find_child(node, "List")))
         _dwib_populate_list(listbox, this, doc);
+    
+    _dwib_item_pack(node, doc, window, packbox, listbox, index);
     
     return listbox;
 }
