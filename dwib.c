@@ -3570,7 +3570,10 @@ void reloadTree(void)
 /* Handle starting a new layout */
 int DWSIGNAL new_clicked(HWND button, void *data)
 {
-    if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
+    xmlNodePtr current = DWDoc ? xmlDocGetRootElement(DWDoc) : NULL;
+    
+    if(!current || !current->children ||
+       dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
         HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
@@ -3583,7 +3586,8 @@ int DWSIGNAL new_clicked(HWND button, void *data)
         properties_none();
         
         /* Free the existing doc */
-        xmlFreeDoc(DWDoc);
+        if(DWDoc)
+            xmlFreeDoc(DWDoc);
         
         /* Create a new empty XML document */
         DWDoc = xmlNewDoc((xmlChar *)"1.0");
@@ -3597,7 +3601,10 @@ int DWSIGNAL new_clicked(HWND button, void *data)
 /* Handle loading a new layout */
 int DWSIGNAL open_clicked(HWND button, void *data)
 {
-    if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
+    xmlNodePtr current = DWDoc ? xmlDocGetRootElement(DWDoc) : NULL;
+    
+    if(!current || !current->children ||
+       dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
     {
         char *filename = dw_file_browse("Open interface", ".", "xml", DW_FILE_OPEN);
         
@@ -3611,6 +3618,10 @@ int DWSIGNAL open_clicked(HWND button, void *data)
                 
                 if(node)
                 {
+                    /* Free the existing doc */
+                    if(DWDoc)
+                        xmlFreeDoc(DWDoc);
+
                     DWDoc = doc; 
                     DWCurrNode = node;
                     reloadTree();
@@ -4181,12 +4192,7 @@ int DWSIGNAL toolbar_focus(HWND toolbar, void *data)
 int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
 {
     if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to exit Interface Builder?"))
-    {
-        dw_window_destroy(hwndProperties);
-        dw_window_destroy(hwndToolbar);
-        xmlFreeDoc(DWDoc);
-        dw_exit(0);
-	}
+        dw_main_quit();
 	return TRUE;
 }
 
@@ -4602,6 +4608,13 @@ int main(int argc, char *argv[])
     
     dw_main();
 
+    dw_window_destroy(hwndProperties);
+    dw_window_destroy(hwndToolbar);
+    
+    if(DWDoc)
+        xmlFreeDoc(DWDoc);
+    
+    dw_exit(0);
     return 0;
 }
 
