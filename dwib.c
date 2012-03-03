@@ -4061,10 +4061,13 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
 /* Show the appropriate properties for the currently selected node */
 void properties_current(void)
 {
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+        
+    if(vbox)
+        dw_window_set_data(vbox, "node", (void *)DWCurrNode);
+    
     if(DWCurrNode && DWCurrNode->name)
     {
-        HWND vbox;
-        
         if(strcmp((char *)DWCurrNode->name, "Window") == 0)
         {
             properties_window(DWCurrNode);
@@ -4162,9 +4165,6 @@ void properties_current(void)
         }
         else 
             return;
-        
-         if((vbox = (HWND)dw_window_get_data(hwndProperties, "box")))
-            dw_window_set_data(vbox, "node", (void *)DWCurrNode);
     }
 }
 
@@ -4193,7 +4193,7 @@ int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
 {
     if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to exit Interface Builder?"))
         dw_main_quit();
-	return TRUE;
+    return TRUE;
 }
 
 /* Handle moving a node up */
