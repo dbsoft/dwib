@@ -3545,9 +3545,15 @@ void reloadTree(void)
 {
     xmlNodePtr p, rootNode = xmlDocGetRootElement(DWDoc);
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
+    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HTREEITEM treeitem;
     
+    /* Remove the current tree */
     dw_tree_clear(tree);
+    
+    /* Remove the properties */
+    dw_window_destroy(vbox);
+    properties_none();
     
     if(!rootNode)
         return;
@@ -4061,11 +4067,8 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
 /* Show the appropriate properties for the currently selected node */
 void properties_current(void)
 {
-    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND vbox;
         
-    if(vbox)
-        dw_window_set_data(vbox, "node", (void *)DWCurrNode);
-    
     if(DWCurrNode && DWCurrNode->name)
     {
         if(strcmp((char *)DWCurrNode->name, "Window") == 0)
@@ -4163,9 +4166,10 @@ void properties_current(void)
             properties_menu(DWCurrNode);
             dw_window_set_data(hwndProperties, "type", (void *)TYPE_MENU);
         }
-        else 
-            return;
     }
+    
+    if((vbox = (HWND)dw_window_get_data(hwndProperties, "box")))
+        dw_window_set_data(vbox, "node", (void *)DWCurrNode);    
 }
 
 /* Handle loading a new item when selectng the tree */
