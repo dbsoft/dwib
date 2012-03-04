@@ -13,6 +13,7 @@
 HWND hwndToolbar, hwndProperties, hwndPreview = 0;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
+char *DWFilename = NULL;
 HICN hIcons[20];
 HMENUI menuWindows;
 int AutoExpand = FALSE, PropertiesInspector = TRUE;
@@ -113,6 +114,25 @@ xmlNodePtr packablePageNode(xmlNodePtr node)
     if(node && (node = node->parent) && strcmp((char *)node->name, "Notebook") == 0)
         return node;
     return NULL;
+}
+
+/* Sets the title of the toolbar window */
+void setTitle(void)
+{
+    if(DWFilename)
+    {
+        int buflen = strlen(DWIB_NAME) + strlen(DWFilename) + 4;
+        char *tmpbuf = (char *)malloc(buflen); 
+
+        if(tmpbuf)
+        {
+            snprintf(tmpbuf, buflen, "%s - %s",  DWIB_NAME, DWFilename);
+            dw_window_set_text(hwndToolbar, tmpbuf);
+            free(tmpbuf);
+        }
+    }
+    else
+        dw_window_set_text(hwndToolbar, DWIB_NAME);
 }
 
 /* Gets the contents of the list and puts it into the XML tree...
@@ -3368,6 +3388,8 @@ int DWSIGNAL save_clicked(HWND button, void *data)
     
     if(filename)
     {
+        char *tmpptr, *oldfilename = DWFilename;
+
         /* Make sure the XML tree is up-to-date */
         save_properties();
         
@@ -3375,7 +3397,19 @@ int DWSIGNAL save_clicked(HWND button, void *data)
         xmlIndentTreeOutput = 1;
         
         xmlSaveFormatFile(filename, DWDoc, 1);
+
+        /* Trim off the path using Unix or DOS format */
+        tmpptr = strrchr(filename, '/');
+        if(!tmpptr)
+            tmpptr = strrchr(filename, '\\');
+        /* Copy the short filename */
+        DWFilename = strdup(tmpptr ? ++tmpptr : DWFilename);
+        /* Free any old memory */
+        if(oldfilename)
+            free(oldfilename);
         dw_free(filename);
+        /* Update the window title */
+        setTitle();
     }
     return FALSE;
 }
@@ -3583,6 +3617,7 @@ int DWSIGNAL new_clicked(HWND button, void *data)
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "tree");
         HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+        char *oldfilename = DWFilename;
 
         /* Remove the current tree */
         dw_tree_clear(tree);
@@ -3599,6 +3634,14 @@ int DWSIGNAL new_clicked(HWND button, void *data)
         DWDoc = xmlNewDoc((xmlChar *)"1.0");
         DWCurrNode = xmlNewNode(NULL, (xmlChar *)"DynamicWindows");
         xmlDocSetRootElement(DWDoc, DWCurrNode);
+
+        /* Clear out the existing filename */
+        DWFilename = NULL;
+        /* Free any old memory */
+        if(oldfilename)
+            free(oldfilename);
+        /* Update the window title */
+        setTitle();
     }
     return FALSE;
 }
@@ -3616,6 +3659,7 @@ int DWSIGNAL open_clicked(HWND button, void *data)
         
         if(filename)
         {
+            char *tmpptr, *oldfilename = DWFilename;
             xmlDocPtr doc = xmlParseFile(filename);
             
             if(doc)
@@ -3633,7 +3677,19 @@ int DWSIGNAL open_clicked(HWND button, void *data)
                     reloadTree();
                 }
             }
+
+            /* Trim off the path using Unix or DOS format */
+            tmpptr = strrchr(filename, '/');
+            if(!tmpptr)
+                tmpptr = strrchr(filename, '\\');
+            /* Copy the short filename */
+            DWFilename = strdup(tmpptr ? ++tmpptr : DWFilename);
+            /* Free any old memory */
+            if(oldfilename)
+                free(oldfilename);
             dw_free(filename);
+            /* Update the window title */
+            setTitle();
         }
     }
     return FALSE;
