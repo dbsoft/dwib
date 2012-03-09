@@ -145,6 +145,8 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
         box = splitbox;                        
     }
     dw_box_pack_at_index(box, item, index, width, height, hexpand, vexpand, padding);
+    /* Save the item handle in the psvi field */
+    node->psvi = (void *)item;
     
     if(dataname && window)
         dw_window_set_data(window, dataname, (void *)item);
@@ -167,6 +169,8 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
 
     box = dw_box_new(orient, 0);
     dw_notebook_pack(packbox, pageid, box);
+    /* Save the page ID in the psvi field */
+    node->psvi = DW_INT_TO_POINTER(pageid);
     
     if((this = _dwib_find_child(node, "title")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dw_notebook_page_set_text(packbox, pageid, thisval);
@@ -710,6 +714,8 @@ HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packb
         dataname = thisval;
     
     menuitem = dw_menu_append_item(packbox, title, menuid, flags, TRUE, checkable, submenu);
+    /* Save the menu item handle in the psvi field */
+    node->psvi = (void *)menuitem;
     
     if(dataname && window)
         dw_window_set_data(window, dataname, (void *)menuitem);
@@ -899,6 +905,8 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
         padding = atoi(thisval);
 
     ret = dw_window_new(DW_DESKTOP, title, flags);
+    /* Save the window handle in the psvi field */
+    node->psvi = (void *)ret;
     
     dw_window_set_data(ret, "_dwib_x", DW_INT_TO_POINTER(x));
     dw_window_set_data(ret, "_dwib_y", DW_INT_TO_POINTER(y));
