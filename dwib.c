@@ -10,7 +10,7 @@
 #include "dwib_int.h"
 #include "dwib.h"
 
-HWND hwndToolbar, hwndProperties, hwndPreview = 0;
+HWND hwndToolbar, hwndProperties;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 char *DWFilename = NULL;
@@ -3695,18 +3695,34 @@ int DWSIGNAL open_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Wipe out any pvsi fields in the preview tree */
+void clearPreview(xmlNodePtr node)
+{
+    for(;node;node = node->next)
+    {
+        node->psvi = NULL;
+        clearPreview(node->children);
+    }
+}
+
 /* Reset the preview window handle when deleted */
 int DWSIGNAL preview_delete(HWND window, void *data)
 {
     HWND menu = (HWND)dw_window_get_data(window, "dwib_menu");
+    xmlNodePtr node = (xmlNodePtr)dw_window_get_data(window, "_dwib_node");
+    
+    if(node)
+    {
+        node->psvi = NULL;
+        clearPreview(node->children);
+    }
     
     /* Destroy associated menu if any */ 
     if(menu)
         dw_window_destroy(menu);
     
     /* And destroy the preview window itself */
-    dw_window_destroy(hwndPreview);
-    hwndPreview = 0;
+    dw_window_destroy(window);
     return FALSE;
 }
 
@@ -3768,35 +3784,32 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
                 
                 if(val)
                 {
+                    HWND preview;
+                    
+                    /* If a preview window already exists... */
+                    if(node->psvi)
+                    {
+                        /* Destroy it before creating a new one */
+                        preview_delete((HWND)node->psvi, NULL);
+                    }
+                    
                     /* Make sure the XML tree is up-to-date */
                     save_properties();
                     
-                    if(hwndPreview)
-                    {
-                        HWND menu = (HWND)dw_window_get_data(hwndPreview, "dwib_menu");
-
-                        /* Destroy associated menu if any */
-                        if(menu)
-                        {
-                            dw_window_set_data(hwndPreview, "dwib_menu", NULL);
-                            dw_window_destroy(menu);
-                        }
-                        dw_window_destroy(hwndPreview);
-                    }
-                    hwndPreview = dwib_load((DWIB)DWDoc, val);
+                    preview = dwib_load((DWIB)DWDoc, val);
                     
-                    if(hwndPreview)
+                    if(preview)
                     {
                         /* Create an item on the Windows menu */
                         HWND item = dw_menu_append_item(menuWindows, val, DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
                 
-                        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_show_window), (void *)hwndPreview);
-                        dw_window_set_data(hwndPreview, "dwib_menu", (void *)item);
+                        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_show_window), (void *)preview);
+                        dw_window_set_data(preview, "dwib_menu", (void *)item);
                        
-                        dw_signal_connect(hwndPreview, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(preview_delete), NULL);
+                        dw_signal_connect(preview, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(preview_delete), NULL);
                         
                         /* And show the preview window */
-                        dwib_show(hwndPreview);
+                        dwib_show(preview);
                     }
                     else
                         dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Failed to load window definition.");

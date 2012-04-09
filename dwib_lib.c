@@ -908,6 +908,8 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     /* Save the window handle in the psvi field */
     node->psvi = (void *)ret;
     
+    /* Save the node pointer in the window data */
+    dw_window_set_data(ret, "_dwib_node", (void *)node);
     dw_window_set_data(ret, "_dwib_x", DW_INT_TO_POINTER(x));
     dw_window_set_data(ret, "_dwib_y", DW_INT_TO_POINTER(y));
     dw_window_set_data(ret, "_dwib_width", DW_INT_TO_POINTER(width));
