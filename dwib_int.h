@@ -66,17 +66,18 @@ int generateNode(char *buf, xmlNodePtr p);
 
 /* INI File support */
 typedef struct _saveconfig {
-	char name[20];
-	int type;
-	void *data;
+    char name[20];
+    int type;
+    void *data;
 } SaveConfig;
 
 enum type_list {
-	TYPE_NONE = 0,
-	TYPE_INT,
-	TYPE_ULONG,
-	TYPE_FLOAT,
-	TYPE_STRING
+    TYPE_NONE = 0,
+    TYPE_INT,
+    TYPE_ULONG,
+    TYPE_FLOAT,
+    TYPE_BOOLEAN,
+    TYPE_STRING
 };
 
 #endif
