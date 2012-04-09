@@ -3861,6 +3861,29 @@ void expandCollapseTree(xmlNodePtr node, HWND tree, int expand)
     }
 }
 
+/* Destroys any preview windows currently open */
+void destroyPreviews(void)
+{
+    xmlNodePtr p, rootNode = xmlDocGetRootElement(DWDoc);
+    
+    if(rootNode)
+    {
+        for(p=rootNode->children;p;p = p->next)
+        {
+            if(strcmp((char *)p->name, "Window") == 0)
+            {
+                if(p->psvi)
+                {
+                    HWND window = (HWND)p->psvi;
+                    
+                    p->psvi = NULL;
+                    preview_delete(window, NULL);
+                }
+            }
+        }
+    }
+}
+
 /* Clears and reloads the tree data from XML */
 void reloadTree(void)
 {
@@ -3906,6 +3929,9 @@ int DWSIGNAL new_clicked(HWND button, void *data)
         HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
         char *oldfilename = DWFilename;
 
+        /* Make sure no preview windows are open */
+        destroyPreviews();
+        
         /* Remove the current tree */
         dw_tree_clear(tree);
         
@@ -3943,27 +3969,23 @@ int DWSIGNAL open_clicked(HWND button, void *data)
        dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
     {
         char *filename = dw_file_browse("Open interface", ".", "xml", DW_FILE_OPEN);
+        xmlDocPtr doc;
         
-        if(filename)
+        if(filename && (doc = xmlParseFile(filename)))
         {
             char *tmpptr, *oldfilename = DWFilename;
-            xmlDocPtr doc = xmlParseFile(filename);
             
-            if(doc)
-            {
-                xmlNodePtr node = xmlDocGetRootElement(DWDoc);
-                
-                if(node)
-                {
-                    /* Free the existing doc */
-                    if(DWDoc)
-                        xmlFreeDoc(DWDoc);
+            /* Make sure no preview windows are open */
+            destroyPreviews();
+            
+            /* Free the existing doc */
+            if(DWDoc)
+                xmlFreeDoc(DWDoc);
 
-                    DWDoc = doc; 
-                    DWCurrNode = node;
-                    reloadTree();
-                }
-            }
+            /* Update the doc and node then reload */
+            DWDoc = doc; 
+            DWCurrNode = xmlDocGetRootElement(DWDoc);
+            reloadTree();
 
             /* Trim off the path using Unix or DOS format */
             tmpptr = strrchr(filename, '/');
@@ -4137,6 +4159,13 @@ int DWSIGNAL delete_clicked(HWND button, void *data)
         DWCurrNode = xmlDocGetRootElement(DWDoc);
         xmlUnlinkNode(node);
         dw_tree_item_delete(tree, (HTREEITEM)node->_private);
+        /* If there are previews attached destroy them */
+        if(node->psvi)
+        {
+            dw_window_destroy((HWND)node->psvi);
+            node->psvi = NULL;
+        }
+        /* Then free the node and its children */
         xmlFreeNode(node);
     }
     return FALSE;
@@ -4171,6 +4200,14 @@ int DWSIGNAL cut_clicked(HWND button, void *data)
         if(DWClipNode)
             xmlFreeNode(DWClipNode);
         DWClipNode = node;
+        /* If there are previews attached destroy them */
+        if(node->psvi)
+        {
+            dw_window_destroy((HWND)node->psvi);
+            node->psvi = NULL;
+        }
+        /* And clear them out from the tree */
+        clearPreview(node);
     }
     return FALSE;
 }
@@ -4191,6 +4228,9 @@ int DWSIGNAL copy_clicked(HWND button, void *data)
     if(DWClipNode)
         xmlFreeNode(DWClipNode);
     DWClipNode = xmlCopyNode(node, 1);
+    /* Make sure we didn't copy any preview handles */
+    DWClipNode->psvi = NULL;
+    clearPreview(DWClipNode);
     return FALSE;
 }
 
