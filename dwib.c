@@ -4,6 +4,7 @@
  */
 
 #include <dw.h>
+#include <dwcompat.h>
 #include <libxml/tree.h>
 #include <string.h>
 #include "resources.h"
@@ -18,8 +19,14 @@ HICN hIcons[20];
 HMENUI menuWindows;
 int AutoExpand = FALSE, PropertiesInspector = TRUE;
 
+/* Compiler specific stuff, this should probably go elsewhere */
 #ifdef MSVC
 #define snprintf _snprintf
+#endif
+
+#if defined(__IBMC__) || defined(__WATCOMC__) || (defined(__WIN32__) && !defined(__CYGWIN32__))
+#undef mkdir
+#define mkdir(a,b) mkdir(a)
 #endif
 
 char *Classes[] =
@@ -45,6 +52,232 @@ char *Classes[] =
     "Menu", 
     NULL
 };
+
+/* Array to aid in automated configuration saving */
+SaveConfig Config[] = 
+{
+    { "AUTOEXPAND",         TYPE_INT,   &AutoExpand },
+    { "PROPINSP",           TYPE_INT,   &PropertiesInspector },
+    { 0, 0, 0}
+};
+
+/* Write the ini file with all of the current settings */
+void saveconfig(void)
+{
+    FILE *f;
+    char *tmppath = INIDIR, *inidir, *inipath, *home = dw_user_dir();
+    int x = 0;
+
+    if(strcmp(INIDIR, ".") == 0)
+    {
+        inipath = strdup(__TARGET__ ".ini");
+        inidir = strdup(INIDIR);
+    }
+    else
+    {
+        if(home && tmppath[0] == '~')
+        {
+            inipath = malloc(strlen(home) + strlen(INIDIR) + 14);
+            inidir = malloc(strlen(home) + strlen(INIDIR));
+            strcpy(inipath, home);
+            strcpy(inidir, home);
+            strcat(inipath, &tmppath[1]);
+            strcat(inidir, &tmppath[1]);
+        }
+        else
+        {
+            inipath = malloc(strlen(INIDIR) + 14);
+            strcat(inipath, INIDIR);
+            inidir = strdup(INIDIR);
+        }
+        strcat(inipath, DIRSEP);
+        strcat(inipath, __TARGET__ ".ini");
+    }
+
+    f=fopen(inipath, FOPEN_WRITE_TEXT);
+
+    if(f==NULL)
+    {
+        if(strcmp(INIDIR, ".") != 0)
+        {
+            mkdir(inidir,S_IRWXU);
+            f=fopen(inipath, FOPEN_WRITE_TEXT);
+        }
+        if(f==NULL)
+        {
+            dw_messagebox(DWIB_NAME, DW_MB_ERROR | DW_MB_OK, "Could not save settings. Inipath = \"%s\"", inipath);
+            free(inipath);
+            free(inidir);
+            return;
+        }
+    }
+
+    free(inipath);
+    free(inidir);
+
+    /* Loop through all saveable settings */
+    while(Config[x].type)
+    {
+        switch(Config[x].type)
+        {
+            /* Handle saving integers */
+            case TYPE_INT:
+            {
+                int *var = (int *)Config[x].data;
+
+                fprintf(f, "%s=%d\n", Config[x].name, *var);
+                break;
+            }
+            /* Handle saving unsigned long integers */
+            case TYPE_ULONG:
+            {
+                unsigned long *var = (unsigned long *)Config[x].data;
+
+                fprintf(f, "%s=%lu\n", Config[x].name, *var);
+                break;
+            }
+            /* Handle saving strings */
+            case TYPE_STRING:
+            {
+                char **str = (char **)Config[x].data;
+
+                fprintf(f, "%s=%s\n", Config[x].name, *str);
+                break;
+            }
+            /* Handle saving floating point */
+            case TYPE_FLOAT:
+            {
+                float *var = (float *)Config[x].data;
+
+                fprintf(f, "%s=%f\n", Config[x].name, *var);
+                break;
+            }
+        }
+        x++;
+    }
+
+    fclose(f);
+}
+
+#define INI_BUFFER 256
+
+/* Generic function to parse information from a config file */
+void ini_getline(FILE *f, char *entry, char *entrydata)
+{
+    char in[INI_BUFFER];
+    int z;
+
+    memset(in, 0, INI_BUFFER);
+    fgets(in, INI_BUFFER - 1, f);
+
+    if(in[strlen(in)-1] == '\n')
+        in[strlen(in)-1] = 0;
+
+    if(in[0] != '#')
+    {
+        for(z=0;z<strlen(in);z++)
+        {
+            if(in[z] == '=')
+            {
+                in[z] = 0;
+                strcpy(entry, in);
+                strcpy(entrydata, &in[z+1]);
+                return;
+            }
+        }
+    }
+    strcpy(entry, "");
+    strcpy(entrydata, "");
+}
+
+/* Load the ini file from disk setting all the necessary flags */
+void loadconfig(void)
+{
+    char *tmppath = INIDIR, *inipath, *home = dw_user_dir();
+    char entry[INI_BUFFER], entrydata[INI_BUFFER];
+    FILE *f;
+
+    if(strcmp(INIDIR, ".") == 0)
+        inipath = strdup(__TARGET__ ".ini");
+    else
+    {
+        if(home && tmppath[0] == '~')
+        {
+            inipath = malloc(strlen(home) + strlen(INIDIR) + 14);
+            strcpy(inipath, home);
+            strcat(inipath, &tmppath[1]);
+        }
+        else
+        {
+            inipath = malloc(strlen(INIDIR) + 14);
+            strcat(inipath, INIDIR);
+        }
+        strcat(inipath, DIRSEP);
+        strcat(inipath, __TARGET__ ".ini");
+    }
+
+    f = fopen(inipath, FOPEN_READ_TEXT);
+
+    free(inipath);
+
+    /* If we successfully opened the ini file */
+    if(f)
+    {
+        /* Loop through the file */
+        while(!feof(f))
+        {
+            int x = 0;
+
+            ini_getline(f, entry, entrydata);
+
+            /* Cycle through the possible settings */
+            while(Config[x].type)
+            {
+                /* If this line has a setting we are looking for */
+                if(strcasecmp(entry, Config[x].name)==0)
+                {
+                    switch(Config[x].type)
+                    {
+                        /* Load an integer setting */
+                        case TYPE_INT:
+                        {
+                            int *var = (int *)Config[x].data;
+
+                            *var = atoi(entrydata);
+                            break;
+                        }
+                        /* Load an unsigned long integer setting */
+                        case TYPE_ULONG:
+                        {
+                            unsigned long *var = (unsigned long *)Config[x].data;
+
+                            sscanf(entrydata, "%lu", var);
+                            break;
+                        }
+                        /* Load an string setting */
+                        case TYPE_STRING:
+                        {
+                            char **str = (char **)Config[x].data;
+
+                            *str = strdup(entrydata);
+                            break;
+                        }
+                        /* Load an floating point setting */
+                        case TYPE_FLOAT:
+                        {
+                            float *var = (float *)Config[x].data;
+
+                            *var = atof(entrydata);
+                            break;
+                        }
+                    }
+                }
+                x++;
+            }
+        }
+        fclose(f);
+    }
+}
 
 /* Returns TRUE if the node is a valid class */
 int is_valid(xmlNodePtr node)
@@ -4350,6 +4583,7 @@ int DWSIGNAL properties_inspector_clicked(HWND button, void *data)
         dw_window_show(hwndProperties);
     else
         dw_window_hide(hwndProperties);
+    saveconfig();
     return FALSE;
 }
 
@@ -4358,6 +4592,7 @@ int DWSIGNAL auto_expand_clicked(HWND button, void *data)
 {
     AutoExpand = !AutoExpand;
     dw_window_set_style(button, AutoExpand ? DW_MIS_CHECKED : DW_MIS_UNCHECKED, AutoExpand ? DW_MIS_CHECKED : DW_MIS_UNCHECKED);
+    saveconfig();
     return FALSE;
 }
 
@@ -4629,7 +4864,7 @@ void dwib_init(void)
     
     /* Add View menu */
     submenu = dw_menu_new(0);
-    item = dw_menu_append_item(submenu, "Auto Expand", DW_MENU_AUTO, 0, TRUE, TRUE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "Auto Expand", DW_MENU_AUTO, AutoExpand ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(auto_expand_clicked), NULL);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Expand All", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
@@ -4642,7 +4877,7 @@ void dwib_init(void)
     menuWindows = dw_menu_new(0);
     item = dw_menu_append_item(menuWindows, "Active Windows", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(menuWindows, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
-    item = dw_menu_append_item(menuWindows, "Properties Inspector", DW_MENU_AUTO, DW_MIS_CHECKED, TRUE, TRUE, DW_NOMENU);
+    item = dw_menu_append_item(menuWindows, "Properties Inspector", DW_MENU_AUTO, PropertiesInspector ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(properties_inspector_clicked), NULL);
     item = dw_menu_append_item(menu, "~Windows", DW_MENU_AUTO, 0, TRUE, FALSE, menuWindows);
     
@@ -4668,19 +4903,24 @@ void dwib_init(void)
     dw_signal_connect(hwndToolbar, DW_SIGNAL_SET_FOCUS, DW_SIGNAL_FUNC(toolbar_focus), NULL);
     dw_window_set_gravity(hwndProperties, DW_GRAV_LEFT | DW_GRAV_OBSTACLES, DW_GRAV_TOP | DW_GRAV_OBSTACLES);
     dw_window_set_pos_size(hwndProperties, 650, 20, 300, 550);
-    dw_window_show(hwndProperties);
+    if(PropertiesInspector)
+        dw_window_show(hwndProperties);
     dw_window_show(hwndToolbar);
 }
 
 /* The main entry point.  Notice we don't use WinMain() on Windows */
 int main(int argc, char *argv[])
 {
+    loadconfig();
+    
     dw_init(TRUE, argc, argv);
     
     dwib_init();
     
     dw_main();
 
+    saveconfig();
+    
     dw_window_destroy(hwndProperties);
     dw_window_destroy(hwndToolbar);
     

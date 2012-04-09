@@ -64,4 +64,19 @@ void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype,
 void properties_current(void);
 int generateNode(char *buf, xmlNodePtr p);
 
+/* INI File support */
+typedef struct _saveconfig {
+	char name[20];
+	int type;
+	void *data;
+} SaveConfig;
+
+enum type_list {
+	TYPE_NONE = 0,
+	TYPE_INT,
+	TYPE_ULONG,
+	TYPE_FLOAT,
+	TYPE_STRING
+};
+
 #endif
