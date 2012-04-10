@@ -17,7 +17,7 @@ xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 char *DWFilename = NULL;
 HICN hIcons[20];
 HMENUI menuWindows;
-int AutoExpand = FALSE, PropertiesInspector = TRUE;
+int AutoExpand = FALSE, PropertiesInspector = TRUE, LivePreview = TRUE;
 
 /* Compiler specific stuff, this should probably go elsewhere */
 #ifdef MSVC
@@ -57,6 +57,7 @@ char *Classes[] =
 SaveConfig Config[] = 
 {
     { "AUTOEXPAND",         TYPE_INT,   &AutoExpand },
+    { "LIVEPREVIEW",        TYPE_INT,   &LivePreview },
     { "PROPINSP",           TYPE_INT,   &PropertiesInspector },
     { "", 0, 0}
 };
@@ -592,7 +593,7 @@ void save_item(xmlNodePtr node, HWND vbox)
 /* Create or recreate a preview control/widget */
 void previewControl(xmlNodePtr node)
 {
-    if(node->parent && node->parent->parent)
+    if(LivePreview && node->parent && node->parent->parent)
     {
         xmlNodePtr p = node->parent;
         xmlNodePtr boxnode = p->parent;
@@ -4205,7 +4206,7 @@ int DWSIGNAL delete_clicked(HWND button, void *data)
         xmlUnlinkNode(node);
         dw_tree_item_delete(tree, (HTREEITEM)node->_private);
         /* If there are previews attached destroy them */
-        if(node->psvi)
+        if(LivePreview && node->psvi)
         {
             dw_window_destroy((HWND)node->psvi);
             node->psvi = NULL;
@@ -4246,7 +4247,7 @@ int DWSIGNAL cut_clicked(HWND button, void *data)
             xmlFreeNode(DWClipNode);
         DWClipNode = node;
         /* If there are previews attached destroy them */
-        if(node->psvi)
+        if(LivePreview && node->psvi)
         {
             dw_window_destroy((HWND)node->psvi);
             node->psvi = NULL;
@@ -4746,6 +4747,15 @@ int DWSIGNAL auto_expand_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handle toggling live preview */
+int DWSIGNAL live_preview_clicked(HWND button, void *data)
+{
+    LivePreview = !LivePreview;
+    dw_window_set_style(button, LivePreview ? DW_MIS_CHECKED : DW_MIS_UNCHECKED, LivePreview ? DW_MIS_CHECKED : DW_MIS_UNCHECKED);
+    saveconfig();
+    return FALSE;
+}
+
 /* Handle expanding or collapsing all */
 int DWSIGNAL expand_all_clicked(HWND button, void *data)
 {
@@ -5016,6 +5026,8 @@ void dwib_init(void)
     submenu = dw_menu_new(0);
     item = dw_menu_append_item(submenu, "Auto Expand", DW_MENU_AUTO, AutoExpand ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(auto_expand_clicked), NULL);
+    item = dw_menu_append_item(submenu, "Live Preview", DW_MENU_AUTO, LivePreview ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(live_preview_clicked), NULL);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Expand All", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(expand_all_clicked), DW_INT_TO_POINTER(1));
