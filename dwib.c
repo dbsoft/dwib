@@ -4048,8 +4048,8 @@ void clearPreview(xmlNodePtr node)
 /* Reset the preview window handle when deleted */
 int DWSIGNAL preview_delete(HWND window, void *data)
 {
-    HWND menu = (HWND)dw_window_get_data(window, "dwib_menu");
-    xmlNodePtr node = (xmlNodePtr)dw_window_get_data(window, "_dwib_node");
+    HWND menu = (HWND)dw_window_get_data(data ? (HWND)data : window, "dwib_menu");
+    xmlNodePtr node = (xmlNodePtr)dw_window_get_data(data ? (HWND)data : window, "_dwib_node");
     
     if(node)
     {
@@ -4062,7 +4062,7 @@ int DWSIGNAL preview_delete(HWND window, void *data)
         dw_window_destroy(menu);
     
     /* And destroy the preview window itself */
-    dw_window_destroy(window);
+    dw_window_destroy(data ? (HWND)data : window);
     return FALSE;
 }
 
@@ -4675,6 +4675,7 @@ int DWSIGNAL down_clicked(HWND button, void *data)
 /* Pop up a tree context menu */
 int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, void *itemdata)
 {
+    xmlNodePtr node = findWindow(itemdata);
     HMENUI menu = dw_menu_new(0);
     HWND item = dw_menu_append_item(menu, "~Up", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(up_clicked), itemdata);
@@ -4699,8 +4700,14 @@ int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, voi
     item = dw_menu_append_item(menu, "Collapse All", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(collapse_item_clicked), itemdata);
     item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
-    item = dw_menu_append_item(menu, "~Refresh", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menu, (node && node->psvi) ? "~Refresh" : "Preview", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_clicked), itemdata);
+    if(node && node->psvi)
+    {
+        item = dw_menu_append_item(menu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
+        item = dw_menu_append_item(menu, "Close Preview", DW_MENU_POPUP, 0, TRUE, FALSE, DW_NOMENU);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(preview_delete), node->psvi);
+    }
     
     dw_menu_popup(&menu, hwndToolbar, x, y);
     return FALSE;
