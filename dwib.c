@@ -76,7 +76,7 @@ void saveconfig(void)
     else
     {
         /* Need space for the filename, directory separator and NULL */
-        int extra = strlen(inifile) + 2;
+        int extra = (int)strlen(inifile) + 2;
         
         /* If the path is in the home directory... */
         if(home && tmppath[0] == '~')
@@ -194,7 +194,7 @@ void ini_getline(FILE *f, char *entry, char *entrydata)
     /* Try to read a line into the buffer */
     if(fgets(in, INI_BUFFER - 1, f))
     {
-        int len = strlen(in);
+        int len = (int)strlen(in);
 
         /* Strip off any trailing newlines */
         if(len > 0 && in[len-1] == '\n')
@@ -235,7 +235,7 @@ void loadconfig(void)
     else
     {
         /* Need space for the filename, directory separator and NULL */
-        int extra = strlen(inifile) + 2;
+        int extra = (int)strlen(inifile) + 2;
         
         /* If the path is in the home directory... */
         if(home && tmppath[0] == '~')
@@ -408,7 +408,7 @@ void setTitle(void)
 {
     if(DWFilename)
     {
-        int buflen = strlen(DWIB_NAME) + strlen(DWFilename) + 4;
+        int buflen = (int)strlen(DWIB_NAME) + strlen(DWFilename) + 4;
         char *tmpbuf = (char *)malloc(buflen); 
 
         if(tmpbuf)
@@ -738,6 +738,37 @@ void save_properties(void)
         if(index && node->_private)
         {
             dw_tree_item_change(tree, (HTREEITEM)node->_private, buf, hIcons[index]);
+        }
+        
+        /* Recreate the preview control */
+        if(node->psvi && node->parent && node->parent->parent)
+        {
+            xmlNodePtr p = node->parent;
+            xmlNodePtr boxnode = p->parent;
+            
+            if(boxnode->name && strcmp((char *)boxnode->name, "Box") == 0)
+            {
+                xmlNodePtr windownode = findWindow(node);
+                
+                if(windownode && windownode->psvi)
+                {
+                    int index = 0;
+                    
+                    /* Figure out the existing index */
+                    for(p=p->children;p && p != node ;p=p->next)
+                    {
+                        index++;
+                    }
+                    /* Destroy the old control */
+                    if(node->psvi)
+                    {
+                        dw_window_destroy((HWND)node->psvi);
+                        node->psvi = NULL;
+                    }
+                    /* Recreate it at the correct location */
+                    _dwib_child(DWDoc, windownode ? (HWND)windownode->psvi : DW_DESKTOP, (HWND)boxnode->psvi, FALSE, node, 0, index);
+                }
+            }
         }
     }
 }
@@ -4076,59 +4107,66 @@ int DWSIGNAL menu_show_window(HWND button, void *data)
     return FALSE;
 }
 
-/* Handle loading a new layout */
-int DWSIGNAL refresh_clicked(HWND button, void *data)
+/* Returns the node of the top-level window */
+xmlNodePtr findWindow(xmlNodePtr thisnode)
 {
-    xmlNodePtr node = data;
+    xmlNodePtr node = thisnode;
     
     while(node)
     {
         if(strcmp((char *)node->name, "Window") == 0)
         {
-            xmlNodePtr this = _dwib_find_child(node, "title");
-            
-            if(this)
-            {
-                char *val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
-                
-                if(val)
-                {
-                    HWND preview;
-                    
-                    /* If a preview window already exists... */
-                    if(node->psvi)
-                    {
-                        /* Destroy it before creating a new one */
-                        preview_delete((HWND)node->psvi, NULL);
-                    }
-                    
-                    /* Make sure the XML tree is up-to-date */
-                    save_properties();
-                    
-                    preview = dwib_load((DWIB)DWDoc, val);
-                    
-                    if(preview)
-                    {
-                        /* Create an item on the Windows menu */
-                        HWND item = dw_menu_append_item(menuWindows, val, DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
-                
-                        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_show_window), (void *)preview);
-                        dw_window_set_data(preview, "dwib_menu", (void *)item);
-                       
-                        dw_signal_connect(preview, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(preview_delete), NULL);
-                        
-                        /* And show the preview window */
-                        dwib_show(preview);
-                    }
-                    else
-                        dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Failed to load window definition.");
-                }
-                else
-                    dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Could not find a window title to load.");
-            }
-            return FALSE;
+            return node;
         }
         node=node->parent;
+    }
+    return NULL;
+}
+
+/* Handle loading a new layout */
+int DWSIGNAL refresh_clicked(HWND button, void *data)
+{
+    xmlNodePtr node = findWindow(data);
+    xmlNodePtr this = _dwib_find_child(node, "title");
+    
+    if(this)
+    {
+        char *val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+        
+        if(val)
+        {
+            HWND preview;
+            
+            /* If a preview window already exists... */
+            if(node->psvi)
+            {
+                /* Destroy it before creating a new one */
+                preview_delete((HWND)node->psvi, NULL);
+            }
+            
+            /* Make sure the XML tree is up-to-date */
+            save_properties();
+            
+            preview = dwib_load((DWIB)DWDoc, val);
+            
+            if(preview)
+            {
+                /* Create an item on the Windows menu */
+                HWND item = dw_menu_append_item(menuWindows, val, DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+                
+                dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_show_window), (void *)preview);
+                dw_window_set_data(preview, "dwib_menu", (void *)item);
+                
+                dw_signal_connect(preview, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(preview_delete), NULL);
+                
+                /* And show the preview window */
+                dwib_show(preview);
+            }
+            else
+                dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Failed to load window definition.");
+        }
+        else
+            dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Could not find a window title to load.");
     }
     return FALSE;
 }

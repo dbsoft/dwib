@@ -37,6 +37,7 @@ xmlNodePtr _dwib_find_child(xmlNodePtr node, char *name);
 void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc);
 void _dwib_builder_toggle(int val);
 HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int windowlevel);
+HMENUI _dwib_child(xmlDocPtr doc, HWND window, HWND box, int windowlevel, xmlNodePtr p, HMENUI menu, int index);
 
 HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc);
 void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index);
@@ -60,9 +61,11 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
 
 /* Builder app functions */
 void DWSIGNAL properties_window(xmlNodePtr node);
+int DWSIGNAL preview_delete(HWND window, void *data);
 void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype, char *colalign, int disable);
 void properties_current(void);
 int generateNode(char *buf, xmlNodePtr p);
+xmlNodePtr findWindow(xmlNodePtr thisnode);
 
 /* INI File support */
 typedef struct _saveconfig {

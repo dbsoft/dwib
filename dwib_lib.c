@@ -730,7 +730,7 @@ void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
 }
 
 /* Internal function that handles creation on a single node */
-HMENUI _dwib_child(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int windowlevel, xmlNodePtr p, HMENUI menu, int index)
+HMENUI _dwib_child(xmlDocPtr doc, HWND window, HWND box, int windowlevel, xmlNodePtr p, HMENUI menu, int index)
 {
     if(strcmp((char *)p->name, "Box") == 0)
     {
@@ -829,7 +829,7 @@ HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int
     
     for(p=p->children;p;p = p->next)
     {
-        menu = _dwib_child(node, doc, window, box, windowlevel, p, menu, 65536);
+        menu = _dwib_child(doc, window, box, windowlevel, p, menu, 65536);
     }
     return menu;
 }
@@ -985,7 +985,7 @@ int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dat
     {
         if(_dwib_check_dataname(p, doc, dataname))
         {
-            _dwib_child(node, doc, window, box, FALSE, p, 0, index);
+            _dwib_child(doc, window, box, FALSE, p, 0, index);
             return DW_ERROR_NONE;
         }
         else
