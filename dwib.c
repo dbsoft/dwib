@@ -589,6 +589,40 @@ void save_item(xmlNodePtr node, HWND vbox)
 #endif
 }
 
+/* Create or recreate a preview control/widget */
+void previewControl(xmlNodePtr node)
+{
+    if(node->parent && node->parent->parent)
+    {
+        xmlNodePtr p = node->parent;
+        xmlNodePtr boxnode = p->parent;
+        
+        if(boxnode->name && strcmp((char *)boxnode->name, "Box") == 0)
+        {
+            xmlNodePtr windownode = findWindow(node);
+            
+            if(windownode && windownode->psvi)
+            {
+                int index = 0;
+                
+                /* Figure out the existing index */
+                for(p=p->children;p && p != node ;p=p->next)
+                {
+                    index++;
+                }
+                /* Destroy the old control */
+                if(node->psvi)
+                {
+                    dw_window_destroy((HWND)node->psvi);
+                    node->psvi = NULL;
+                }
+                /* Recreate it at the correct location */
+                _dwib_child(DWDoc, windownode ? (HWND)windownode->psvi : DW_DESKTOP, (HWND)boxnode->psvi, FALSE, node, 0, index);
+            }
+        }
+    }
+}
+
 /* Updates the XML tree with current settings */
 void save_properties(void)
 {
@@ -741,35 +775,8 @@ void save_properties(void)
         }
         
         /* Recreate the preview control */
-        if(node->psvi && node->parent && node->parent->parent)
-        {
-            xmlNodePtr p = node->parent;
-            xmlNodePtr boxnode = p->parent;
-            
-            if(boxnode->name && strcmp((char *)boxnode->name, "Box") == 0)
-            {
-                xmlNodePtr windownode = findWindow(node);
-                
-                if(windownode && windownode->psvi)
-                {
-                    int index = 0;
-                    
-                    /* Figure out the existing index */
-                    for(p=p->children;p && p != node ;p=p->next)
-                    {
-                        index++;
-                    }
-                    /* Destroy the old control */
-                    if(node->psvi)
-                    {
-                        dw_window_destroy((HWND)node->psvi);
-                        node->psvi = NULL;
-                    }
-                    /* Recreate it at the correct location */
-                    _dwib_child(DWDoc, windownode ? (HWND)windownode->psvi : DW_DESKTOP, (HWND)boxnode->psvi, FALSE, node, 0, index);
-                }
-            }
-        }
+        if(node->psvi)
+            previewControl(node);
     }
 }
 
@@ -4366,6 +4373,10 @@ int DWSIGNAL paste_clicked(HWND button, void *data)
             handleChildren(node, tree, copy, getPrevNode(copy));
 
             dw_tree_item_select(tree, (HTREEITEM)node->_private);
+            
+            /* Try to update the preview window if there is one */
+            if(node->psvi)
+                previewControl(copy);
         }
     }
     return FALSE;
