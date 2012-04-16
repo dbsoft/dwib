@@ -17,7 +17,7 @@ xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 char *DWFilename = NULL;
 HICN hIcons[20];
 HMENUI menuWindows;
-int AutoExpand = FALSE, PropertiesInspector = TRUE, LivePreview = TRUE;
+int AutoExpand = FALSE, PropertiesInspector = TRUE, LivePreview = TRUE, BitmapButtons = TRUE;
 
 /* Compiler specific stuff, this should probably go elsewhere */
 #ifdef MSVC
@@ -59,6 +59,7 @@ SaveConfig Config[] =
     { "AUTOEXPAND",         TYPE_INT,   &AutoExpand },
     { "LIVEPREVIEW",        TYPE_INT,   &LivePreview },
     { "PROPINSP",           TYPE_INT,   &PropertiesInspector },
+    { "BITMAPBUTTONS",      TYPE_INT,   &BitmapButtons },
     { "", 0, 0}
 };
 
@@ -4824,6 +4825,20 @@ int DWSIGNAL live_preview_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handle toggling bitmap button toolbar */
+int DWSIGNAL bitmap_buttons_clicked(HWND button, void *data)
+{
+    BitmapButtons = !BitmapButtons;
+    dw_window_set_style(button, BitmapButtons ? DW_MIS_CHECKED : DW_MIS_UNCHECKED, BitmapButtons ? DW_MIS_CHECKED : DW_MIS_UNCHECKED);
+    saveconfig();
+    if(BitmapButtons)
+        toolbar_bitmap_buttons_create();
+    else
+        toolbar_text_buttons_create();
+    toolbar_select(DWCurrNode);
+    return FALSE;
+}
+
 /* Handle expanding or collapsing all */
 int DWSIGNAL expand_all_clicked(HWND button, void *data)
 {
@@ -4955,7 +4970,7 @@ int DWSIGNAL about_clicked(HWND button, void *data)
     dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
     dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
     dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-    item = dw_text_new("Brian Smith (c) 2011-2012", 0);
+    item = dw_text_new("Brian Smith © 2011-2012", 0);
     dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
     dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
     sprintf(verbuf, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
@@ -4994,7 +5009,7 @@ void toolbar_text_buttons_create(void)
     
     vbox = dw_box_new(DW_VERT, 0);
     dw_window_set_data(hwndToolbar, "vbox", DW_POINTER(vbox));
-    dw_box_pack_start(hbox, vbox, 0, 0, FALSE, FALSE, 0);
+    dw_box_pack_end(hbox, vbox, 0, 0, FALSE, FALSE, 0);
     item = dw_button_new("Window", 0);
     dw_window_set_data(hwndToolbar, "window", DW_POINTER(item));
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
@@ -5074,6 +5089,118 @@ void toolbar_text_buttons_create(void)
     dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
 }
 
+#define BUTTON_PADDING 2
+
+void toolbar_bitmap_buttons_create(void)
+{
+    HWND vbox = (HWND)dw_window_get_data(hwndToolbar, "vbox");
+    HWND hbox = (HWND)dw_window_get_data(hwndToolbar, "hbox");
+    HWND item;
+    
+    if(vbox)
+        dw_window_destroy(vbox);
+    
+    vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(hwndToolbar, "vbox", DW_POINTER(vbox));
+    dw_box_pack_end(hbox, vbox, 0, 0, FALSE, FALSE, 0);
+    item = dw_bitmapbutton_new("Window", TYPE_WINDOW + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "window", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_WINDOW));
+    item = dw_bitmapbutton_new("Box", TYPE_BOX + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "box", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_BOX));
+    item = dw_bitmapbutton_new("Text", TYPE_TEXT + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "text", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_TEXT));
+    item = dw_bitmapbutton_new("Entryfield", TYPE_ENTRYFIELD + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "entryfield", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_ENTRYFIELD));
+    item = dw_bitmapbutton_new("Combobox", TYPE_COMBOBOX + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "combobox", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_COMBOBOX));
+    item = dw_bitmapbutton_new("Listbox", TYPE_LISTBOX + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "listbox", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_LISTBOX));
+    item = dw_bitmapbutton_new("Container", TYPE_CONTAINER + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "container", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_CONTAINER));
+    item = dw_bitmapbutton_new("Tree", TYPE_TREE + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "tree", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_TREE));
+    item = dw_bitmapbutton_new("MLE", TYPE_MLE + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "mle", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_MLE));
+    item = dw_bitmapbutton_new("Render", TYPE_RENDER + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "render", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_RENDER));
+    item = dw_bitmapbutton_new("Button", TYPE_BUTTON + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "button", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_BUTTON));
+    item = dw_bitmapbutton_new("Ranged", TYPE_RANGED + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "ranged", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_RANGED));
+    item = dw_bitmapbutton_new("Bitmap", TYPE_BITMAP + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "bitmap", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_BITMAP));
+    item = dw_bitmapbutton_new("Notebook", TYPE_NOTEBOOK + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "notebook", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_NOTEBOOK));
+    item = dw_bitmapbutton_new("Notebook Page", TYPE_NOTEBOOK_PAGE + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "nb page", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_NOTEBOOK_PAGE));
+    item = dw_bitmapbutton_new("HTML", TYPE_HTML + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "html", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_HTML));
+    item = dw_bitmapbutton_new("Calendar", TYPE_CALENDAR + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "calendar", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_CALENDAR));
+    item = dw_bitmapbutton_new("Padding", TYPE_PADDING + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "padding", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_PADDING));
+    item = dw_bitmapbutton_new("Menu", TYPE_MENU + 100);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_set_data(hwndToolbar, "menu", DW_POINTER(item));
+    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_MENU));
+    dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
+}
+
 void dwib_init(void)
 {
     HWND vbox, hbox, item;
@@ -5099,7 +5226,10 @@ void dwib_init(void)
     hbox = dw_box_new(DW_HORZ, 0);
     dw_window_set_data(hwndToolbar, "hbox", DW_POINTER(hbox));
     dw_box_pack_start(hwndToolbar, hbox, 1, 1, TRUE, TRUE, 0);
-    toolbar_text_buttons_create();
+    if(BitmapButtons)
+        toolbar_bitmap_buttons_create();
+    else
+        toolbar_text_buttons_create();
     vbox = dw_box_new(DW_VERT, 0);
     dw_box_pack_start(hbox, vbox, 0, 0, TRUE, TRUE, 0);
     item = dw_tree_new(0);
@@ -5129,6 +5259,8 @@ void dwib_init(void)
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(auto_expand_clicked), NULL);
     item = dw_menu_append_item(submenu, "Live Preview", DW_MENU_AUTO, LivePreview ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(live_preview_clicked), NULL);
+    item = dw_menu_append_item(submenu, "Visual Toolbar", DW_MENU_AUTO, BitmapButtons ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(bitmap_buttons_clicked), NULL);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Expand All", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(expand_all_clicked), DW_INT_TO_POINTER(1));

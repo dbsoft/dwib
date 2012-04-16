@@ -66,6 +66,9 @@ void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype,
 void properties_current(void);
 int generateNode(char *buf, xmlNodePtr p);
 xmlNodePtr findWindow(xmlNodePtr thisnode);
+void toolbar_bitmap_buttons_create(void);
+void toolbar_text_buttons_create(void);
+
 
 /* INI File support */
 typedef struct _saveconfig {
