@@ -4400,8 +4400,9 @@ int DWSIGNAL paste_clicked(HWND button, void *data)
 int DWSIGNAL toolbar_clicked(HWND button, void *data)
 {
     int which = DW_POINTER_TO_INT(data);
-    xmlNodePtr currentNode = (which == TYPE_WINDOW || (which == TYPE_NOTEBOOK_PAGE && is_notebook(DWCurrNode)) || (which == TYPE_MENU && is_menu(DWCurrNode))) 
-                                ? DWCurrNode : packableNode(DWCurrNode);
+    xmlNodePtr currentNode = (which == TYPE_NOTEBOOK_PAGE && packablePageNode(DWCurrNode)) ? packablePageNode(DWCurrNode) :
+                                ((which == TYPE_WINDOW || (which == TYPE_MENU && is_menu(DWCurrNode))) 
+                                ? DWCurrNode : packableNode(DWCurrNode));
     
     if(!data || !currentNode)
     {
