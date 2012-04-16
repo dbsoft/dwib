@@ -368,7 +368,7 @@ int is_packable(xmlNodePtr node, int message)
 /* Returns TRUE if a menu is selected */
 int is_menu(xmlNodePtr node)
 {
-    if(strcmp((char *)node->name, "Menu") == 0)
+    if(node->name && strcmp((char *)node->name, "Menu") == 0)
         return TRUE;
     return FALSE;
 }
@@ -376,7 +376,7 @@ int is_menu(xmlNodePtr node)
 /* Returns TRUE if a menu is selected */
 int is_notebook(xmlNodePtr node)
 {
-    if(strcmp((char *)node->name, "Notebook") == 0)
+    if(node->name && strcmp((char *)node->name, "Notebook") == 0)
         return TRUE;
     return FALSE;
 }
@@ -395,11 +395,23 @@ xmlNodePtr packableNode(xmlNodePtr node)
 
 xmlNodePtr packablePageNode(xmlNodePtr node)
 {
-    if(node && strcmp((char *)node->name, "Notebook") == 0)
+    if(node && node->name && strcmp((char *)node->name, "Notebook") == 0)
         return node;
-    if(node && (node = node->parent) && strcmp((char *)node->name, "Notebook") == 0)
+    if(node && (node = node->parent) && node->name && strcmp((char *)node->name, "Notebook") == 0)
         return node;
-    if(node && (node = node->parent) && strcmp((char *)node->name, "Notebook") == 0)
+    if(node && (node = node->parent) && node->name && strcmp((char *)node->name, "Notebook") == 0)
+        return node;
+    return NULL;
+}
+
+/* Check if this node or the parent is packable */
+xmlNodePtr packableMenu(xmlNodePtr node)
+{
+    if(node && node->name && (is_menu(node) || strcmp((char *)node->name, "Window") == 0))
+        return node;
+    if(node && (node = node->parent) && node->name && (is_menu(node) || strcmp((char *)node->name, "Window") == 0))
+        return node;
+    if(node && (node = node->parent) && node->name && (is_menu(node) || strcmp((char *)node->name, "Window") == 0))
         return node;
     return NULL;
 }
@@ -4618,6 +4630,60 @@ void properties_current(void)
         dw_window_set_data(vbox, "node", DW_POINTER(DWCurrNode));    
 }
 
+/* Enable and disable toolbar buttons based on the tree selection */
+void toolbar_select(xmlNodePtr node)
+{
+    if(node && packableNode(node))
+    {
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "box"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "text"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "entryfield"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "combobox"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "listbox"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "container"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "tree"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "mle"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "render"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "button"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "ranged"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "bitmap"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "notebook"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "html"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "calendar"));
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "padding"));
+    }
+    else
+    {
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "box"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "text"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "entryfield"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "combobox"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "listbox"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "container"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "tree"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "mle"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "render"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "button"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "ranged"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "bitmap"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "notebook"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "html"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "calendar"));
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "padding"));
+    }
+    
+    if(node && packablePageNode(node))
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "nb page"));
+    else
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "nb page"));
+    
+    if(node && packableMenu(node))
+        dw_window_enable((HWND)dw_window_get_data(hwndToolbar, "menu"));
+    else
+        dw_window_disable((HWND)dw_window_get_data(hwndToolbar, "menu"));
+        
+}
+
 /* Handle loading a new item when selectng the tree */
 int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, void *itemdata)
 {
@@ -4627,6 +4693,8 @@ int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, vo
     DWCurrNode = itemdata;
     
     properties_current();
+    
+    toolbar_select(DWCurrNode);
     
     return FALSE;
 }
@@ -4952,6 +5020,7 @@ void toolbar_text_buttons_create(void)
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_LISTBOX));
     item = dw_button_new("Container", 0);
+    dw_window_set_data(hwndToolbar, "container", DW_POINTER(item));
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_CONTAINER));
     item = dw_button_new("Tree", 0);
@@ -5091,6 +5160,8 @@ void dwib_init(void)
     dw_window_set_icon(hwndToolbar, DW_RESOURCE(ICON_APP));
     dw_window_set_gravity(hwndToolbar, DW_GRAV_LEFT | DW_GRAV_OBSTACLES, DW_GRAV_TOP | DW_GRAV_OBSTACLES);
     dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 650);
+    
+    toolbar_select(DWCurrNode);
     
     hwndProperties = dw_window_new(DW_DESKTOP, "Properties Inspector", DW_FCF_TITLEBAR | DW_FCF_SIZEBORDER);
     properties_none();
