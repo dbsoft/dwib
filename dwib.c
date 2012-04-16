@@ -901,7 +901,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         item = dw_text_new("Size", 0);
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
         dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-        val = defvaltrue;
+        val = defvalint;
         if((this = _dwib_find_child(node, "width")))
         {
             if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
@@ -912,7 +912,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         dw_spinbutton_set_limits(item, 2000, -1);
         dw_window_set_tooltip(item, "Width: Set to -1 to calculate the size.");
         dw_window_set_data(vbox, "width", DW_POINTER(item));
-        val = defvaltrue;
+        val = defvalint;
         if((this = _dwib_find_child(node, "height")))
         {
             if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
@@ -1137,6 +1137,10 @@ int DWSIGNAL text_create(HWND window, void *data)
     
     properties_current();
     
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
+    
     return FALSE;
 }
 
@@ -1294,6 +1298,10 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
     
     properties_current();
     
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
+    
     return FALSE;
 }
 
@@ -1412,6 +1420,10 @@ int DWSIGNAL combobox_create(HWND window, void *data)
     save_properties();
     
     properties_current();
+    
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
     
     return FALSE;
 }
@@ -1558,6 +1570,10 @@ int DWSIGNAL listbox_create(HWND window, void *data)
     save_properties();
     
     properties_current();
+    
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
     
     return FALSE;
 }
@@ -1785,6 +1801,10 @@ int DWSIGNAL container_create(HWND window, void *data)
     
     properties_current();
     
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
+    
     return FALSE;
 }
 
@@ -1974,6 +1994,10 @@ int DWSIGNAL tree_create(HWND window, void *data)
     
     properties_current();
     
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
+    
     return FALSE;
 }
 
@@ -2032,6 +2056,10 @@ int DWSIGNAL mle_create(HWND window, void *data)
     save_properties();
     
     properties_current();
+    
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
     
     return FALSE;
 }
@@ -2125,6 +2153,10 @@ int DWSIGNAL render_create(HWND window, void *data)
     
     properties_current();
     
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
+    
     return FALSE;
 }
 
@@ -2189,6 +2221,10 @@ int DWSIGNAL button_create(HWND window, void *data)
     save_properties();
     
     properties_current();
+    
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
     
     return FALSE;
 }
@@ -2334,6 +2370,10 @@ int DWSIGNAL ranged_create(HWND window, void *data)
     
     properties_current();
     
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
+    
     return FALSE;
 }
 
@@ -2473,6 +2513,10 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
     
     properties_current();
     
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
+    
     return FALSE;
 }
 
@@ -2549,6 +2593,10 @@ int DWSIGNAL html_create(HWND window, void *data)
     save_properties();
     
     properties_current();
+    
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
     
     return FALSE;
 }
@@ -2629,6 +2677,10 @@ int DWSIGNAL notebook_create(HWND window, void *data)
     save_properties();
     
     properties_current();
+    
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
     
     return FALSE;
 }
@@ -2838,6 +2890,10 @@ int DWSIGNAL calendar_create(HWND window, void *data)
     
     properties_current();
     
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
+    
     return FALSE;
 }
 
@@ -2905,6 +2961,10 @@ int DWSIGNAL box_create(HWND window, void *data)
     save_properties();
     
     properties_current();
+    
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(boxNode);
     
     return FALSE;
 }
@@ -3028,30 +3088,34 @@ int DWSIGNAL padding_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr boxNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
     
     if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        boxNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Padding", (xmlChar *)"");
+        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Padding", (xmlChar *)"");
     }
     
     /* Dropout on failure */
-    if(!boxNode)
+    if(!thisNode)
         return FALSE;
     
     /* Create a sub-node for holding children */
-    xmlNewTextChild(boxNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+    xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
     
-    treeitem = dw_tree_insert(tree, "Padding", hIcons[TYPE_PADDING], (HTREEITEM)currentNode->_private, boxNode);
-    boxNode->_private = DW_POINTER(treeitem);
+    treeitem = dw_tree_insert(tree, "Padding", hIcons[TYPE_PADDING], (HTREEITEM)currentNode->_private, thisNode);
+    thisNode->_private = DW_POINTER(treeitem);
     if(AutoExpand)
         dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
-    dw_window_set_data(vbox, "node", DW_POINTER(boxNode));
+    dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
     save_properties();
     
     properties_current();
+    
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
     
     return FALSE;
 }
