@@ -2826,10 +2826,10 @@ int DWSIGNAL calendar_create(HWND window, void *data)
     if(!thisNode)
         return FALSE;
     
-    treeitem = dw_tree_insert(tree, "Calendar", hIcons[TYPE_CALENDAR], (HTREEITEM)DWCurrNode->_private, thisNode);
+    treeitem = dw_tree_insert(tree, "Calendar", hIcons[TYPE_CALENDAR], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
     if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2894,10 +2894,10 @@ int DWSIGNAL box_create(HWND window, void *data)
     if(subtype)
         dw_free(subtype);
     
-    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], (HTREEITEM)DWCurrNode->_private, boxNode);
+    treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], (HTREEITEM)currentNode->_private, boxNode);
     boxNode->_private = DW_POINTER(treeitem);
     if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(boxNode));
     
@@ -3041,10 +3041,10 @@ int DWSIGNAL padding_create(HWND window, void *data)
     /* Create a sub-node for holding children */
     xmlNewTextChild(boxNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
     
-    treeitem = dw_tree_insert(tree, "Padding", hIcons[TYPE_PADDING], (HTREEITEM)DWCurrNode->_private, boxNode);
+    treeitem = dw_tree_insert(tree, "Padding", hIcons[TYPE_PADDING], (HTREEITEM)currentNode->_private, boxNode);
     boxNode->_private = DW_POINTER(treeitem);
     if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(boxNode));
     
@@ -4399,7 +4399,7 @@ int DWSIGNAL paste_clicked(HWND button, void *data)
 int DWSIGNAL toolbar_clicked(HWND button, void *data)
 {
     int which = DW_POINTER_TO_INT(data);
-    xmlNodePtr currentNode = (which == TYPE_WINDOW || which == TYPE_NOTEBOOK_PAGE || which == TYPE_MENU || is_menu(DWCurrNode) || is_notebook(DWCurrNode)) 
+    xmlNodePtr currentNode = (which == TYPE_WINDOW || (which == TYPE_NOTEBOOK_PAGE && is_notebook(DWCurrNode)) || (which == TYPE_MENU && is_menu(DWCurrNode))) 
                                 ? DWCurrNode : packableNode(DWCurrNode);
     
     if(!data || !currentNode)
