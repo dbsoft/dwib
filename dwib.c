@@ -611,7 +611,8 @@ void previewControl(xmlNodePtr node)
         xmlNodePtr p = node->parent;
         xmlNodePtr boxnode = p->parent;
         
-        if(boxnode->name && strcmp((char *)boxnode->name, "Box") == 0)
+        if(boxnode->name && (strcmp((char *)boxnode->name, "Box") == 0 ||
+                             strcmp((char *)boxnode->name, "Window") == 0))
         {
             xmlNodePtr windownode = findWindow(node);
             
@@ -4218,7 +4219,7 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
     {
         char *val = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
         
-        if(val)
+        if(val && *val)
         {
             HWND preview;
             
