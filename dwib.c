@@ -610,15 +610,20 @@ void previewControl(xmlNodePtr node)
     {
         xmlNodePtr p = node->parent;
         xmlNodePtr boxnode = p->parent;
+        int iswindow = 0;
         
         if(boxnode->name && (strcmp((char *)boxnode->name, "Box") == 0 ||
-                             strcmp((char *)boxnode->name, "Window") == 0))
+                             (iswindow = (strcmp((char *)boxnode->name, "Window") == 0))))
         {
             xmlNodePtr windownode = findWindow(node);
             
             if(windownode && windownode->psvi)
             {
                 int index = 0;
+                HWND box = iswindow ? (HWND)dw_window_get_data((HWND)windownode->psvi, "_dwib_box") : 0;
+
+                if(!box)
+                    box = (HWND)boxnode->psvi;
                 
                 /* Figure out the existing index */
                 for(p=p->children;p && p != node ;p=p->next)
@@ -632,7 +637,7 @@ void previewControl(xmlNodePtr node)
                     node->psvi = NULL;
                 }
                 /* Recreate it at the correct location */
-                _dwib_child(DWDoc, windownode ? (HWND)windownode->psvi : DW_DESKTOP, (HWND)boxnode->psvi, FALSE, node, 0, index);
+                _dwib_child(DWDoc, (HWND)windownode->psvi, box, FALSE, node, 0, index);
             }
         }
     }
