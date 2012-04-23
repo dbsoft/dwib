@@ -612,11 +612,34 @@ void previewControl(xmlNodePtr node)
         xmlNodePtr boxnode = p->parent;
         int iswindow = 0;
         
+        /* Contents of boxes, notebook pages and top-level windows are currently live previewable */
         if(boxnode->name && (strcmp((char *)boxnode->name, "Box") == 0 ||
-                             (iswindow = (strcmp((char *)boxnode->name, "Window") == 0))))
+                             (iswindow = (strcmp((char *)boxnode->name, "Window") == 0)) ||
+                             strcmp((char *)boxnode->name, "NotebookPage") == 0))
         {
             xmlNodePtr windownode = findWindow(node);
+            xmlNodePtr this = _dwib_find_child(boxnode, "subtype");
+            char *thisval;
+    
+            /* Handle special case of splitbar box type */
+            if(this && (thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            {
+                if(strcmp(thisval, "Splitbar") == 0)
+                {
+                    /* We can't repack the splitbar currently...
+                     * so move everything up one level....
+                     * and recreate the splitbar itself.
+                     */
+                    if((this = packableNode(boxnode->parent)))
+                    {
+                        node = boxnode;
+                        p = node->parent;
+                        boxnode = this;
+                    }
+                }
+            }
             
+            /* Make sure the top-level window node has a preview handle */
             if(windownode && windownode->psvi)
             {
                 int index = 0;

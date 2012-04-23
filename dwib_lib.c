@@ -169,8 +169,10 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
 
     box = dw_box_new(orient, 0);
     dw_notebook_pack(packbox, pageid, box);
-    /* Save the page ID in the psvi field */
-    node->psvi = DW_INT_TO_POINTER(pageid);
+    /* Save the box handle in the psvi field */
+    node->psvi = DW_POINTER(box);
+    /* Save the page ID in the box data */
+    dw_window_set_data(box, "_dwib_pageid", DW_INT_TO_POINTER(pageid));
     
     if((this = _dwib_find_child(node, "title")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dw_notebook_page_set_text(packbox, pageid, thisval);
