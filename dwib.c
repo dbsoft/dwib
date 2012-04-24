@@ -4888,10 +4888,16 @@ int DWSIGNAL up_clicked(HWND button, void *data)
     
     if((prevNode = getPrevNode(data)))
     {
+        /* If there are previews attached destroy them */
+        deleteControl(node);
+        /* Destroy preview before unlinking */
         xmlAddPrevSibling(prevNode, node);
         if(node->parent)
             handleChildren(node->parent, tree, prevNode, node);
         dw_tree_item_select(tree, (HTREEITEM)node->_private);
+        /* Try to update the preview window if there is one */
+        if(prevNode->psvi)
+            previewControl(node);
     }
     return FALSE;
 }
@@ -4907,10 +4913,16 @@ int DWSIGNAL down_clicked(HWND button, void *data)
     
     if((nextNode = getNextNode(node)))
     {
+        /* If there are previews attached destroy them */
+        deleteControl(node);
+        /* Destroy preview before unlinking */
         xmlAddNextSibling(nextNode, node);
         if(node->parent)
             handleChildren(node->parent, tree, node, nextNode);
         dw_tree_item_select(tree, (HTREEITEM)node->_private);
+        /* Try to update the preview window if there is one */
+        if(nextNode->psvi)
+            previewControl(node);
     }
     return FALSE;
 }
