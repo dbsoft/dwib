@@ -335,6 +335,24 @@ void loadconfig(void)
     }
 }
 
+/* Draw something simple in the render area */
+int DWSIGNAL render_expose(HWND window, DWExpose *exp, void *data)
+{
+    unsigned long width, height;
+    int fontwidth, fontheight;
+    char text[] = "DBSoft";
+    
+    dw_window_get_pos_size(window, NULL, NULL, &width, &height);
+    dw_color_foreground_set(DW_CLR_WHITE);
+    dw_draw_rect(window, 0, DW_DRAW_FILL, 0, 0, width, height);
+    dw_color_foreground_set(DW_CLR_YELLOW);
+    dw_draw_arc(window, 0, DW_DRAW_FILL | DW_DRAW_FULL, width/2, height/2, 0, 0, width, height);
+    dw_color_foreground_set(DW_CLR_DARKBLUE);
+    dw_font_text_extents_get(window, 0, text, &fontwidth, &fontheight);
+    dw_draw_text(window, 0, (width - fontwidth)/2, (height - fontheight)/2, text);
+    return FALSE;
+}
+
 /* Returns TRUE if the node is a valid class */
 int is_valid(xmlNodePtr node)
 {
@@ -5352,7 +5370,7 @@ void dwib_init(void)
     int x;
     
     /* Enable builder mode */
-    _dwib_builder_toggle(TRUE);
+    _dwib_builder_toggle(DW_POINTER(render_expose));
     
     hIcons[0] = (HICN)0;
     for(x=1;x<20;x++)

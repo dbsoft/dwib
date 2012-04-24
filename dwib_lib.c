@@ -11,10 +11,10 @@
 #include "dwib_int.h"
 #include "resources.h"
 
-static int _dwib_builder = FALSE;
+static void *_dwib_builder = NULL;
 
 /* Enable builder mode when linked to the main application. */
-void _dwib_builder_toggle(int val)
+void _dwib_builder_toggle(void *val)
 {
     _dwib_builder = val;
 }
@@ -601,6 +601,9 @@ HWND _dwib_render_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     HWND render = dw_render_new(0);
     
     _dwib_item_pack(node, doc, window, packbox, render, index);
+    
+    if(_dwib_builder)
+        dw_signal_connect(render, DW_SIGNAL_EXPOSE, DW_SIGNAL_FUNC(_dwib_builder), NULL);
     return render;
 }
 
