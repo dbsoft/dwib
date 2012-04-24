@@ -614,30 +614,43 @@ void previewControl(xmlNodePtr node)
         
         /* Contents of boxes, notebook pages and top-level windows are currently live previewable */
         if(boxnode->name && (strcmp((char *)boxnode->name, "Box") == 0 ||
-                             (iswindow = (strcmp((char *)boxnode->name, "Window") == 0)) ||
+                             strcmp((char *)boxnode->name, "Window") == 0 ||
                              strcmp((char *)boxnode->name, "NotebookPage") == 0))
         {
             xmlNodePtr windownode = findWindow(node);
-            xmlNodePtr this = _dwib_find_child(boxnode, "subtype");
-            char *thisval;
-    
-            /* Handle special case of splitbar box type */
-            if(this && (thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            int issplitbar;
+            
+            /* Move up over any splitbars, even embedded ones */
+            do
             {
-                if(strcmp(thisval, "Splitbar") == 0)
+                xmlNodePtr this = _dwib_find_child(boxnode, "subtype");
+                char *thisval;
+        
+                issplitbar = FALSE;
+                
+                /* Handle special case of splitbar box type */
+                if(this && (thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
                 {
-                    /* We can't repack the splitbar currently...
-                     * so move everything up one level....
-                     * and recreate the splitbar itself.
-                     */
-                    if((this = packableNode(boxnode->parent)))
+                    if(strcmp(thisval, "Splitbar") == 0)
                     {
-                        node = boxnode;
-                        p = node->parent;
-                        boxnode = this;
+                        /* We can't repack the splitbar currently...
+                         * so move everything up one level....
+                         * and recreate the splitbar itself.
+                         */
+                        if((this = packableNode(boxnode->parent)))
+                        {
+                            node = boxnode;
+                            p = node->parent;
+                            boxnode = this;
+                            issplitbar = TRUE;
+                        }
                     }
                 }
             }
+            while(issplitbar);
+            
+            /* Check if the target box is a window or not */
+            iswindow = (strcmp((char *)boxnode->name, "Window") == 0);
             
             /* Make sure the top-level window node has a preview handle */
             if(windownode && windownode->psvi)
