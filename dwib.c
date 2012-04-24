@@ -603,6 +603,26 @@ void save_item(xmlNodePtr node, HWND vbox)
 #endif
 }
 
+/* Delete a preview control if one exists */
+void deleteControl(xmlNodePtr node)
+{
+    if(LivePreview && node->psvi)
+    {
+        /* Handle special case of notebook page */
+        if(node->name && strcmp((char *)node->name, "NotebookPage") == 0)
+        {
+            xmlNodePtr notebooknode = packablePageNode(node->parent);
+            unsigned long pageid = DW_POINTER_TO_UINT(dw_window_get_data((HWND)node->psvi, "_dwib_pageid"));
+            
+            if(notebooknode && notebooknode->psvi)
+                dw_notebook_page_destroy((HWND)notebooknode->psvi, pageid);
+        }
+        else /* Just destroy any other controls */
+            dw_window_destroy((HWND)node->psvi);
+        node->psvi = NULL;
+    }
+}
+
 /* Create or recreate a preview control/widget */
 void previewControl(xmlNodePtr node)
 {
@@ -612,9 +632,10 @@ void previewControl(xmlNodePtr node)
         xmlNodePtr boxnode = p->parent;
         int iswindow = 0;
         
-        /* Contents of boxes, notebook pages and top-level windows are currently live previewable */
+        /* Contents of boxes, notebook and top-level windows are currently live previewable */
         if(boxnode->name && (strcmp((char *)boxnode->name, "Box") == 0 ||
                              strcmp((char *)boxnode->name, "Window") == 0 ||
+                             strcmp((char *)boxnode->name, "Notebook") == 0 ||
                              strcmp((char *)boxnode->name, "NotebookPage") == 0))
         {
             xmlNodePtr windownode = findWindow(node);
@@ -667,11 +688,8 @@ void previewControl(xmlNodePtr node)
                     index++;
                 }
                 /* Destroy the old control */
-                if(node->psvi)
-                {
-                    dw_window_destroy((HWND)node->psvi);
-                    node->psvi = NULL;
-                }
+                deleteControl(node);
+                node->psvi = NULL;
                 /* Recreate it at the correct location */
                 _dwib_child(DWDoc, (HWND)windownode->psvi, box, FALSE, node, 0, index);
             }
@@ -2817,6 +2835,10 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
     
     properties_current();
     
+    /* Try to update the preview window if there is one */
+    if(currentNode->psvi)
+        previewControl(thisNode);
+    
     return FALSE;
 }
 
@@ -4322,14 +4344,11 @@ int DWSIGNAL delete_clicked(HWND button, void *data)
         properties_none();
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
+        /* If there are previews attached destroy them */
+        deleteControl(node);
+        /* Destroy preview before unlinking */
         xmlUnlinkNode(node);
         dw_tree_item_delete(tree, (HTREEITEM)node->_private);
-        /* If there are previews attached destroy them */
-        if(LivePreview && node->psvi)
-        {
-            dw_window_destroy((HWND)node->psvi);
-            node->psvi = NULL;
-        }
         /* Then free the node and its children */
         xmlFreeNode(node);
     }
@@ -4360,17 +4379,14 @@ int DWSIGNAL cut_clicked(HWND button, void *data)
         properties_none();
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
+        /* If there are previews attached destroy them */
+        deleteControl(node);
+        /* Destroy preview before unlinking */
         xmlUnlinkNode(node);
         dw_tree_item_delete(tree, (HTREEITEM)node->_private);
         if(DWClipNode)
             xmlFreeNode(DWClipNode);
         DWClipNode = node;
-        /* If there are previews attached destroy them */
-        if(LivePreview && node->psvi)
-        {
-            dw_window_destroy((HWND)node->psvi);
-            node->psvi = NULL;
-        }
         /* And clear them out from the tree */
         clearPreview(node);
     }
@@ -4431,11 +4447,32 @@ xmlNodePtr getNextNode(xmlNodePtr node)
     return NULL;
 }
 
+/* Helper to make a copy of a node */
+xmlNodePtr copyNode(HWND tree, xmlNodePtr node)
+{
+    xmlNodePtr this = _dwib_find_child(node, "Children");
+    
+    if(this)
+    {
+        xmlNodePtr copy = xmlCopyNode(DWClipNode, 1);
+    
+        xmlAddChild(this, copy);
+    
+        handleChildren(node, tree, copy, getPrevNode(copy));
+
+        dw_tree_item_select(tree, (HTREEITEM)node->_private);
+        
+        return copy;
+    }
+    return NULL;
+}
+
 /* Handle paste a node layout */
 int DWSIGNAL paste_clicked(HWND button, void *data)
 {
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
-    xmlNodePtr node = packableNode(data);
+    xmlNodePtr node = DWClipNode && strcmp((char *)DWClipNode->name, "NotebookPage") == 0 ?
+                      packablePageNode(data) : packableNode(data);
     
     if(!node || !DWClipNode)
         return FALSE;
@@ -4475,29 +4512,29 @@ int DWSIGNAL paste_clicked(HWND button, void *data)
         dw_messagebox(DWIB_NAME, DW_MB_OK, "The menu on the clipboard needs to be pasted into a top-level window.");
         return FALSE;
     }
-    else if(strcmp((char *)node->name, "Notebook") != 0 && strcmp((char *)DWClipNode->name, "NotebookPage") == 0)
+    else if(strcmp((char *)DWClipNode->name, "NotebookPage") == 0)
     {
-        dw_messagebox(DWIB_NAME, DW_MB_OK, "The notebook page on the clipboard needs to be pasted into a notebook widget.");
+        if(strcmp((char *)node->name, "Notebook") != 0)
+            dw_messagebox(DWIB_NAME, DW_MB_OK, "The notebook page on the clipboard needs to be pasted into a notebook widget.");
+        else
+        {
+            /* Actually copy the node */
+            xmlNodePtr copy = copyNode(tree, node);
+            
+            /* Try to update the preview window if there is one */
+            if(node->psvi && copy)
+                previewControl(copy);
+        }
         return FALSE;
     }
     else if(is_packable(node, FALSE))
     {
-        xmlNodePtr this = _dwib_find_child(node, "Children");
+        /* Actually copy the node */
+        xmlNodePtr copy = copyNode(tree, node);
         
-        if(this)
-        {
-            xmlNodePtr copy = xmlCopyNode(DWClipNode, 1);
-        
-            xmlAddChild(this, copy);
-        
-            handleChildren(node, tree, copy, getPrevNode(copy));
-
-            dw_tree_item_select(tree, (HTREEITEM)node->_private);
-            
-            /* Try to update the preview window if there is one */
-            if(node->psvi)
-                previewControl(copy);
-        }
+        /* Try to update the preview window if there is one */
+        if(node->psvi && copy)
+            previewControl(copy);
     }
     return FALSE;
 }

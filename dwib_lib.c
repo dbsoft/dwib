@@ -422,6 +422,9 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
             free(colflags);
         }
     }
+    /* If we don't have columns but we are a filesystem... */
+    if(count == 0 && type == 1) 
+        dw_filesystem_setup(container, NULL, NULL, 0);
 }
 
 /* Internal function for creating a container widget from an XML tree node */
@@ -445,6 +448,7 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     
     container = dw_container_new(0, multi);
     
+    /* If we have columns set them up */
     if((this = _dwib_find_child(node, "Columns")))
         _dwib_populate_container(container, this, doc, type, splitcol);
         
