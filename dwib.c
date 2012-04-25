@@ -5451,8 +5451,8 @@ void dwib_init(void)
     /* Add Window menu */
     menuWindows = dw_menu_new(0);
     item = dw_menu_append_item(menuWindows, "Properties Inspector", DW_MENU_AUTO, PropertiesInspector ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
-    item = dw_menu_append_item(menuWindows, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(properties_inspector_clicked), NULL);
+    item = dw_menu_append_item(menuWindows, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(menu, "~Windows", DW_MENU_AUTO, 0, TRUE, FALSE, menuWindows);
     
     /* Add Help menu */
