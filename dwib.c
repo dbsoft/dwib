@@ -4009,7 +4009,13 @@ void handleChildren(xmlNodePtr node, HWND tree, xmlNodePtr thisnode, xmlNodePtr 
             {
                 /* Delete the old node if we are recreating */
                 if(p == thisnode && p->_private)
-                    dw_tree_item_delete(tree, (HTREEITEM)p->_private);
+                {
+                    HTREEITEM ti = (HTREEITEM)p->_private; 
+                    
+                    /* Make sure we don't accidentally use this later */
+                    p->_private = NULL;
+                    dw_tree_item_delete(tree, ti);
+                }
                 
                 /* Create the new node */
                 treeitem = _tree_insert(tree, after, buf, hIcons[index], parent, p);
