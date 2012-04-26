@@ -736,6 +736,7 @@ HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packb
 void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     _dwib_item_pack(node, doc, window, packbox, 0, index);
+    node->psvi = DW_INT_TO_POINTER(1);
 }
 
 /* Internal function that handles creation on a single node */

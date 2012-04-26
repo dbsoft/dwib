@@ -630,10 +630,30 @@ void deleteControl(xmlNodePtr node)
         if(node->name && strcmp((char *)node->name, "NotebookPage") == 0)
         {
             xmlNodePtr notebooknode = packablePageNode(node->parent);
-            unsigned long pageid = DW_POINTER_TO_UINT(dw_window_get_data((HWND)node->psvi, "_dwib_pageid"));
+            unsigned int pageid = DW_POINTER_TO_UINT(dw_window_get_data((HWND)node->psvi, "_dwib_pageid"));
             
             if(notebooknode && notebooknode->psvi)
                 dw_notebook_page_destroy((HWND)notebooknode->psvi, pageid);
+        }
+        /* Handle special case for padding... need to use
+         * dw_box_remove_at_index() instead of dw_window_destroy()
+         * due to lack of a window handle for padding.
+         */
+        else if(node->name && strcmp((char *)node->name, "Padding") == 0)
+        {
+            int index = -1;
+            xmlNodePtr p, boxnode = packableNode(node);
+            
+            if(boxnode && boxnode->psvi)
+            {
+                /* Figure out the existing index */
+                for(p=node; p; p=p->prev)
+                {
+                    index++;
+                }
+                /* Remove the padding from the layout */
+                dw_box_remove_at_index((HWND)boxnode->psvi, index);
+            }
         }
         else /* Just destroy any other controls */
             dw_window_destroy((HWND)node->psvi);
