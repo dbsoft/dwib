@@ -1226,8 +1226,7 @@ int DWSIGNAL text_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_TEXT], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -1387,8 +1386,7 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_ENTRYFIELD], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -1510,8 +1508,7 @@ int DWSIGNAL combobox_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Combobox", hIcons[TYPE_COMBOBOX], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -1660,8 +1657,7 @@ int DWSIGNAL listbox_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Listbox", hIcons[TYPE_LISTBOX], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -1890,8 +1886,7 @@ int DWSIGNAL container_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_CONTAINER], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2083,8 +2078,7 @@ int DWSIGNAL tree_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Tree", hIcons[TYPE_TREE], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2146,8 +2140,7 @@ int DWSIGNAL mle_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "MLE", hIcons[TYPE_MLE], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2242,8 +2235,7 @@ int DWSIGNAL render_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Render", hIcons[TYPE_RENDER], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2311,8 +2303,7 @@ int DWSIGNAL button_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BUTTON], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2459,8 +2450,7 @@ int DWSIGNAL ranged_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_RANGED], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2602,8 +2592,7 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Bitmap", hIcons[TYPE_BITMAP], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2683,8 +2672,7 @@ int DWSIGNAL html_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "HTML", hIcons[TYPE_HTML], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2767,8 +2755,7 @@ int DWSIGNAL notebook_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Notebook", hIcons[TYPE_NOTEBOOK], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2864,8 +2851,7 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_NOTEBOOK_PAGE], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -2983,8 +2969,7 @@ int DWSIGNAL calendar_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Calendar", hIcons[TYPE_CALENDAR], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -3055,8 +3040,7 @@ int DWSIGNAL box_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_BOX], (HTREEITEM)currentNode->_private, boxNode);
     boxNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(boxNode));
     
@@ -3206,8 +3190,7 @@ int DWSIGNAL padding_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, "Padding", hIcons[TYPE_PADDING], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(thisNode));
     
@@ -3338,8 +3321,7 @@ int DWSIGNAL menu_create(HWND window, void *data)
     
     treeitem = dw_tree_insert(tree, buf, hIcons[TYPE_MENU], (HTREEITEM)DWCurrNode->_private, boxNode);
     boxNode->_private = DW_POINTER(treeitem);
-    if(AutoExpand)
-        dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
+    dw_tree_item_expand(tree, (HTREEITEM)DWCurrNode->_private);
     
     dw_window_set_data(vbox, "node", DW_POINTER(boxNode));
     
