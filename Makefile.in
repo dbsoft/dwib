@@ -78,7 +78,12 @@ $(TARGET):  $(OBJECTS) resources.o
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJECTS) resources.o $(LDFLAGS) $(LIBS)
 	-chmod +x mac/finishup.sh
 	-mac/finishup.sh "$(DISPLAYNAME)" "$(TARGET)"
-                
+
+example: example.o 
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) example.o $(LDFLAGS) $(LIBS)
+	-chmod +x mac/finishup.sh
+	-mac/finishup.sh Example example
+   
 installer: $(TARGET)
 	-chmod +x mac/installer.sh
 	-mac/installer.sh "$(DISPLAYNAME)" "$(TARGET)"

@@ -59,7 +59,7 @@ OBJS =	dwib.obj \
 
 LIBOBJS = dwib_lib.obj
         
-all: dwib.exe dwib.dll
+all: dwib.exe dwib.dll example.exe
 
 clean:
 	-erase *.dll
@@ -109,6 +109,16 @@ $(LIBS)
 <<
 	lib /def:$(DEFFILE) /machine:$(TARGET_CPU) /out:dwib.lib
 	mt.exe /manifest dwib.dll.manifest win\dwib.dll.$(TARGET_CPU).manifest /outputresource:dwib.dll;2
+ 
+example.exe: example.obj winmain.obj
+	$(LINK) @<<
+-out:$(@) -subsystem:windows
+$(LINKFLAGS)
+example.obj winmain.obj
+$(LIBS) dwib.lib
+
+<<
+	mt.exe /manifest example.exe.manifest win\example.exe.$(TARGET_CPU).manifest /outputresource:example.exe;1
  
 .c.obj:
 	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $(CFLAGS_COMPILE) $*.c

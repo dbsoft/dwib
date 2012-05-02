@@ -60,6 +60,16 @@ dwib.dll:  $(LIBOBJECTS)
 	implib dwib.lib os2\dwib_lib.def
 #	lxlite dwib.dll
 
+example.exe:  example.obj
+	icc @<<
+	 /B" $(LDFLAGS)"
+	 /Feexample.exe
+	 $(DWLIBPATH)\dw.lib dwib.lib
+	 example.obj
+	 os2\example.def
+<<
+#	lxlite dwib.exe
+
 clean: 
 	rm $(OBJECTS) dwib.exe os2\dwib.res
 
