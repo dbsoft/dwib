@@ -24,8 +24,8 @@ OBJECTS = dwib.obj dwib_lib.obj
 
 SOURCES = dwib.c dwib_lib.c
 
-all: dwib.exe dwib.dll
-
+all: dwib.exe dwib.dll example.exe
+                       
 $(OBJECTS):
 	$(CC) $(CFLAGS) -c $<	
 
@@ -37,8 +37,12 @@ dwib.exe:  $(OBJECTS)
 dwib.dll: dwib_lib.obj
 	$(CC) $(CFLAGS) $(DEFS) -o dwib.dll $(OBJECTS) $(LDFLAGS) -Zdll os2/dwib_lib.def
 
+example.exe:  example.c
+	$(CC) $(CFLAGS) $(DEFS) -o example.exe example.c -ldw -L$(DWLIBPATH) -ldwib -L. os2/example.def
+#	$(COMPRESS) example.exe
+
 clean: 
-	$(RM) $(OBJECTS) dwib.exe dwib.res
+	$(RM) $(OBJECTS) dwib.exe example.exe dwib.res
 
 dwib.obj: dwib.c dwib.h dwib_int.h resources.h
 dwib_lib.obj: dwib_lib.c dwib.h dwib_int.h resources.h

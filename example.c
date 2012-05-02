@@ -6,8 +6,6 @@
 /* Handle exiting the application */
 int DWSIGNAL exit_handler(HWND win, void *data)
 {
-    HWND window = (HWND)data;
-    
     if(dw_messagebox(APP_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to exit"))
     {
         /* Exit the application cleanly */

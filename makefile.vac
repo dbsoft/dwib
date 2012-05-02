@@ -32,7 +32,7 @@ SOURCES = dwib.c dwib_lib.c
 LIBOBJECTS = dwib_lib.obj
 LIBSOURCES = dwib_lib.c
 
-all: dwib.exe dwib.dll
+all: dwib.exe dwib.dll example.exe
 
 $(OBJECTS):
 	icc $(CFLAGS) %s
@@ -71,7 +71,7 @@ example.exe:  example.obj
 #	lxlite dwib.exe
 
 clean: 
-	rm $(OBJECTS) dwib.exe os2\dwib.res
+	rm $(OBJECTS) dwib.exe example.exe os2\dwib.res
 
 # Create an installer using Installer/2...
 # Packinst and ace2 need to be in the path...
