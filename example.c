@@ -38,8 +38,9 @@ int main(int argc, char *argv[])
     dwib_show(window);
     
     /* Connect the signal handlers */
-    dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(exit_handler), (void *)window);
-    
+    dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(exit_handler), NULL);
+    dw_signal_connect((HWND)dw_window_get_data(window, "quitmenu"), DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(exit_handler), NULL);
+         
     dw_main();
 
     /* Destroy the main window */

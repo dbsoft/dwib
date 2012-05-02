@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
-	<string>dwib</string>
+	<string>@TARGET@</string>
 	<key>CFBundleIconFile</key>
 	<string>Interface Builder</string>
 	<key>CFBundleIdentifier</key>
