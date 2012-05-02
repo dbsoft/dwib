@@ -592,6 +592,16 @@ HWND _dwib_tree_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
     HWND tree = dw_tree_new(0);
     
     _dwib_item_pack(node, doc, window, packbox, tree, index);
+    
+    /* If in builder mode... */
+    if(_dwib_builder)
+    {
+        /* Pack in some dummy items so people can see it is a tree */
+        HTREEITEM root = dw_tree_insert(tree, "Root", 0, 0, NULL);
+        
+        dw_tree_insert(tree, "Child", 0, root, NULL);
+        dw_tree_item_expand(tree, root);
+    }
     return tree;
 }
 
