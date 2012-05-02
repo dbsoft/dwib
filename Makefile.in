@@ -21,7 +21,7 @@ VER_REV=@MERCURIAL@
 LIBS = @LIBS@
 INCLUDES = @INCLUDES@
 
-CFLAGS = @CFLAGS@ @ARCH@ @PLATCCFLAGS@ -DDW_RESOURCES -D__TARGET__=\"$(TARGET)\" -DVER_MAJ=$(VER_MAJ) -DVER_MIN=$(VER_MIN) -DVER_REV=$(VER_REV) -DINSTALL_PREFIX=\"$(PREFIX)\" -D__TARGET__=\"$(TARGET)\"
+CFLAGS = @CFLAGS@ @ARCH@ @PLATCCFLAGS@ -D__TARGET__=\"$(TARGET)\" -DVER_MAJ=$(VER_MAJ) -DVER_MIN=$(VER_MIN) -DVER_REV=$(VER_REV) -DINSTALL_PREFIX=\"$(PREFIX)\" -D__TARGET__=\"$(TARGET)\"
 LDFLAGS = @LDFLAGS@
 
 
@@ -60,7 +60,7 @@ SYSCONF_LINK_LIB_STATIC	= rm -f $(SYSCONF_LINK_TARGET_STATIC) ; \
 SYSCONF_LINK_TARGET = $(SYSCONF_LINK_TARGET_SHARED)
 SYSCONF_LINK_LIB = $(SYSCONF_LINK_LIB_SHARED)
 
-all: $(TARGET) $(SYSCONF_LINK_TARGET_SHARED)
+all: $(TARGET) $(SYSCONF_LINK_TARGET_SHARED) example
 
 $(SYSCONF_LINK_TARGET_SHARED): $(LIBOBJECTS)
 	$(SYSCONF_LINK_LIB_SHARED)
@@ -74,13 +74,16 @@ $(OBJECTS):
 resources.o:
 	$(CC) $(CFLAGS) $(INCLUDES) -c gtk/resources.c
 
+dwib.o:
+	$(CC) $(CFLAGS) -DDW_RESOURCES $(INCLUDES) -c dwib.c
+
 $(TARGET):  $(OBJECTS) resources.o
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJECTS) resources.o $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) -DDW_RESOURCES $(INCLUDES) -o $(TARGET) $(OBJECTS) resources.o $(LDFLAGS) $(LIBS)
 	-chmod +x mac/finishup.sh
 	-mac/finishup.sh "$(DISPLAYNAME)" "$(TARGET)"
 
-example: example.o 
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) example.o $(LDFLAGS) $(LIBS)
+example: example.o
+	$(CC) $(CFLAGS) $(INCLUDES) -o example example.o -L. -ldwib $(LDFLAGS) $(LIBS)
 	-chmod +x mac/finishup.sh
 	-mac/finishup.sh Example example
    
@@ -111,3 +114,4 @@ install: FORCE
 resources.o: gtk/resources.c
 dwib.o: dwib.c dwib.h dwib_int.h resources.h config.h
 dwib_lib.o: dwib_lib.c dwib.h dwib_int.h config.h
+example.o: example.c dwib.h
