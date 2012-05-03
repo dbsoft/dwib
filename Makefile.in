@@ -79,8 +79,8 @@ $(TARGET):  $(OBJECTS) resources.o
 	-chmod +x mac/finishup.sh
 	-mac/finishup.sh "$(DISPLAYNAME)" "$(TARGET)"
 
-example: example.o
-	$(CC) $(CFLAGS) $(INCLUDES) -o example example.o -L. -ldwib $(LDFLAGS) $(LIBS)
+example: example.c dwib.h
+	$(CC) $(CFLAGS) $(INCLUDES) -o example example.c -L. -ldwib $(LDFLAGS) $(LIBS)
 	-chmod +x mac/finishup.sh
 	-mac/finishup.sh Example example
    
@@ -111,4 +111,4 @@ install: FORCE
 resources.o: gtk/resources.c
 dwib.o: dwib.c dwib.h dwib_int.h resources.h config.h
 dwib_lib.o: dwib_lib.c dwib.h dwib_int.h config.h
-example.o: example.c dwib.h
+
