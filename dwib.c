@@ -1241,6 +1241,28 @@ int DWSIGNAL text_create(HWND window, void *data)
     return FALSE;
 }
 
+/* Handle click on the properties inspector refresh widget button */
+int DWSIGNAL refresh_widget_clicked(HWND window, void *data)
+{
+   save_properties();
+   return TRUE;
+}
+
+/* Internal function to create a title with a refresh button */
+void _dwib_title(HWND scrollbox, char *title)
+{
+    HWND item = dw_text_new(title, 0);
+    HWND hbox = dw_box_new(DW_HORZ, 0);
+
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - 24, PROPERTIES_HEIGHT, TRUE, TRUE, 0);
+    item = dw_bitmapbutton_new("Refresh Preview Widget", ICON_REFRESH);
+    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_box_pack_start(hbox, item, 24, 24, FALSE, FALSE, 0);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_widget_clicked), NULL);
+}
+
 /* Populate the properties window for a text */
 void DWSIGNAL properties_text(xmlNodePtr node)
 {
@@ -1256,9 +1278,7 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Text Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Text Widget");
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1416,9 +1436,7 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Entryfield Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Entryfield Widget");
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1580,9 +1598,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Combobox Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Combobox Widget");
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -1687,9 +1703,7 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Listbox Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Listbox Widget");
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -1917,9 +1931,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Container Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Container Widget");
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2106,9 +2118,7 @@ void DWSIGNAL properties_tree(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Tree Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Tree Widget");
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -2170,9 +2180,7 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Multi-line Edit Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Multi-line Edit Widget");
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -2263,9 +2271,7 @@ void DWSIGNAL properties_render(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Render Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Render Widget");
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -2333,9 +2339,7 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Button Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Button Widget");
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2480,9 +2484,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Ranged Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Ranged Widget");
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2622,9 +2624,7 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Bitmap Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Bitmap Widget");
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -2702,9 +2702,7 @@ void DWSIGNAL properties_html(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("HTML Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "HTML Widget");
     
     properties_item(node, scrollbox, TRUE, FALSE);
     
@@ -2785,9 +2783,7 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Notebook Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Notebook Widget");
     
     properties_item(node, scrollbox, TRUE, FALSE);
     
@@ -2997,9 +2993,7 @@ void DWSIGNAL properties_calendar(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Calendar Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Calendar Widget");
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -3070,9 +3064,7 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Box Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Box Widget");
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3220,9 +3212,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Padding", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Padding");
 
     /* Required size */
     hbox = dw_box_new(DW_HORZ, 0);

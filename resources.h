@@ -22,6 +22,7 @@
 
 #define ICON_FONT               200
 #define ICON_COLOR              201
+#define ICON_REFRESH            202
 
 #define BITMAP_PLACEHOLD        250
 
