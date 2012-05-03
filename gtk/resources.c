@@ -27,18 +27,20 @@
 #if GTK_MAJOR_VERSION < 3
 #include "Font.xpm"
 #include "Color.xpm"
+#include "Refresh.xpm"
 #endif
 
 #if GTK_MAJOR_VERSION > 2
 /* GdkPixbufs Inline */
 #include "Font.h"
 #include "Color.h"
+#include "Refresh.h"
 #endif
 
 /* Associated IDs */
 #include "resources.h"
 
-#define RESOURCE_MAX 23
+#define RESOURCE_MAX 24
 
 long _resource_id[RESOURCE_MAX] = {
 ICON_APP,
@@ -63,6 +65,7 @@ ICON_PADDING,
 ICON_MENU,
 ICON_FONT,
 ICON_COLOR,
+ICON_REFRESH,
 BITMAP_PLACEHOLD
 };
 
@@ -90,9 +93,11 @@ char *_resource_data[RESOURCE_MAX] = {
 #if GTK_MAJOR_VERSION > 2
 (char *)Font,
 (char *)Color,
+(char *)Refresh,
 #else
 (char *)Font_xpm,
 (char *)Color_xpm,
+(char *)Refresh_xpm,
 #endif
 (char *)Placehold_xpm
 };
