@@ -36,6 +36,7 @@ dwib.exe:  $(OBJECTS)
 
 dwib.dll: dwib_lib.obj
 	$(CC) $(CFLAGS) $(DEFS) -o dwib.dll $(OBJECTS) $(LDFLAGS) -Zdll os2/dwib_lib.def
+	emximp -o dwib.lib os2/dwib_lib.def
 
 example.exe:  example.c
 	$(CC) $(CFLAGS) $(DEFS) -o example.exe example.c -ldw -L$(DWLIBPATH) -ldwib -L. os2/example.def
