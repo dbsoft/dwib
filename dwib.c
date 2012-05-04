@@ -462,7 +462,7 @@ int saveList(xmlNodePtr node, HWND vbox)
     HWND list = (HWND)dw_window_get_data(vbox, "list");
     xmlNodePtr this = _dwib_find_child(node, "List");
     
-    if(node && list)
+    if(node && list && dw_window_get_data(list, "_dwib_modified"))
     {
         int x, count = dw_listbox_count(list);
         char buf[100];
@@ -479,6 +479,7 @@ int saveList(xmlNodePtr node, HWND vbox)
             dw_listbox_get_text(list, x, buf, 100);
             xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)buf);
         }
+        dw_window_set_data(list, "_dwib_modified", NULL);
         return 1;
     }
     return 0;
@@ -774,7 +775,6 @@ void save_properties(void)
     if(!(node = dw_window_get_data(vbox, "node")))
         return;
     
-    dw_debug("Saving node %s\n", node->name);
     switch(which)
     {
         case TYPE_WINDOW:
@@ -911,7 +911,6 @@ void save_properties(void)
         {
             dw_tree_item_change(tree, (HTREEITEM)node->_private, buf, hIcons[index]);
         }
-        dw_debug("Retval %d\n", retval);
         /* Recreate the preview control */
         if(node->psvi && retval)
             previewControl(node);
@@ -1584,6 +1583,7 @@ int DWSIGNAL add_clicked(HWND window, void *data)
             {
                 dw_listbox_append(list, text);
                 dw_window_set_text(entry, "");
+                dw_window_set_data(list, "_dwib_modified", DW_INT_TO_POINTER(1));
             }
             dw_free(text);
         }
@@ -1604,6 +1604,7 @@ int DWSIGNAL rem_clicked(HWND window, void *data)
         if(selected != DW_LIT_NONE)
         {
             dw_listbox_delete(list, selected);
+            dw_window_set_data(list, "_dwib_modified", DW_INT_TO_POINTER(1));
         }
     }
     return FALSE;
