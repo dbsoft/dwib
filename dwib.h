@@ -6,6 +6,8 @@
 #ifndef DWIB_H
 #define DWIB_H
 
+#include <dw.h>
+
 typedef void *DWIB;
 
 HWND API dwib_load(DWIB handle, char *name);

@@ -11,13 +11,13 @@ AC_CHECK_PROG(MAKE, gmake, gmake)
 if test x"$MAKE" = x; then
   AC_CHECK_PROG(MAKE, make, make)
 fi
-if test -d .hg; then 
+if test -d .hg; then
    AC_CHECK_PROG(MERCURIAL, hg, hg)
 fi
 if test x"$MERCURIAL" = x; then
    MERCURIAL=0
 else
-   MERCURIAL="\` $MERCURIAL log -r . --template={rev} \`"
+   MERCURIAL=`$MERCURIAL log -r . --template={rev}`
 fi
 
 AC_PROG_INSTALL
@@ -107,9 +107,9 @@ MKDIR="mkdir"
 AC_SUBST(SYSCONF_LINK_TARGET_SHARED)
 AC_SUBST(SYSCONF_LINK_TARGET_STATIC)
 
-AC_SUBST(DWIB_MAJOR_VERSION)
-AC_SUBST(DWIB_MINOR_VERSION)
-AC_SUBST(DWIB_SUB_VERSION)
+#AC_SUBST(DWIB_MAJOR_VERSION)
+#AC_SUBST(DWIB_MINOR_VERSION)
+#AC_SUBST(DWIB_SUB_VERSION)
 AC_SUBST(PLATCCFLAGS)
 AC_SUBST(INCLUDES)
 AC_SUBST(RM)
@@ -126,4 +126,4 @@ AC_SUBST(TARGET)
 
 AC_SUBST(ARCH)
 
-AC_OUTPUT(Makefile:Makefile.in)
+AC_OUTPUT(Makefile:Makefile.in dwib-config1)

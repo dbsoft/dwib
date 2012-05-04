@@ -83,15 +83,15 @@ example: example.c dwib.h
 	$(CC) $(CFLAGS) $(INCLUDES) -o example example.c -L. -ldwib $(LDFLAGS) $(LIBS)
 	-chmod +x mac/finishup.sh
 	-mac/finishup.sh Example example
-   
+
 installer: $(TARGET)
 	-chmod +x mac/installer.sh
 	-mac/installer.sh "$(DISPLAYNAME)" "$(TARGET)"
 
-clean: 
+clean:
 	$(RM) $(OBJECTS) resources.o $(TARGET) example example.o *.$(SOSUFFIX) *.$(SOSUFFIX).* *~
 
-distclean: 
+distclean:
 	$(RM) $(OBJECTS) resources.o $(TARGET) *~ os2/*~ win/*~ gtk/*~ config.cache config.log config.status Makefile config.h
 
 FORCE:
@@ -101,13 +101,15 @@ install: FORCE
 	$(INSTALL) -d $(prefix)/lib; \
 	$(INSTALL) -d $(prefix)/bin; \
 	$(INSTALL) dwib.h $(prefix)/include; \
+	sed -e 's/@DWIB_MAJOR_VERSION@/$(VER_MAJ)/' -e 's/@DWIB_MINOR_VERSION@/$(VER_MIN)/' -e 's/@DWIB_SUB_VERSION@/$(VER_REV)/' < dwib-config1 > dwib-config
+	$(INSTALL) dwib-config $(prefix)/bin; \
 	$(INSTALL) $(TARGET) $(prefix)/bin; \
 	$(INSTALL) $(SYSCONF_LINK_TARGET_SHARED)  $(prefix)/lib; \
 	cd $(prefix)/lib; \
 	rm -f lib$(TARGET).so lib$(TARGET).so.$(VER_MAJ); \
 	ln -sf $(SYSCONF_LINK_TARGET_SHARED) lib$(TARGET).$(SOSUFFIX); \
 	ln -sf $(SYSCONF_LINK_TARGET_SHARED) lib$(TARGET).$(SOSUFFIX).$(VER_MAJ)
-													        
+
 resources.o: gtk/resources.c
 dwib.o: dwib.c dwib.h dwib_int.h resources.h config.h
 dwib_lib.o: dwib_lib.c dwib.h dwib_int.h config.h
