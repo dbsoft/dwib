@@ -457,7 +457,7 @@ void setTitle(void)
 /* Gets the contents of the list and puts it into the XML tree...
  * replacing any previous contents of the list.
  */
-void saveList(xmlNodePtr node, HWND vbox)
+int saveList(xmlNodePtr node, HWND vbox)
 {
     HWND list = (HWND)dw_window_get_data(vbox, "list");
     xmlNodePtr this = _dwib_find_child(node, "List");
@@ -479,13 +479,15 @@ void saveList(xmlNodePtr node, HWND vbox)
             dw_listbox_get_text(list, x, buf, 100);
             xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)buf);
         }
+        return 1;
     }
+    return 0;
 }
 
 /* Gets the contents of the list and puts it into the XML tree...
  * replacing any previous contents of the list.
  */
-void save_columns(xmlNodePtr node, HWND vbox)
+int save_columns(xmlNodePtr node, HWND vbox)
 {
     int x, count = DW_POINTER_TO_INT(dw_window_get_data(vbox, "colcount"));
     xmlNodePtr this = _dwib_find_child(node, "Columns");
@@ -535,19 +537,22 @@ void save_columns(xmlNodePtr node, HWND vbox)
                     dw_free(colalign);
             }
         }
+        return 1;
     }
+    return 0;
 }
 
 /* Checks the values on the properties and updates
  * the XML node data.
  */
-void updateNode(xmlNodePtr node, HWND vbox, char *name, int toggle)
+int updateNode(xmlNodePtr node, HWND vbox, char *name, int toggle)
 {
     HWND item = (HWND)dw_window_get_data(vbox, name);
     char *val = "0";
+    int retval = 0;
     
     if(!item)
-        return;
+        return 0;
     
     if(toggle && dw_checkbox_get(item))
     {
@@ -557,25 +562,33 @@ void updateNode(xmlNodePtr node, HWND vbox, char *name, int toggle)
     if((toggle || (val = dw_window_get_text(item))))
     {
         xmlNodePtr this = _dwib_find_child(node, name);
+        char *oldval = this ? (char *)xmlNodeListGetString(DWDoc, this->children, 1) : NULL;
         
+        retval = 1;
+                
         if(!this)
             this = xmlNewTextChild(node, NULL, (xmlChar *)name, (xmlChar *)val);
-        else
+        else if((oldval && strcmp(oldval, val) != 0) || (!oldval && *val && strcmp(val, "0") != 0 && strcmp(val, "Default") != 0))
             xmlNodeSetContent(this, (xmlChar *)val);
+        else
+            retval = 0;
+        
         if(!toggle)
             dw_free(val);
     }
+    return retval;
 }
 
-void updateNodeText(xmlNodePtr node, HWND vbox, char *name)
+int updateNodeText(xmlNodePtr node, HWND vbox, char *name)
 {
     HWND item = (HWND)dw_window_get_data(vbox, name);
     unsigned long bytes;
-    char *val = NULL;
+    char *val = NULL, *oldval = NULL;
     xmlNodePtr this;
+    int retval = 1;
     
     if(!item)
-        return;
+        return 0;
     
     dw_mle_get_size(item, &bytes, NULL);
     
@@ -585,40 +598,48 @@ void updateNodeText(xmlNodePtr node, HWND vbox, char *name)
         dw_mle_export(item, val, 0, (int)bytes);
     }
     
-    this = _dwib_find_child(node, name);
+    if((this = _dwib_find_child(node, name)) != NULL)
+        oldval = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
     
     if(!this)
         this = xmlNewTextChild(node, NULL, (xmlChar *)name, (xmlChar *)(val ? val : ""));
-    else
+    else if(!oldval && strcmp(oldval, val) != 0)
         xmlNodeSetContent(this, (xmlChar *)(val ? val : ""));
+    else 
+        retval = 0;
     
     if(val)
         free(val);
+    
+    return retval;
 }
 
 /* Save the properties for general items */
-void save_item(xmlNodePtr node, HWND vbox)
+int save_item(xmlNodePtr node, HWND vbox)
 {
-    updateNode(node, vbox, "dataname", FALSE);
-    updateNode(node, vbox, "width", FALSE);
-    updateNode(node, vbox, "height", FALSE);
-    updateNode(node, vbox, "hexpand", TRUE);
-    updateNode(node, vbox, "vexpand", TRUE);
-    updateNode(node, vbox, "padding", FALSE);
-    updateNode(node, vbox, "enabled", TRUE);
-    updateNode(node, vbox, "tooltip", FALSE);
-    updateNode(node, vbox, "fcolor", FALSE);
-    updateNode(node, vbox, "bcolor", FALSE);
-    updateNode(node, vbox, "font", FALSE);
+    int retval = 0;
+    
+    retval |= updateNode(node, vbox, "dataname", FALSE);
+    retval |= updateNode(node, vbox, "width", FALSE);
+    retval |= updateNode(node, vbox, "height", FALSE);
+    retval |= updateNode(node, vbox, "hexpand", TRUE);
+    retval |= updateNode(node, vbox, "vexpand", TRUE);
+    retval |= updateNode(node, vbox, "padding", FALSE);
+    retval |= updateNode(node, vbox, "enabled", TRUE);
+    retval |= updateNode(node, vbox, "tooltip", FALSE);
+    retval |= updateNode(node, vbox, "fcolor", FALSE);
+    retval |= updateNode(node, vbox, "bcolor", FALSE);
+    retval |= updateNode(node, vbox, "font", FALSE);
 #ifdef __OS2__
-    updateNode(node, vbox, "os2font", FALSE);
+    retval |= updateNode(node, vbox, "os2font", FALSE);
 #elif defined(__MAC__)    
-    updateNode(node, vbox, "macfont", FALSE);
+    retval |= updateNode(node, vbox, "macfont", FALSE);
 #elif defined(__WIN32__)    
-    updateNode(node, vbox, "winfont", FALSE);
+    retval |= updateNode(node, vbox, "winfont", FALSE);
 #elif defined(__UNIX__)    
-    updateNode(node, vbox, "unixfont", FALSE);
+    retval |= updateNode(node, vbox, "unixfont", FALSE);
 #endif
+    return retval;
 }
 
 /* Delete a preview control if one exists */
@@ -742,6 +763,10 @@ void save_properties(void)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     xmlNodePtr node;
+    /* Retval should be 0 if nothing has changed, 
+     * and 1 if something has changed during update.
+     */
+    int retval = 0;
     
     if(!vbox || !which)
         return;
@@ -749,130 +774,131 @@ void save_properties(void)
     if(!(node = dw_window_get_data(vbox, "node")))
         return;
     
+    dw_debug("Saving node %s\n", node->name);
     switch(which)
     {
         case TYPE_WINDOW:
-            updateNode(node, vbox, "title", FALSE);
-            updateNode(node, vbox, "width", FALSE);
-            updateNode(node, vbox, "height", FALSE);
-            updateNode(node, vbox, "x", FALSE);
-            updateNode(node, vbox, "y", FALSE);
-            updateNode(node, vbox, "hgravity", FALSE);
-            updateNode(node, vbox, "vgravity", FALSE);
-            updateNode(node, vbox, "hobstacles", TRUE);
-            updateNode(node, vbox, "vobstacles", TRUE);
-            updateNode(node, vbox, "bordersize", FALSE);
-            updateNode(node, vbox, "close", TRUE);
-            updateNode(node, vbox, "minimize", TRUE);
-            updateNode(node, vbox, "maximize", TRUE);
-            updateNode(node, vbox, "hide", TRUE);
-            updateNode(node, vbox, "titlebar", TRUE);
-            updateNode(node, vbox, "resize", TRUE);
-            updateNode(node, vbox, "dialog", TRUE);
-            updateNode(node, vbox, "border", TRUE);
-            updateNode(node, vbox, "sysmenu", TRUE);
-            updateNode(node, vbox, "tasklist", TRUE);
-            updateNode(node, vbox, "composited", TRUE);
-            updateNode(node, vbox, "orientation", FALSE);
+            retval |= updateNode(node, vbox, "title", FALSE);
+            retval |= updateNode(node, vbox, "width", FALSE);
+            retval |= updateNode(node, vbox, "height", FALSE);
+            retval |= updateNode(node, vbox, "x", FALSE);
+            retval |= updateNode(node, vbox, "y", FALSE);
+            retval |= updateNode(node, vbox, "hgravity", FALSE);
+            retval |= updateNode(node, vbox, "vgravity", FALSE);
+            retval |= updateNode(node, vbox, "hobstacles", TRUE);
+            retval |= updateNode(node, vbox, "vobstacles", TRUE);
+            retval |= updateNode(node, vbox, "bordersize", FALSE);
+            retval |= updateNode(node, vbox, "close", TRUE);
+            retval |= updateNode(node, vbox, "minimize", TRUE);
+            retval |= updateNode(node, vbox, "maximize", TRUE);
+            retval |= updateNode(node, vbox, "hide", TRUE);
+            retval |= updateNode(node, vbox, "titlebar", TRUE);
+            retval |= updateNode(node, vbox, "resize", TRUE);
+            retval |= updateNode(node, vbox, "dialog", TRUE);
+            retval |= updateNode(node, vbox, "border", TRUE);
+            retval |= updateNode(node, vbox, "sysmenu", TRUE);
+            retval |= updateNode(node, vbox, "tasklist", TRUE);
+            retval |= updateNode(node, vbox, "composited", TRUE);
+            retval |= updateNode(node, vbox, "orientation", FALSE);
             break;
         case TYPE_BOX:
-            updateNode(node, vbox, "subtype", FALSE);
-            save_item(node, vbox);
-            updateNode(node, vbox, "orientation", FALSE);
-            updateNode(node, vbox, "title", FALSE);
-            updateNode(node, vbox, "splitper", FALSE);
+            retval |= updateNode(node, vbox, "subtype", FALSE);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "orientation", FALSE);
+            retval |= updateNode(node, vbox, "title", FALSE);
+            retval |= updateNode(node, vbox, "splitper", FALSE);
             break;
         case TYPE_TEXT:
-            updateNode(node, vbox, "subtype", FALSE);
-            save_item(node, vbox);
-            updateNode(node, vbox, "label", FALSE);
-            updateNode(node, vbox, "alignment", FALSE);
-            updateNode(node, vbox, "valignment", FALSE);
+            retval |= updateNode(node, vbox, "subtype", FALSE);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "label", FALSE);
+            retval |= updateNode(node, vbox, "alignment", FALSE);
+            retval |= updateNode(node, vbox, "valignment", FALSE);
             break;
         case TYPE_ENTRYFIELD:
-            updateNode(node, vbox, "subtype", FALSE);
-            save_item(node, vbox);
-            updateNode(node, vbox, "deftext", FALSE);
-            updateNode(node, vbox, "limit", FALSE);
+            retval |= updateNode(node, vbox, "subtype", FALSE);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "deftext", FALSE);
+            retval |= updateNode(node, vbox, "limit", FALSE);
             break;
         case TYPE_COMBOBOX:
-            save_item(node, vbox);
-            updateNode(node, vbox, "deftext", FALSE);
-            saveList(node, vbox);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "deftext", FALSE);
+            retval |= saveList(node, vbox);
             break;
         case TYPE_LISTBOX:
-            save_item(node, vbox);
-            updateNode(node, vbox, "multi", TRUE);
-            saveList(node, vbox);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "multi", TRUE);
+            retval |= saveList(node, vbox);
             break;
         case TYPE_CONTAINER:
-            updateNode(node, vbox, "subtype", FALSE);
-            save_item(node, vbox);
-            updateNode(node, vbox, "multi", TRUE);
-            updateNode(node, vbox, "oddcolor", FALSE);
-            updateNode(node, vbox, "evencolor", FALSE);
-            updateNode(node, vbox, "splitcol", FALSE);
-            save_columns(node, vbox);
+            retval |= updateNode(node, vbox, "subtype", FALSE);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "multi", TRUE);
+            retval |= updateNode(node, vbox, "oddcolor", FALSE);
+            retval |= updateNode(node, vbox, "evencolor", FALSE);
+            retval |= updateNode(node, vbox, "splitcol", FALSE);
+            retval |= save_columns(node, vbox);
             break;
         case TYPE_TREE:
-            save_item(node, vbox);
+            retval |= save_item(node, vbox);
             break;
         case TYPE_MLE:
-            save_item(node, vbox);
-            updateNode(node, vbox, "wordwrap", TRUE);
-            updateNodeText(node, vbox, "deftext");
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "wordwrap", TRUE);
+            retval |= updateNodeText(node, vbox, "deftext");
             break;
         case TYPE_RENDER:
-            save_item(node, vbox);
+            retval |= save_item(node, vbox);
             break;
         case TYPE_BUTTON:
-            updateNode(node, vbox, "subtype", FALSE);
-            save_item(node, vbox);
-            updateNode(node, vbox, "checked", TRUE);
-            updateNode(node, vbox, "setting", FALSE);
-            updateNode(node, vbox, "borderless", TRUE);
+            retval |= updateNode(node, vbox, "subtype", FALSE);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "checked", TRUE);
+            retval |= updateNode(node, vbox, "setting", FALSE);
+            retval |= updateNode(node, vbox, "borderless", TRUE);
             break;
         case TYPE_RANGED:
-            updateNode(node, vbox, "subtype", FALSE);
-            save_item(node, vbox);
-            updateNode(node, vbox, "position", FALSE);
-            updateNode(node, vbox, "upper", FALSE);
-            updateNode(node, vbox, "lower", FALSE);
+            retval |= updateNode(node, vbox, "subtype", FALSE);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "position", FALSE);
+            retval |= updateNode(node, vbox, "upper", FALSE);
+            retval |= updateNode(node, vbox, "lower", FALSE);
             break;
         case TYPE_BITMAP:
-            save_item(node, vbox);
-            updateNode(node, vbox, "setting", FALSE);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "setting", FALSE);
             break;
         case TYPE_NOTEBOOK:
-            save_item(node, vbox);
-            updateNode(node, vbox, "position", FALSE);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "position", FALSE);
             break;
         case TYPE_NOTEBOOK_PAGE:
-            updateNode(node, vbox, "title", FALSE);
-            updateNode(node, vbox, "pagetext", FALSE);
-            updateNode(node, vbox, "statustext", FALSE);
-            updateNode(node, vbox, "orientation", FALSE);
+            retval |= updateNode(node, vbox, "title", FALSE);
+            retval |= updateNode(node, vbox, "pagetext", FALSE);
+            retval |= updateNode(node, vbox, "statustext", FALSE);
+            retval |= updateNode(node, vbox, "orientation", FALSE);
             break;
         case TYPE_HTML:
-            save_item(node, vbox);
-            updateNode(node, vbox, "URL", FALSE);
+            retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "URL", FALSE);
             break;
         case TYPE_CALENDAR:
-            save_item(node, vbox);
+            retval |= save_item(node, vbox);
             break;
         case TYPE_PADDING:
-            updateNode(node, vbox, "width", FALSE);
-            updateNode(node, vbox, "height", FALSE);
-            updateNode(node, vbox, "hexpand", TRUE);
-            updateNode(node, vbox, "vexpand", TRUE);
+            retval |= updateNode(node, vbox, "width", FALSE);
+            retval |= updateNode(node, vbox, "height", FALSE);
+            retval |= updateNode(node, vbox, "hexpand", TRUE);
+            retval |= updateNode(node, vbox, "vexpand", TRUE);
             break;
         case TYPE_MENU:
-            updateNode(node, vbox, "title", FALSE);
-            updateNode(node, vbox, "dataname", FALSE);
-            updateNode(node, vbox, "menuid", FALSE);
-            updateNode(node, vbox, "checkable", TRUE);
-            updateNode(node, vbox, "checked", TRUE);
-            updateNode(node, vbox, "enabled", TRUE);
+            retval |= updateNode(node, vbox, "title", FALSE);
+            retval |= updateNode(node, vbox, "dataname", FALSE);
+            retval |= updateNode(node, vbox, "menuid", FALSE);
+            retval |= updateNode(node, vbox, "checkable", TRUE);
+            retval |= updateNode(node, vbox, "checked", TRUE);
+            retval |= updateNode(node, vbox, "enabled", TRUE);
             break;
     }
     if(tree)
@@ -885,9 +911,9 @@ void save_properties(void)
         {
             dw_tree_item_change(tree, (HTREEITEM)node->_private, buf, hIcons[index]);
         }
-        
+        dw_debug("Retval %d\n", retval);
         /* Recreate the preview control */
-        if(node->psvi)
+        if(node->psvi && retval)
             previewControl(node);
     }
 }
