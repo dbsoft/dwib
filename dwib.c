@@ -20,16 +20,6 @@ HMENUI menuWindows;
 int AutoExpand = FALSE, PropertiesInspector = TRUE, LivePreview = TRUE, BitmapButtons = TRUE;
 extern char *_dwib_image_root;
 
-/* Compiler specific stuff, this should probably go elsewhere */
-#ifdef MSVC
-#define snprintf _snprintf
-#endif
-
-#if defined(__IBMC__) || defined(__WATCOMC__) || (defined(__WIN32__) && !defined(__CYGWIN32__))
-#undef mkdir
-#define mkdir(a,b) mkdir(a)
-#endif
-
 char *Classes[] =
 {
     "Window",
