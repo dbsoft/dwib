@@ -12,6 +12,7 @@
 #include "resources.h"
 
 static void *_dwib_builder = NULL;
+char *_dwib_image_root = NULL;
 
 /* Enable builder mode when linked to the main application. */
 void _dwib_builder_toggle(void *val)
@@ -1135,4 +1136,39 @@ void API dwib_close(DWIB handle)
 {
     xmlDocPtr doc = handle;
     xmlFreeDoc(doc);
+}
+
+/*
+ * Update the location of the image root for locating image files.
+ * Parameters:
+ *       path: Directory to be used relative to image file location.
+ * Returns:
+ *       DW_ERROR_NONE if found was found and selected, or DW_ERROR_GENERAL.
+ */
+int API dwib_image_root_set(char *path)
+{
+    char *oldroot = _dwib_image_root;
+    
+    /* TODO: Make sure the path exists and fail if it doesn't */
+    if(path && *path)
+        _dwib_image_root = strdup(path);
+    else
+        _dwib_image_root = NULL;
+    
+    if(oldroot)
+        free(oldroot);
+        
+    return DW_ERROR_NONE;
+}
+
+/*
+ * Update the locale used when identifying locating strings during creation.
+ * Parameters:
+ *       loc: String locale identifier, such as "en_US"
+ * Returns:
+ *       DW_ERROR_NONE if locale was found and selected, or DW_ERROR_GENERAL.
+ */
+int API dwib_locale_set(char *loc)
+{
+    return DW_ERROR_GENERAL;
 }

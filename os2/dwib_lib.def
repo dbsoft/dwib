@@ -18,3 +18,6 @@ EXPORTS
   
   dwib_show                              @40
 
+  dwib_image_root_set                    @50
+  
+  dwib_locale_set                        @60
