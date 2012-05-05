@@ -11,7 +11,7 @@
 #include "dwib_int.h"
 #include "dwib.h"
 
-HWND hwndToolbar, hwndProperties;
+HWND hwndToolbar, hwndProperties, hwndImages = 0, hwndStrings = 0, hwndAbout = 0;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 char *DWFilename = NULL;
@@ -1280,8 +1280,9 @@ void _dwib_title(HWND scrollbox, char *title)
     HWND hbox = dw_box_new(DW_HORZ, 0);
 
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, 24, 24, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - 24, PROPERTIES_HEIGHT, TRUE, TRUE, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - 48, PROPERTIES_HEIGHT, TRUE, TRUE, 0);
     item = dw_bitmapbutton_new("Refresh Preview Widget", ICON_REFRESH);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_box_pack_start(hbox, item, 24, 24, FALSE, FALSE, 0);
@@ -5053,17 +5054,25 @@ int DWSIGNAL expand_all_clicked(HWND button, void *data)
 /* Generic window close handler */
 int DWSIGNAL generic_delete(HWND window, void *data)
 {
-    HWND item = (HWND)data;
+    HWND item = data ? (HWND)data : window;
     HWND menu = (HWND)dw_window_get_data(item ? item : window, "dwib_menu");
     
     /* Destroy associated menu if any */ 
     if(menu)
         dw_window_destroy(menu);
     
-    if(item)
-        dw_window_destroy(item);
-    else
-        dw_window_destroy(window);
+    /* Destroy the window */
+    dw_window_destroy(item);
+    
+    /* If it is one of our single windows...
+     * then reset the global handle to 0
+     */
+    if(item == hwndAbout)
+        hwndAbout = 0;
+    else if(item == hwndImages)
+        hwndImages = 0;
+    else if(item == hwndStrings)
+        hwndStrings = 0;
     return FALSE;
 }
 
@@ -5157,40 +5166,121 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
 /* Handle creating about box */
 int DWSIGNAL about_clicked(HWND button, void *data)
 {
-    /* We have access to the HTML widget so create a browser window */
-    HWND window = dw_window_new(DW_DESKTOP, "About", DW_FCF_COMPOSITED |
-                                DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_DLGBORDER);
-    HWND vbox = dw_box_new(DW_VERT, 0);
-    HWND hbox = dw_box_new(DW_HORZ, 0);
-    HWND item = dw_text_new(DWIB_NAME, 0);
-    char verbuf[100] = {0};
+    if(hwndAbout)
+        dw_window_show(hwndAbout);
+    else 
+    {
+        /* We have access to the HTML widget so create a browser window */
+        HWND vbox = dw_box_new(DW_VERT, 0);
+        HWND hbox = dw_box_new(DW_HORZ, 0);
+        HWND item = dw_text_new(DWIB_NAME, 0);
+        char verbuf[100] = {0};
+        
+        hwndAbout = dw_window_new(DW_DESKTOP, "About", DW_FCF_COMPOSITED |
+                                  DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_DLGBORDER);
+        
+        /* About text */
+        dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
+        dw_box_pack_start(hwndAbout, vbox, 0, 0, TRUE, TRUE, 0);
+        dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
+        item = dw_text_new("Brian Smith © 2011-2012", 0);
+        dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
+        dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
+        sprintf(verbuf, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
+        item = dw_text_new(verbuf, 0);
+        dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
+        dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
+        
+        /* Button box */
+        dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+        item = dw_button_new("Ok", 0);
+        dw_box_pack_start(hbox, item, 60, -1, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+        
+        /* Delete handlers */
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(generic_delete), DW_POINTER(hwndAbout));
+        dw_signal_connect(hwndAbout, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(generic_delete), NULL);
+        
+        dw_window_set_size(hwndAbout, 250, 120);
+        dw_window_show(hwndAbout);
+    }
+    return FALSE;
+}
+
+/* Handle creating image manager */
+int DWSIGNAL image_browse_clicked(HWND button, void *data)
+{
+    HWND window = (HWND)data;
+    HWND entry = (HWND)dw_window_get_data(window, "_dwib_directory");
+    char *picked;
     
-    /* About text */
-    dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
-    dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
-    dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-    item = dw_text_new("Brian Smith © 2011-2012", 0);
-    dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
-    dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-    sprintf(verbuf, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
-    item = dw_text_new(verbuf, 0);
-    dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
-    dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-    dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
-    
-    /* Button box */
-    dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
-    item = dw_button_new("Ok", 0);
-    dw_box_pack_start(hbox, item, 60, -1, FALSE, FALSE, 0);
-    dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
-    
-    /* Delete handlers */
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(generic_delete), DW_POINTER(window));
-    dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(generic_delete), NULL);
-    
-    dw_window_set_size(window, 250, 120);
-    dw_window_show(window);
+    if(entry && (picked = dw_file_browse("Pick developer images folder:", "", "", DW_DIRECTORY_OPEN)))
+    {
+        dw_window_set_text(entry, picked);
+        dw_free(picked);
+    }
+    return TRUE;
+}
+
+/* Handle creating image manager */
+int DWSIGNAL image_manager_clicked(HWND button, void *data)
+{
+    if(hwndImages)
+        dw_window_show(hwndImages);
+    else 
+    {
+        /* We have access to the HTML widget so create a browser window */
+        HWND vbox = dw_box_new(DW_VERT, 0);
+        HWND hbox = dw_box_new(DW_HORZ, 0);
+        HWND item = dw_text_new("Developer Image Root: ", 0);
+        char *colnames[] = { "Image ID", "Embedded" };
+        unsigned long coltypes[] = {   
+                DW_CFA_ULONG | DW_CFA_RIGHT | DW_CFA_HORZSEPARATOR | DW_CFA_SEPARATOR,
+                DW_CFA_STRING | DW_CFA_LEFT | DW_CFA_HORZSEPARATOR | DW_CFA_SEPARATOR };     
+        
+        hwndImages = dw_window_new(DW_DESKTOP, "Image Manager", DW_FCF_COMPOSITED | DW_FCF_MINMAX |
+                                   DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
+        
+        /* Developer Image Root Row */
+        dw_window_set_style(item, DW_DT_CENTER | DW_DT_VCENTER, DW_DT_CENTER | DW_DT_VCENTER);
+        dw_box_pack_start(hwndImages, vbox, 0, 0, TRUE, TRUE, 0);
+        dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+        item = dw_entryfield_new("", 0);
+        dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_window_set_data(hwndImages, "_dwib_directory", item);
+        item = dw_button_new("Browse", 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_browse_clicked), DW_POINTER(hwndImages));
+        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+        
+        /* Image list container */
+        item = dw_container_new(0, FALSE);
+        dw_box_pack_start(vbox, item, -1, -1, TRUE, TRUE, 0);
+        dw_filesystem_setup(item, coltypes, colnames, 2);
+        dw_window_set_data(item, "_dwib_imagelist", item);
+        
+        /* Button box */
+        hbox = dw_box_new(DW_HORZ, 0);
+        dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+        item = dw_button_new("+", 0);
+        dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        //dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_add_clicked), DW_POINTER(hwndImages));
+        item = dw_button_new("-", 0);
+        dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        //dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_rem_clicked), DW_POINTER(hwndImages));
+        dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+        item = dw_button_new("Done", 0);
+        dw_box_pack_start(hbox, item, -1, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        
+        /* Delete handlers */
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(generic_delete), DW_POINTER(hwndImages));
+        dw_signal_connect(hwndImages, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(generic_delete), NULL);
+        
+        dw_window_set_size(hwndImages, 450, 400);
+        dw_window_show(hwndImages);
+    }
     return FALSE;
 }
 
@@ -5471,6 +5561,8 @@ void dwib_init(void)
     menuWindows = dw_menu_new(0);
     item = dw_menu_append_item(menuWindows, "Properties Inspector", DW_MENU_AUTO, PropertiesInspector ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(properties_inspector_clicked), NULL);
+    item = dw_menu_append_item(menuWindows, "Image Manager", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_manager_clicked), NULL);
     item = dw_menu_append_item(menuWindows, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(menu, "~Windows", DW_MENU_AUTO, 0, TRUE, FALSE, menuWindows);
     
