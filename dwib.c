@@ -5323,10 +5323,10 @@ int DWSIGNAL image_manager_clicked(HWND button, void *data)
         dw_window_set_style(item, DW_DT_CENTER | DW_DT_VCENTER, DW_DT_CENTER | DW_DT_VCENTER);
         dw_box_pack_start(hwndImages, vbox, 0, 0, TRUE, TRUE, 0);
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
-        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, -1, -1, FALSE, TRUE, 0);
         item = dw_entryfield_new(val ? val : "", 0);
         dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
-        dw_window_set_data(hwndImages, "_dwib_directory", item);
+        dw_window_set_data(hwndImages, "_dwib_directory", DW_POINTER(item));
         item = dw_button_new("Browse", 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_browse_clicked), DW_POINTER(hwndImages));
         dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
@@ -5335,7 +5335,7 @@ int DWSIGNAL image_manager_clicked(HWND button, void *data)
         item = dw_container_new(0, FALSE);
         dw_box_pack_start(vbox, item, -1, -1, TRUE, TRUE, 0);
         dw_filesystem_setup(item, coltypes, colnames, 2);
-        dw_window_set_data(hwndImages, "_dwib_imagelist", item);
+        dw_window_set_data(hwndImages, "_dwib_imagelist", DW_POINTER(item));
         /* Populate the container */
         imageNode = rootNode->children;
         while(imageNode)
