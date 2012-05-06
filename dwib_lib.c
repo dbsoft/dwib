@@ -4,6 +4,7 @@
  */
 
 #include <dw.h>
+#include <dwcompat.h>
 #include <libxml/tree.h>
 #include <string.h>
 #include <ctype.h>
@@ -12,6 +13,7 @@
 #include "resources.h"
 
 static void *_dwib_builder = NULL;
+char *_dwib_image_root = NULL;
 
 /* Enable builder mode when linked to the main application. */
 void _dwib_builder_toggle(void *val)
@@ -1030,6 +1032,16 @@ int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dat
     return retval;
 }
 
+/* Internal helper function to combine two paths */
+char *_dwib_combine_path(int len, char *val, char *file)
+{
+    strcpy(file, _dwib_image_root);
+    if(_dwib_image_root[len] != '/' && _dwib_image_root[len] != '\\')
+        strcat(file, DIRSEP);
+    strcat(file, val);
+    return file;
+}
+
 /*
  * Loads a part of a window layout specified by dataname with the specified window name from an XML tree and packs it into box at index.
  * Parameters:
@@ -1135,6 +1147,41 @@ void API dwib_close(DWIB handle)
 {
     xmlDocPtr doc = handle;
     xmlFreeDoc(doc);
+}
+
+/*
+ * Update the location of the image root for locating image files.
+ * Parameters:
+ *       path: Directory to be used relative to image file location.
+ * Returns:
+ *       DW_ERROR_NONE if found was found and selected, or DW_ERROR_GENERAL.
+ */
+int API dwib_image_root_set(char *path)
+{
+    char *oldroot = _dwib_image_root;
+
+    /* TODO: Make sure the path exists and fail if it doesn't */
+    if(path && *path)
+        _dwib_image_root = strdup(path);
+    else
+        _dwib_image_root = NULL;
+
+    if(oldroot)
+        free(oldroot);
+
+    return DW_ERROR_NONE;
+}
+
+/*
+ * Update the locale used when identifying locating strings during creation.
+ * Parameters:
+ *       loc: String locale identifier, such as "en_US"
+ * Returns:
+ *       DW_ERROR_NONE if locale was found and selected, or DW_ERROR_GENERAL.
+ */
+int API dwib_locale_set(char *loc)
+{
+    return DW_ERROR_GENERAL;
 }
 
 /*

@@ -11,23 +11,14 @@
 #include "dwib_int.h"
 #include "dwib.h"
 
-HWND hwndToolbar, hwndProperties;
+HWND hwndToolbar, hwndProperties, hwndImages = 0, hwndStrings = 0, hwndAbout = 0;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 char *DWFilename = NULL;
 HICN hIcons[20];
 HMENUI menuWindows;
 int AutoExpand = FALSE, PropertiesInspector = TRUE, LivePreview = TRUE, BitmapButtons = TRUE;
-
-/* Compiler specific stuff, this should probably go elsewhere */
-#ifdef MSVC
-#define snprintf _snprintf
-#endif
-
-#if defined(__IBMC__) || defined(__WATCOMC__) || (defined(__WIN32__) && !defined(__CYGWIN32__))
-#undef mkdir
-#define mkdir(a,b) mkdir(a)
-#endif
+extern char *_dwib_image_root;
 
 char *Classes[] =
 {
@@ -1280,8 +1271,9 @@ void _dwib_title(HWND scrollbox, char *title)
     HWND hbox = dw_box_new(DW_HORZ, 0);
 
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, 24, 24, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - 24, PROPERTIES_HEIGHT, TRUE, TRUE, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - 48, PROPERTIES_HEIGHT, TRUE, TRUE, 0);
     item = dw_bitmapbutton_new("Refresh Preview Widget", ICON_REFRESH);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_box_pack_start(hbox, item, 24, 24, FALSE, FALSE, 0);
@@ -4197,6 +4189,7 @@ int DWSIGNAL open_clicked(HWND button, void *data)
         if(filename && (doc = xmlParseFile(filename)))
         {
             char *tmpptr, *oldfilename = DWFilename;
+            xmlNodePtr imageNode;
             
             /* Make sure no preview windows are open */
             destroyPreviews();
@@ -4222,6 +4215,14 @@ int DWSIGNAL open_clicked(HWND button, void *data)
             dw_free(filename);
             /* Update the window title */
             setTitle();
+            /* Update the path from the file */
+            if((imageNode = _dwib_find_child(xmlDocGetRootElement(DWDoc), "ImageRoot")))
+            {
+                char *val = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
+                
+                if(val)
+                    dwib_image_root_set(val);
+            }
         }
     }
     return FALSE;
@@ -5053,17 +5054,23 @@ int DWSIGNAL expand_all_clicked(HWND button, void *data)
 /* Generic window close handler */
 int DWSIGNAL generic_delete(HWND window, void *data)
 {
-    HWND item = (HWND)data;
+    HWND item = data ? (HWND)data : window;
     HWND menu = (HWND)dw_window_get_data(item ? item : window, "dwib_menu");
     
     /* Destroy associated menu if any */ 
     if(menu)
         dw_window_destroy(menu);
     
-    if(item)
-        dw_window_destroy(item);
-    else
-        dw_window_destroy(window);
+    /* Destroy the window */
+    dw_window_destroy(item);
+    
+    /* If it is one of our single windows...
+     * then reset the global handle to 0
+     */
+    if(item == hwndAbout)
+        hwndAbout = 0;
+    else if(item == hwndStrings)
+        hwndStrings = 0;
     return FALSE;
 }
 
@@ -5157,40 +5164,320 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
 /* Handle creating about box */
 int DWSIGNAL about_clicked(HWND button, void *data)
 {
-    /* We have access to the HTML widget so create a browser window */
-    HWND window = dw_window_new(DW_DESKTOP, "About", DW_FCF_COMPOSITED |
-                                DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_DLGBORDER);
-    HWND vbox = dw_box_new(DW_VERT, 0);
-    HWND hbox = dw_box_new(DW_HORZ, 0);
-    HWND item = dw_text_new(DWIB_NAME, 0);
-    char verbuf[100] = {0};
+    if(hwndAbout)
+        dw_window_show(hwndAbout);
+    else 
+    {
+        /* We have access to the HTML widget so create a browser window */
+        HWND vbox = dw_box_new(DW_VERT, 0);
+        HWND hbox = dw_box_new(DW_HORZ, 0);
+        HWND item = dw_text_new(DWIB_NAME, 0);
+        char verbuf[100] = {0};
+        
+        hwndAbout = dw_window_new(DW_DESKTOP, "About", DW_FCF_COMPOSITED |
+                                  DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_DLGBORDER);
+        
+        /* About text */
+        dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
+        dw_box_pack_start(hwndAbout, vbox, 0, 0, TRUE, TRUE, 0);
+        dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
+        item = dw_text_new("Brian Smith © 2011-2012", 0);
+        dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
+        dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
+        sprintf(verbuf, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
+        item = dw_text_new(verbuf, 0);
+        dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
+        dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
+        
+        /* Button box */
+        dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+        item = dw_button_new("Ok", 0);
+        dw_box_pack_start(hbox, item, 60, -1, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+        
+        /* Delete handlers */
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(generic_delete), DW_POINTER(hwndAbout));
+        dw_signal_connect(hwndAbout, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(generic_delete), NULL);
+        
+        dw_window_set_size(hwndAbout, 250, 120);
+        dw_window_show(hwndAbout);
+    }
+    return FALSE;
+}
+
+/* Handle browsing for a image root folder */
+int DWSIGNAL image_browse_clicked(HWND button, void *data)
+{
+    HWND window = (HWND)data;
+    HWND entry = (HWND)dw_window_get_data(window, "_dwib_directory");
+    char *picked;
     
-    /* About text */
-    dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
-    dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
-    dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-    item = dw_text_new("Brian Smith © 2011-2012", 0);
-    dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
-    dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-    sprintf(verbuf, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
-    item = dw_text_new(verbuf, 0);
-    dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
-    dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-    dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
+    if(entry && (picked = dw_file_browse("Pick developer images folder:", "", "", DW_DIRECTORY_OPEN)))
+    {
+        xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+        xmlNodePtr imageNode = _dwib_find_child(rootNode, "ImageRoot");
+        
+        /* Create or update the node with the new image root */
+        if(!imageNode)
+            imageNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"ImageRoot", (xmlChar *)picked);
+        else
+            xmlNodeSetContent(imageNode, (xmlChar *)picked);
+            
+        /* Update the UI and internal loading */
+        dw_window_set_text(entry, picked);
+        dwib_image_root_set(picked);
+        dw_free(picked);
+    }
+    return TRUE;
+}
+
+/* Handle browsing for a image root folder */
+int DWSIGNAL image_add_clicked(HWND button, void *data)
+{
+    HWND window = (HWND)data;
+    HWND entry = (HWND)dw_window_get_data(window, "_dwib_directory");
+    HWND cont = (HWND)dw_window_get_data(window, "_dwib_imagelist");
+    char *file, *path = dw_window_get_text(entry);
     
-    /* Button box */
-    dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
-    item = dw_button_new("Ok", 0);
-    dw_box_pack_start(hbox, item, 60, -1, FALSE, FALSE, 0);
-    dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+    /* Try to select an image file */
+    if((file = dw_file_browse("Pick an image file:", path, NULL, DW_FILE_OPEN)) != NULL)
+    {
+        if(*file)
+        {
+            HICN icon = dw_icon_load_from_file(file);
+            int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+            void *continfo = dw_container_alloc(cont, 1);
+            xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+            xmlNodePtr imageNode;
+            unsigned long iid = 0;
+            char *val = file, *embedded = "No";
+            
+            /* Add a new image node */
+            if(len && strlen(file) > len && memcmp(file, _dwib_image_root, len) == 0)
+            {
+                val = &file[len];
+                /* Push past any initial separator */
+                if(*val == '/' || *val == '\\')
+                    val++;
+            }
+                
+            imageNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"Image", (xmlChar *)val);
+            val = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
+            
+            dw_filesystem_set_file(cont, continfo, 0, val ? val : "", icon);
+            dw_filesystem_set_item(cont, continfo, 0, 0, &iid);
+            dw_filesystem_set_item(cont, continfo, 1, 0, &embedded);
+            dw_container_set_row_data(continfo, 0, imageNode);
+            
+            /* Actually insert and optimize */
+            dw_container_insert(cont, continfo, 1);
+            dw_container_optimize(cont);
+        }
+        dw_free(file);
+    }
+    if(path)
+        dw_free(path);
+    return TRUE;
+}
+
+/* Handle browsing for a image root folder */
+int DWSIGNAL image_rem_clicked(HWND button, void *data)
+{
+    HWND window = (HWND)data;
+    HWND cont = (HWND)dw_window_get_data(window, "_dwib_imagelist");
+    xmlNodePtr selectedNode = (xmlNodePtr)dw_container_query_start(cont, DW_CRA_SELECTED);
     
-    /* Delete handlers */
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(generic_delete), DW_POINTER(window));
-    dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(generic_delete), NULL);
+    /* See if anything is selected */
+    if(selectedNode)
+    {
+        /* Remove the selected row from the container */
+        dw_container_delete_row(cont, (char *)selectedNode);
+        /* Unlink and free the node from the XML */
+        xmlUnlinkNode(selectedNode);
+        xmlFreeNode(selectedNode);
+    }
+    return TRUE;
+}
+
+/* Handle closing the image view window */
+int DWSIGNAL image_view_delete(HWND window, xmlNodePtr imageNode)
+{
+    if(imageNode)
+        imageNode->_private = NULL;
+    dw_window_destroy(window);
+    return TRUE;
+}
+
+/* Open a dialog for extra info on an image */
+int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
+{
+    char *file = imageNode ? (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1) : NULL;
+
+    /* If an image view for this image is already open... */
+    if(imageNode && imageNode->_private)
+        dw_window_show((HWND)imageNode->_private);
+    else if(file && *file)
+    {
+        /* Create a new image view window */
+        HWND window = dw_window_new(DW_DESKTOP, file, DW_FCF_MINMAX |
+                                    DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
+        HWND vbox = dw_box_new(DW_VERT, 0);
+        HWND hbox = dw_box_new(DW_HORZ, 0);
+        HWND item = dw_text_new("Image ID: ", 0);
+        xmlNodePtr node = _dwib_find_child(imageNode, "ImageID");
+        int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+        char *val;
+        
+        /* Save the preview window on the node */
+        imageNode->_private = DW_POINTER(window);
+        
+        /* First row... Image ID and Embedded */
+        dw_window_set_style(item, DW_DT_CENTER | DW_DT_VCENTER, DW_DT_CENTER | DW_DT_VCENTER);
+        dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
+        dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, item, -1, -1, FALSE, TRUE, 0);
+        val = node ? (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1) : NULL;
+        item = dw_spinbutton_new(val ? val : "0", 0);
+        dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_window_set_data(window, "_dwib_imageid", DW_POINTER(item));
+        item = dw_checkbox_new("Embedded", 0);
+        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+        dw_window_set_data(window, "_dwib_embedded", DW_POINTER(item));
+        if(_dwib_find_child(imageNode, "Embedded"))
+            dw_checkbox_set(item, TRUE);
+
+        /* Create the preview */
+        item = dw_bitmap_new(0);
+        if(len && file)
+            file = _dwib_combine_path(len, file, alloca(len + strlen(file) + 2));
+        dw_window_set_bitmap(item, 0, file);
+        dw_box_pack_start(vbox, item, -1, -1, TRUE, TRUE, 0);
+
+        /* Connect signal handlers */
+        dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(image_view_delete), DW_POINTER(imageNode));
+        
+        dw_window_set_size(window, 0, 0);
+        dw_window_show(window);
+    }
+    return TRUE;
+}
+
+/* Handle closing the image manager window */
+int DWSIGNAL image_manager_delete(HWND item, void *data)
+{
+    HWND window = data ? (HWND)data : item;
+    xmlNodePtr imageNode, rootNode = xmlDocGetRootElement(DWDoc);
     
-    dw_window_set_size(window, 250, 120);
-    dw_window_show(window);
+    hwndImages = 0;
+    
+    /* Destroy any preview windows */
+    imageNode = rootNode->children;
+    while(imageNode)
+    {
+        if(imageNode->name && strcmp((char *)imageNode->name, "Image") == 0 && imageNode->_private)
+        {
+            dw_window_destroy((HWND)imageNode->_private);
+            imageNode->_private = NULL;
+        }
+        imageNode=imageNode->next;
+    }
+    dw_window_destroy(window);
+    return TRUE;
+}
+
+/* Handle creating image manager */
+int DWSIGNAL image_manager_clicked(HWND button, void *data)
+{
+    if(hwndImages)
+        dw_window_show(hwndImages);
+    else 
+    {
+        /* We have access to the HTML widget so create a browser window */
+        HWND vbox = dw_box_new(DW_VERT, 0);
+        HWND hbox = dw_box_new(DW_HORZ, 0);
+        HWND item = dw_text_new("Developer Image Root: ", 0);
+        char *colnames[] = { "Image ID", "Embedded" };
+        unsigned long coltypes[] = {   
+                DW_CFA_ULONG | DW_CFA_RIGHT | DW_CFA_HORZSEPARATOR | DW_CFA_SEPARATOR,
+                DW_CFA_STRING | DW_CFA_LEFT | DW_CFA_HORZSEPARATOR | DW_CFA_SEPARATOR };     
+        xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+        xmlNodePtr imageNode = _dwib_find_child(rootNode, "ImageRoot");
+        char *val = imageNode ? (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1) : NULL;
+        int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+        
+        hwndImages = dw_window_new(DW_DESKTOP, "Image Manager", DW_FCF_COMPOSITED | DW_FCF_MINMAX |
+                                   DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
+        
+        /* Developer Image Root Row */
+        dw_window_set_style(item, DW_DT_CENTER | DW_DT_VCENTER, DW_DT_CENTER | DW_DT_VCENTER);
+        dw_box_pack_start(hwndImages, vbox, 0, 0, TRUE, TRUE, 0);
+        dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, item, -1, -1, FALSE, TRUE, 0);
+        item = dw_entryfield_new(val ? val : "", 0);
+        dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_window_set_data(hwndImages, "_dwib_directory", DW_POINTER(item));
+        item = dw_button_new("Browse", 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_browse_clicked), DW_POINTER(hwndImages));
+        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+        
+        /* Image list container */
+        item = dw_container_new(0, FALSE);
+        dw_box_pack_start(vbox, item, -1, -1, TRUE, TRUE, 0);
+        dw_filesystem_setup(item, coltypes, colnames, 2);
+        dw_window_set_data(hwndImages, "_dwib_imagelist", DW_POINTER(item));
+        /* Populate the container */
+        imageNode = rootNode->children;
+        while(imageNode)
+        {
+            if(imageNode->name && strcmp((char *)imageNode->name, "Image") == 0)
+            {
+                void *continfo = dw_container_alloc(item, 1);
+                unsigned long iid = 0;
+                char *embedded = "No";
+                char *val = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
+                char *file = val;
+                HICN icon;
+                
+                if(len && val)
+                    file = _dwib_combine_path(len, val, alloca(len + strlen(val) + 2));
+                
+                icon = file ? dw_icon_load_from_file(file) : 0;
+                
+                dw_filesystem_set_file(item, continfo, 0, val ? val : "", icon);
+                dw_filesystem_set_item(item, continfo, 0, 0, &iid);
+                dw_filesystem_set_item(item, continfo, 1, 0, &embedded);
+                dw_container_set_row_data(continfo, 0, imageNode);
+                
+                /* Actually insert and optimize */
+                dw_container_insert(item, continfo, 1);
+            }
+            imageNode=imageNode->next;
+        }
+        dw_container_optimize(item);
+        dw_signal_connect(item, DW_SIGNAL_ITEM_ENTER, DW_SIGNAL_FUNC(image_view_enter), DW_POINTER(hwndImages));
+        
+        /* Button box */
+        hbox = dw_box_new(DW_HORZ, 0);
+        dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+        item = dw_button_new("+", 0);
+        dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_add_clicked), DW_POINTER(hwndImages));
+        item = dw_button_new("-", 0);
+        dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_rem_clicked), DW_POINTER(hwndImages));
+        dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+        item = dw_button_new("Done", 0);
+        dw_box_pack_start(hbox, item, -1, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        
+        /* Delete handlers */
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_manager_delete), DW_POINTER(hwndImages));
+        dw_signal_connect(hwndImages, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(image_manager_delete), NULL);
+        
+        dw_window_set_size(hwndImages, 450, 400);
+        dw_window_show(hwndImages);
+    }
     return FALSE;
 }
 
@@ -5471,6 +5758,8 @@ void dwib_init(void)
     menuWindows = dw_menu_new(0);
     item = dw_menu_append_item(menuWindows, "Properties Inspector", DW_MENU_AUTO, PropertiesInspector ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(properties_inspector_clicked), NULL);
+    item = dw_menu_append_item(menuWindows, "Image Manager", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_manager_clicked), NULL);
     item = dw_menu_append_item(menuWindows, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(menu, "~Windows", DW_MENU_AUTO, 0, TRUE, FALSE, menuWindows);
     

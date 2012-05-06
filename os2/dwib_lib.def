@@ -10,11 +10,16 @@ DATA NONSHARED LOADONCALL
 EXPORTS
   dwib_open                              @10
   dwib_open_from_data                    @11
-  
+
   dwib_close                             @20
-  
+
   dwib_load                              @30
   dwib_load_at_index                     @31
-  
+
   dwib_show                              @40
 
+  dwib_image_root_set                    @50
+
+  dwib_locale_set                        @60
+
+  dwib_window_get_handle                 @70
