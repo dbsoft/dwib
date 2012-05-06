@@ -4216,7 +4216,7 @@ int DWSIGNAL open_clicked(HWND button, void *data)
             /* Update the window title */
             setTitle();
             /* Update the path from the file */
-            if((imageNode = _dwib_find_child(DWCurrNode, "ImageRoot")))
+            if((imageNode = _dwib_find_child(xmlDocGetRootElement(DWDoc), "ImageRoot")))
             {
                 char *val = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
                 
