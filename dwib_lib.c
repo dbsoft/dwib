@@ -4,6 +4,7 @@
  */
 
 #include <dw.h>
+#include <dwcompat.h>
 #include <libxml/tree.h>
 #include <string.h>
 #include <ctype.h>
@@ -1029,6 +1030,16 @@ int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dat
             return retval;
     }
     return retval;
+}
+
+/* Internal helper function to combine two paths */
+char *_dwib_combine_path(int len, char *val, char *file)
+{
+    strcpy(file, _dwib_image_root);
+    if(_dwib_image_root[len] != '/' && _dwib_image_root[len] != '\\')
+        strcat(file, DIRSEP);
+    strcat(file, val);
+    return file;
 }
 
 /*

@@ -4189,6 +4189,7 @@ int DWSIGNAL open_clicked(HWND button, void *data)
         if(filename && (doc = xmlParseFile(filename)))
         {
             char *tmpptr, *oldfilename = DWFilename;
+            xmlNodePtr imageNode;
             
             /* Make sure no preview windows are open */
             destroyPreviews();
@@ -4214,6 +4215,14 @@ int DWSIGNAL open_clicked(HWND button, void *data)
             dw_free(filename);
             /* Update the window title */
             setTitle();
+            /* Update the path from the file */
+            if((imageNode = _dwib_find_child(DWCurrNode, "ImageRoot")))
+            {
+                char *val = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
+                
+                if(val)
+                    dwib_image_root_set(val);
+            }
         }
     }
     return FALSE;
@@ -5243,13 +5252,20 @@ int DWSIGNAL image_add_clicked(HWND button, void *data)
             xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
             xmlNodePtr imageNode;
             unsigned long iid = 0;
-            char *val, *embedded = "No";
+            char *val = file, *embedded = "No";
             
             /* Add a new image node */
-            imageNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"Image", (xmlChar *)file);
+            if(len && strlen(file) > len && memcmp(file, _dwib_image_root, len) == 0)
+            {
+                val = &file[len];
+                /* Push past any initial separator */
+                if(*val == '/' || *val == '\\')
+                    val++;
+            }
+                
+            imageNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"Image", (xmlChar *)val);
             val = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
             
-            /* TODO: Create a relative path from _dwib_image_root */
             dw_filesystem_set_file(cont, continfo, 0, val ? val : "", icon);
             dw_filesystem_set_item(cont, continfo, 0, 0, &iid);
             dw_filesystem_set_item(cont, continfo, 1, 0, &embedded);
@@ -5311,6 +5327,7 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
         HWND hbox = dw_box_new(DW_HORZ, 0);
         HWND item = dw_text_new("Image ID: ", 0);
         xmlNodePtr node = _dwib_find_child(imageNode, "ImageID");
+        int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
         char *val;
         
         /* Save the preview window on the node */
@@ -5333,6 +5350,8 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
 
         /* Create the preview */
         item = dw_bitmap_new(0);
+        if(len && file)
+            file = _dwib_combine_path(len, file, alloca(len + strlen(file) + 2));
         dw_window_set_bitmap(item, 0, file);
         dw_box_pack_start(vbox, item, -1, -1, TRUE, TRUE, 0);
 
@@ -5386,6 +5405,7 @@ int DWSIGNAL image_manager_clicked(HWND button, void *data)
         xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
         xmlNodePtr imageNode = _dwib_find_child(rootNode, "ImageRoot");
         char *val = imageNode ? (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1) : NULL;
+        int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
         
         hwndImages = dw_window_new(DW_DESKTOP, "Image Manager", DW_FCF_COMPOSITED | DW_FCF_MINMAX |
                                    DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
@@ -5413,14 +5433,18 @@ int DWSIGNAL image_manager_clicked(HWND button, void *data)
         {
             if(imageNode->name && strcmp((char *)imageNode->name, "Image") == 0)
             {
-                int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
                 void *continfo = dw_container_alloc(item, 1);
                 unsigned long iid = 0;
                 char *embedded = "No";
                 char *val = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
-                HICN icon = val ? dw_icon_load_from_file(val) : 0;
+                char *file = val;
+                HICN icon;
                 
-                /* TODO: Create a relative path from _dwib_image_root */
+                if(len && val)
+                    file = _dwib_combine_path(len, val, alloca(len + strlen(val) + 2));
+                
+                icon = file ? dw_icon_load_from_file(file) : 0;
+                
                 dw_filesystem_set_file(item, continfo, 0, val ? val : "", icon);
                 dw_filesystem_set_item(item, continfo, 0, 0, &iid);
                 dw_filesystem_set_item(item, continfo, 1, 0, &embedded);
