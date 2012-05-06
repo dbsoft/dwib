@@ -6,6 +6,7 @@
 #include <dw.h>
 #include <dwcompat.h>
 #include <libxml/tree.h>
+#include <libxml/xmlwriter.h>
 #include <string.h>
 #include "resources.h"
 #include "dwib_int.h"
@@ -5294,6 +5295,12 @@ int DWSIGNAL image_rem_clicked(HWND button, void *data)
     {
         /* Remove the selected row from the container */
         dw_container_delete_row(cont, (char *)selectedNode);
+        /* Destroy any preview windows attached to this image */
+        if(selectedNode->_private)
+            dw_window_destroy((HWND)selectedNode->_private);
+        /* Free any cached icons */
+        if(selectedNode->psvi)
+            dw_icon_free((HICN)selectedNode->psvi);
         /* Unlink and free the node from the XML */
         xmlUnlinkNode(selectedNode);
         xmlFreeNode(selectedNode);
@@ -5301,9 +5308,159 @@ int DWSIGNAL image_rem_clicked(HWND button, void *data)
     return TRUE;
 }
 
+/* Populate or repopulate the image list */
+void populateImages(HWND item, xmlNodePtr rootNode)
+{
+    int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+    xmlNodePtr imageNode = rootNode->children;
+    
+    while(imageNode)
+    {
+        if(imageNode->name && strcmp((char *)imageNode->name, "Image") == 0)
+        {
+            void *continfo = dw_container_alloc(item, 1);
+            unsigned long iid = 0;
+            char *embedded = "No";
+            char *val = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
+            char *file = val;
+            HICN icon = (HICN)imageNode->psvi;
+            xmlNodePtr node = _dwib_find_child(imageNode, "ImageID");
+            
+            /* Combine the image root and the relative path */
+            if(len && val)
+                file = _dwib_combine_path(len, val, alloca(len + strlen(val) + 2));
+            
+            /* If we don't have a cached icon... */
+            if(!icon)
+            {
+                /* Attempt to load one from the file */
+                icon = file ? dw_icon_load_from_file(file) : 0;
+                imageNode->psvi = DW_POINTER(icon);
+            }
+            
+            /* Load the Icon ID if available */
+            if(node && (val = (char *)xmlNodeListGetString(DWDoc, node->children, 1)) != NULL)
+                iid = atoi(val);
+            
+            /* Check for embedded data */
+            if(_dwib_find_child(imageNode, "Embedded"))
+                embedded = "Yes";
+                
+            dw_filesystem_set_file(item, continfo, 0, val ? val : "", icon);
+            dw_filesystem_set_item(item, continfo, 0, 0, &iid);
+            dw_filesystem_set_item(item, continfo, 1, 0, &embedded);
+            dw_container_set_row_data(continfo, 0, imageNode);
+            
+            /* Actually insert the row */
+            dw_container_insert(item, continfo, 1);
+        }
+        imageNode=imageNode->next;
+    }
+    /* Finally optimize the container */
+    dw_container_optimize(item);
+}
+
 /* Handle closing the image view window */
 int DWSIGNAL image_view_delete(HWND window, xmlNodePtr imageNode)
 {
+    xmlNodePtr node = _dwib_find_child(imageNode, "ImageID");
+    HWND hitemid = (HWND)dw_window_get_data(window, "_dwib_imageid");
+    HWND hembed = (HWND)dw_window_get_data(window, "_dwib_embedded");
+    int iid = 0, newid = (int)dw_spinbutton_get_pos(hitemid);
+    int changed = 0, embedded = dw_checkbox_get(hembed);
+    char *val = NULL;
+    
+    /* Load the Icon ID if available */
+    if(node && (val = (char *)xmlNodeListGetString(DWDoc, node->children, 1)) != NULL)
+        iid = atoi(val);
+    
+    /* If the new ID is 0 and there is a node */
+    if(!newid && node)
+    {
+        /* Unlink and free the node from the XML */
+        xmlUnlinkNode(node);
+        xmlFreeNode(node);
+        changed = 1;
+    }
+    
+    /* If newid isn't 0 and it has changed */
+    if(newid && newid != iid)
+    {
+        char tmpbuf[10];
+        
+        snprintf(tmpbuf, 10, "%d", newid);
+        
+        if(!node)
+            node = xmlNewTextChild(imageNode, NULL, (xmlChar *)"ImageID", (xmlChar *)tmpbuf);
+        else
+            xmlNodeSetContent(node, (xmlChar *)tmpbuf);
+        changed = 1;
+    }
+    
+    /* Check for embedded data */
+    if((node = _dwib_find_child(imageNode, "Embedded")) != NULL && !embedded)
+    {
+        /* Unlink and free the node from the XML */
+        xmlUnlinkNode(node);
+        xmlFreeNode(node);
+        node = NULL;
+        changed = 1;
+    }
+    
+    /* Encode image data */
+    if(!node && embedded)
+    {
+        char *file = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
+        
+        if(file)
+        {
+            int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+            struct dwstat st;
+            
+            if(len)
+                file = _dwib_combine_path(len, file, alloca(len + strlen(file) + 2));
+                
+            /* Check to see if the file exists, and what the size is */
+            if(stat(file, &st) == 0 && st.st_size > 0)
+            {
+                /* Allocate a buffer to hold the contents and open the file */
+                char *imagedata = alloca(st.st_size);
+                int fd = open(file, O_RDONLY);
+                
+                if(fd != -1)
+                {
+                    /* Read the file data in and if successful... */
+                    if(read(fd, imagedata, st.st_size) == st.st_size)
+                    {
+                        /* Create a node and base 64 encode the image data on it */
+                        if((node = xmlNewTextChild(imageNode, NULL, (xmlChar *)"Embedded", (xmlChar *)"")) != NULL)
+                        {
+                            xmlTextWriterPtr writer = xmlNewTextWriterTree(DWDoc, node, 0);
+                            xmlTextWriterStartElement(writer, (xmlChar *)"node");
+                            xmlTextWriterWriteBase64(writer, imagedata, 0, st.st_size);
+                            xmlTextWriterEndElement(writer);
+                            xmlFreeTextWriter(writer);
+                            changed = 1;
+                        }
+                    }
+                    close(fd);
+                }
+            }
+        }
+    }
+    
+    /* If anything in the image has changed....
+     * repopulate the image list container.
+     */
+    if(changed)
+    {
+        HWND cont = (HWND)dw_window_get_data(hwndImages, "_dwib_imagelist");
+        
+        dw_container_clear(cont, FALSE);
+        populateImages(cont, xmlDocGetRootElement(DWDoc));
+    }
+    
+    /* Clean up and destroy window */
     if(imageNode)
         imageNode->_private = NULL;
     dw_window_destroy(window);
@@ -5340,6 +5497,8 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
         dw_box_pack_start(hbox, item, -1, -1, FALSE, TRUE, 0);
         val = node ? (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1) : NULL;
         item = dw_spinbutton_new(val ? val : "0", 0);
+        dw_spinbutton_set_limits(item, 2000, 0);
+        dw_spinbutton_set_pos(item, val ? atoi(val) : 0);
         dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
         dw_window_set_data(window, "_dwib_imageid", DW_POINTER(item));
         item = dw_checkbox_new("Embedded", 0);
@@ -5405,7 +5564,6 @@ int DWSIGNAL image_manager_clicked(HWND button, void *data)
         xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
         xmlNodePtr imageNode = _dwib_find_child(rootNode, "ImageRoot");
         char *val = imageNode ? (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1) : NULL;
-        int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
         
         hwndImages = dw_window_new(DW_DESKTOP, "Image Manager", DW_FCF_COMPOSITED | DW_FCF_MINMAX |
                                    DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
@@ -5428,34 +5586,7 @@ int DWSIGNAL image_manager_clicked(HWND button, void *data)
         dw_filesystem_setup(item, coltypes, colnames, 2);
         dw_window_set_data(hwndImages, "_dwib_imagelist", DW_POINTER(item));
         /* Populate the container */
-        imageNode = rootNode->children;
-        while(imageNode)
-        {
-            if(imageNode->name && strcmp((char *)imageNode->name, "Image") == 0)
-            {
-                void *continfo = dw_container_alloc(item, 1);
-                unsigned long iid = 0;
-                char *embedded = "No";
-                char *val = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
-                char *file = val;
-                HICN icon;
-                
-                if(len && val)
-                    file = _dwib_combine_path(len, val, alloca(len + strlen(val) + 2));
-                
-                icon = file ? dw_icon_load_from_file(file) : 0;
-                
-                dw_filesystem_set_file(item, continfo, 0, val ? val : "", icon);
-                dw_filesystem_set_item(item, continfo, 0, 0, &iid);
-                dw_filesystem_set_item(item, continfo, 1, 0, &embedded);
-                dw_container_set_row_data(continfo, 0, imageNode);
-                
-                /* Actually insert and optimize */
-                dw_container_insert(item, continfo, 1);
-            }
-            imageNode=imageNode->next;
-        }
-        dw_container_optimize(item);
+        populateImages(item, rootNode);
         dw_signal_connect(item, DW_SIGNAL_ITEM_ENTER, DW_SIGNAL_FUNC(image_view_enter), DW_POINTER(hwndImages));
         
         /* Button box */
