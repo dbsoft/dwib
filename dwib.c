@@ -5333,8 +5333,8 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
 
         /* Create the preview */
         item = dw_bitmap_new(0);
-        dw_box_pack_start(vbox, item, -1, -1, TRUE, TRUE, 0);
         dw_window_set_bitmap(item, 0, file);
+        dw_box_pack_start(vbox, item, -1, -1, TRUE, TRUE, 0);
 
         /* Connect signal handlers */
         dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(image_view_delete), DW_POINTER(imageNode));
