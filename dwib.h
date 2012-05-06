@@ -16,5 +16,6 @@ void API dwib_show(HWND window);
 DWIB API dwib_open_from_data(char *buffer, int size);
 DWIB API dwib_open(char *filename);
 void API dwib_close(DWIB handle);
+HWND API dwib_window_get_handle(HWND handle, char *dataname);
 
 #endif

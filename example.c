@@ -19,28 +19,28 @@ int main(int argc, char *argv[])
 {
     HWND window;
     DWIB handle;
-   
+
     /* Initialize Dynamic Windows */
     dw_init(TRUE, argc, argv);
-    
+
     /* Load the interface XML file */
     handle = dwib_open("example.xml");
-    
+
     /* Show an error if it fails to load */
     if(!handle)
     {
         dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "Unable to load the interface XML.");
         dw_exit(1);
     }
-    
+
     /* Create the loading window... */
     window = dwib_load(handle, "Test");
     dwib_show(window);
-    
+
     /* Connect the signal handlers */
     dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(exit_handler), NULL);
-    dw_signal_connect((HWND)dw_window_get_data(window, "quitmenu"), DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(exit_handler), NULL);
-         
+    dw_signal_connect(dwib_window_get_handle(window, "quitmenu"), DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(exit_handler), NULL);
+
     dw_main();
 
     /* Destroy the main window */

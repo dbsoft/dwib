@@ -25,7 +25,7 @@ void _dwib_builder_toggle(void *val)
 xmlNodePtr _dwib_find_child(xmlNodePtr node, char *name)
 {
     xmlNodePtr p = node ? node->children : NULL;
-    
+
     for(;p; p = p->next)
     {
         if(p->name && strcmp(name, (char *)p->name) == 0)
@@ -69,7 +69,7 @@ int xtoi(char c)
 int _dwib_get_color(char *color)
 {
     int x;
-    
+
     if(strcmp(color, "None") == 0)
         return DW_RGB_TRANSPARENT;
     for(x=0;x<16;x++)
@@ -94,7 +94,7 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
     char *thisval, *dataname = NULL;
     xmlNodePtr this;
     HWND splitbox = (HWND)dw_window_get_data(box, "_dwib_box1");
-    
+
     if((this = _dwib_find_child(node, "width")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         width = atoi(thisval);
     if((this = _dwib_find_child(node, "height")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -117,9 +117,9 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
     this = _dwib_find_child(node, "winfont");
 #elif defined(__UNIX__)
     this = _dwib_find_child(node, "unixfont");
-#else 
+#else
     this = NULL;
-#endif    
+#endif
     if((this || (this = _dwib_find_child(node, "font"))) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && strcmp(thisval, "Default"))
         dw_window_set_font(item, thisval);
     if((this = _dwib_find_child(node, "tooltip")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && *thisval)
@@ -128,10 +128,10 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
         fcolor = _dwib_get_color(thisval);
     if((this = _dwib_find_child(node, "bcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         bcolor = _dwib_get_color(thisval);
-    
+
     if(fcolor != DW_CLR_DEFAULT || bcolor != DW_CLR_DEFAULT)
         dw_window_set_color(item, fcolor, bcolor);
-   
+
     /* If it is a splitbox, find the correct sub-box */
     if(splitbox)
     {
@@ -142,12 +142,12 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
             return;
         count++;
         dw_window_set_data(box, "_dwib_count", DW_INT_TO_POINTER(count));
-        box = splitbox;                        
+        box = splitbox;
     }
     dw_box_pack_at_index(box, item, index, width, height, hexpand, vexpand, padding);
     /* Save the item handle in the psvi field */
     node->psvi = (void *)item;
-    
+
     if(dataname && window)
         dw_window_set_data(window, dataname, (void *)item);
 }
@@ -160,10 +160,10 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
     char *thisval;
     int flags = 0, orient = DW_HORZ;
     unsigned long pageid = dw_notebook_page_new(packbox, flags, FALSE);
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dw_notebook_page_set_status_text(packbox, pageid, thisval);
-    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) 
+    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1))
        && (atoi(thisval) || strcmp(thisval, "Vertical") == 0))
         orient = DW_VERT;
 
@@ -173,7 +173,7 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
     node->psvi = DW_POINTER(box);
     /* Save the page ID in the box data */
     dw_window_set_data(box, "_dwib_pageid", DW_INT_TO_POINTER(pageid));
-    
+
     if((this = _dwib_find_child(node, "title")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dw_notebook_page_set_text(packbox, pageid, thisval);
     return box;
@@ -186,12 +186,12 @@ HWND _dwib_notebook_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
     xmlNodePtr this = _dwib_find_child(node, "position");
     char *thisval;
     int top = 1;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && strcmp(thisval, "Bottom") == 0)
         top = 0;
-    
+
     notebook = dw_notebook_new(0, top);
-    
+
     _dwib_item_pack(node, doc, window, packbox, notebook, index);
     return notebook;
 }
@@ -203,7 +203,7 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *title = "";
     int orient = DW_HORZ, padding = 0, type = 0, splitper = 50;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Group") == 0)
@@ -215,12 +215,12 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
     }
     if((this = _dwib_find_child(node, "title")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         title = thisval;
-    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) 
+    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1))
        && (atoi(thisval) || strcmp(thisval, "Vertical") == 0))
         orient = DW_VERT;
     if((this = _dwib_find_child(node, "splitper")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
         splitper = atoi(thisval);
-    
+
     switch(type)
     {
         case 0:
@@ -253,7 +253,7 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *setting = "";
     int type = 0;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Bitmap") == 0)
@@ -265,7 +265,7 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     }
     if((this = _dwib_find_child(node, "setting")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         setting = thisval;
-   
+
     switch(type)
     {
         case 0:
@@ -274,10 +274,10 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
         case 1:
         {
             int resid = atoi(setting);
-            
+
             if(_dwib_builder && resid)
                 resid = BITMAP_PLACEHOLD;
-            
+
             if(resid)
                 button = dw_bitmapbutton_new(NULL, resid);
             else
@@ -311,7 +311,7 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *label = "";
     int type = 0, flags = 0;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Status") == 0)
@@ -333,7 +333,7 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
         else if(strcmp(thisval, "Bottom") == 0)
             flags |= DW_DT_BOTTOM;
     }
-    
+
     switch(type)
     {
         case 0:
@@ -355,7 +355,7 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
 {
     xmlNodePtr p;
     int count = 0;
-    
+
     if(node)
     {
         for(p=node->children;p;p = p->next)
@@ -365,26 +365,26 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
                 count++;
             }
         }
-        
+
         if(count > 0)
         {
             char **colnames = calloc(sizeof(char *), count);
             unsigned long *colflags = calloc(sizeof(unsigned long), count);
             count = 0;
-            
+
             for(p=node->children;p;p = p->next)
             {
                 if(strcmp((char *)p->name, "Item") == 0)
                 {
                     char *thisval;
-                    
+
                     if((thisval = (char *)xmlNodeListGetString(doc, p->children, 1)))
                     {
                         char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
                         char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
                         unsigned long ctype = DW_CFA_STRING;
                         unsigned long calign = DW_CFA_LEFT;
-                        
+
                         if(coltype)
                         {
                             if(strcmp(coltype, "Icon") == 0)
@@ -423,7 +423,7 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
         }
     }
     /* If we don't have columns but we are a filesystem... */
-    if(count == 0 && type == 1) 
+    if(count == 0 && type == 1)
         dw_filesystem_setup(container, NULL, NULL, 0);
 }
 
@@ -435,7 +435,7 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     char *thisval;
     int type = 0, multi = 0, splitcol = 0;
     unsigned long oddcolor = DW_RGB_TRANSPARENT, evencolor = DW_RGB_TRANSPARENT;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Filesystem") == 0)
@@ -445,21 +445,21 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
         multi = atoi(thisval);
     if((this = _dwib_find_child(node, "splitcol")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         splitcol = atoi(thisval);
-    
+
     container = dw_container_new(0, multi);
-    
+
     /* If we have columns set them up */
     if((this = _dwib_find_child(node, "Columns")))
         _dwib_populate_container(container, this, doc, type, splitcol);
-        
+
     if((this = _dwib_find_child(node, "oddcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         oddcolor = _dwib_get_color(thisval);
     if((this = _dwib_find_child(node, "evencolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         evencolor = _dwib_get_color(thisval);
-    
+
     if(oddcolor != DW_RGB_TRANSPARENT || evencolor != DW_RGB_TRANSPARENT)
         dw_container_set_stripe(container, oddcolor, evencolor);
-    
+
     _dwib_item_pack(node, doc, window, packbox, container, index);
     return container;
 }
@@ -471,7 +471,7 @@ HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *pos = "";
     int type = 0, upper = 100, lower = 0, position = 0, orient = DW_HORZ;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Slider") == 0)
@@ -486,7 +486,7 @@ HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
         pos = thisval;
         position = atoi(pos);
     }
-    
+
     switch(type)
     {
         case 0:
@@ -506,7 +506,7 @@ HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             ranged = dw_spinbutton_new(pos, 0);
             dw_spinbutton_set_limits(ranged, upper, lower);
             break;
-            
+
     }
     if(ranged)
         _dwib_item_pack(node, doc, window, packbox, ranged, index);
@@ -520,7 +520,7 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
     xmlNodePtr this = _dwib_find_child(node, "subtype");
     char *thisval, *deftext = "";
     int type = 0;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Password") == 0)
@@ -528,7 +528,7 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
     }
     if((this = _dwib_find_child(node, "deftext")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         deftext = thisval;
-    
+
     switch(type)
     {
         case 0:
@@ -538,10 +538,10 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
             entryfield = dw_entryfield_password_new(deftext, 0);
             break;
     }
-    
+
     if((this = _dwib_find_child(node, "deftext")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dw_entryfield_set_limit(entryfield, atoi(thisval));
-    
+
     if(entryfield)
         _dwib_item_pack(node, doc, window, packbox, entryfield, index);
     return entryfield;
@@ -551,13 +551,13 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
 void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc)
 {
     xmlNodePtr p;
-    
+
     for(p=node->children;p;p = p->next)
     {
         if(strcmp((char *)p->name, "Item") == 0)
         {
             char *thisval;
-            
+
             if((thisval = (char *)xmlNodeListGetString(doc, p->children, 1)))
             {
                 dw_listbox_append(list, thisval);
@@ -572,17 +572,17 @@ HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
     HWND combobox;
     xmlNodePtr this = _dwib_find_child(node, "deftext");
     char *thisval, *deftext = "";
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         deftext = thisval;
-    
+
     combobox = dw_combobox_new(deftext, 0);
-    
+
     _dwib_item_pack(node, doc, window, packbox, combobox, index);
-    
+
     if((this = _dwib_find_child(node, "List")))
         _dwib_populate_list(combobox, this, doc);
-                            
+
     return combobox;
 }
 
@@ -590,15 +590,15 @@ HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
 HWND _dwib_tree_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND tree = dw_tree_new(0);
-    
+
     _dwib_item_pack(node, doc, window, packbox, tree, index);
-    
+
     /* If in builder mode... */
     if(_dwib_builder)
     {
         /* Pack in some dummy items so people can see it is a tree */
         HTREEITEM root = dw_tree_insert(tree, "Root", 0, 0, NULL);
-        
+
         dw_tree_insert(tree, "Child", 0, root, NULL);
         dw_tree_item_expand(tree, root);
     }
@@ -609,9 +609,9 @@ HWND _dwib_tree_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
 HWND _dwib_render_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND render = dw_render_new(0);
-    
+
     _dwib_item_pack(node, doc, window, packbox, render, index);
-    
+
     if(_dwib_builder)
         dw_signal_connect(render, DW_SIGNAL_EXPOSE, DW_SIGNAL_FUNC(_dwib_builder), NULL);
     return render;
@@ -623,18 +623,18 @@ HWND _dwib_mle_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
     HWND mle;
     xmlNodePtr this = _dwib_find_child(node, "deftext");
     char *thisval, *deftext = "";
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         deftext = thisval;
     }
-    
+
     mle = dw_mle_new(0);
     dw_mle_import(mle, deftext, -1);
-    
+
    if((this = _dwib_find_child(node, "wordwrap")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
       dw_mle_set_word_wrap(mle, atoi(thisval));
-      
+
    _dwib_item_pack(node, doc, window, packbox, mle, index);
     return mle;
 }
@@ -645,12 +645,12 @@ HWND _dwib_html_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
     HWND html;
     xmlNodePtr this = _dwib_find_child(node, "URL");
     char *thisval;
-    
+
     html = dw_html_new(0);
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dw_html_url(html, thisval);
-    
+
     _dwib_item_pack(node, doc, window, packbox, html, index);
     return html;
 }
@@ -659,7 +659,7 @@ HWND _dwib_html_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
 HWND _dwib_calendar_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND calendar = dw_calendar_new(0);
-    
+
     _dwib_item_pack(node, doc, window, packbox, calendar, index);
     return calendar;
 }
@@ -671,7 +671,7 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     xmlNodePtr this = _dwib_find_child(node, "setting");
     char *thisval, *setting = "";
     int resid = 0;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         setting = thisval;
@@ -679,7 +679,7 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
         if(_dwib_builder && resid)
             resid = BITMAP_PLACEHOLD;
     }
-    
+
     bitmap = dw_bitmap_new(resid);
     if(setting && *setting && resid == 0)
         dw_window_set_bitmap(bitmap, resid, setting);
@@ -697,17 +697,17 @@ HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
     xmlNodePtr this = _dwib_find_child(node, "multi");
     char *thisval;
     int multi = 0;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         multi = atoi(thisval);
-    
+
     listbox = dw_listbox_new(0, multi);
-    
+
     if((this = _dwib_find_child(node, "List")))
         _dwib_populate_list(listbox, this, doc);
-    
+
     _dwib_item_pack(node, doc, window, packbox, listbox, index);
-    
+
     return listbox;
 }
 
@@ -718,7 +718,7 @@ HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packb
     xmlNodePtr this = _dwib_find_child(node, "title");
     char *thisval, *title = "", *dataname = NULL;
     int flags = 0, checkable = 0, menuid = 0;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         title = thisval;
     if((this = _dwib_find_child(node, "checkable")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -731,14 +731,14 @@ HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packb
         flags |= (atoi(thisval) ? DW_MIS_ENABLED : DW_MIS_DISABLED);
     if((this = _dwib_find_child(node, "dataname")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dataname = thisval;
-    
+
     menuitem = dw_menu_append_item(packbox, title, menuid, flags, TRUE, checkable, submenu);
     /* Save the menu item handle in the psvi field */
     node->psvi = (void *)menuitem;
-    
+
     if(dataname && window)
         dw_window_set_data(window, dataname, (void *)menuitem);
-    
+
     return menuitem;
 }
 
@@ -846,7 +846,7 @@ HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int
 {
     xmlNodePtr p = _dwib_find_child(node, "Children");
     HMENUI menu = 0;
-    
+
     for(p=p->children;p;p = p->next)
     {
         menu = _dwib_child(doc, window, box, windowlevel, p, menu, 65536);
@@ -863,7 +863,7 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     int bordersize = -1, orient = DW_HORZ, padding = 0;
     int x = -1, y = -1, width = -1, height = -1, hgravity = 0, vgravity = 0;
     HWND ret, box;
-    
+
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         title = thisval;
     if((this = _dwib_find_child(node, "bordersize")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -917,8 +917,8 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
         width = atoi(thisval);
     if((this = _dwib_find_child(node, "height")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         height = atoi(thisval);
-    
-    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) 
+
+    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1))
        && (atoi(thisval) || strcmp(thisval, "Vertical") == 0))
         orient = DW_VERT;
     if((this = _dwib_find_child(node, "padding")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -927,25 +927,25 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     ret = dw_window_new(DW_DESKTOP, title, flags);
     /* Save the window handle in the psvi field */
     node->psvi = (void *)ret;
-    
+
     /* Save the node pointer in the window data */
     dw_window_set_data(ret, "_dwib_node", (void *)node);
     dw_window_set_data(ret, "_dwib_x", DW_INT_TO_POINTER(x));
     dw_window_set_data(ret, "_dwib_y", DW_INT_TO_POINTER(y));
     dw_window_set_data(ret, "_dwib_width", DW_INT_TO_POINTER(width));
     dw_window_set_data(ret, "_dwib_height", DW_INT_TO_POINTER(height));
-    
+
     box = dw_box_new(orient, padding);
-    
+
     dw_box_pack_start(ret, box, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(ret, "_dwib_box", (void *)box);
-    
+
     if(bordersize != -1)
         dw_window_set_border(ret, bordersize);
-    
+
     if(hgravity || vgravity)
       dw_window_set_gravity(ret, hgravity, vgravity);
-      
+
     return ret;
 }
 
@@ -961,17 +961,17 @@ HWND API dwib_load(DWIB handle, char *name)
 {
     xmlDocPtr doc = handle;
     xmlNodePtr p, rootNode = xmlDocGetRootElement(doc);
-    
+
     if(!rootNode)
         return 0;
-    
+
     for(p=rootNode->children;p;p = p->next)
     {
         if(strcmp((char *)p->name, "Window") == 0)
         {
             xmlNodePtr this = _dwib_find_child(p, "title");
             char *val = (char *)xmlNodeListGetString(doc, this->children, 1);
-            
+
             if(val && strcmp(name, val) == 0)
             {
                 HWND window = _dwib_window_create(p, doc);
@@ -988,7 +988,7 @@ int _dwib_check_dataname(xmlNodePtr node, xmlDocPtr doc, char *dataname)
     char *thisval = NULL;
     xmlNodePtr this;
 
-    if((this = _dwib_find_child(node, "dataname")) && 
+    if((this = _dwib_find_child(node, "dataname")) &&
         (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) &&
         (strcmp(dataname, thisval) == 0))
         return TRUE;
@@ -1000,7 +1000,7 @@ int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dat
 {
     xmlNodePtr p = _dwib_find_child(node, "Children");
     int retval = DW_ERROR_GENERAL;
-    
+
     for(p=p->children;p;p = p->next)
     {
         if(_dwib_check_dataname(p, doc, dataname))
@@ -1046,17 +1046,17 @@ int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window,
 {
     xmlDocPtr doc = handle;
     xmlNodePtr p, rootNode = xmlDocGetRootElement(doc);
-    
+
     if(!rootNode)
         return DW_ERROR_GENERAL;
-    
+
     for(p=rootNode->children;p;p = p->next)
     {
         if(strcmp((char *)p->name, "Window") == 0)
         {
             xmlNodePtr this = _dwib_find_child(p, "title");
             char *val = (char *)xmlNodeListGetString(doc, this->children, 1);
-            
+
             if(val && strcmp(name, val) == 0)
             {
                 return _dwib_children_search(p, doc, window, dataname, box, index);
@@ -1074,7 +1074,7 @@ int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window,
 void API dwib_show(HWND window)
 {
     int x, y, width, height, hgravity, vgravity;
-    
+
     /* Get the loaded window settings set on the window handle */
     x = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_x"));
     y = DW_POINTER_TO_INT(dw_window_get_data(window, "_dwib_y"));
@@ -1087,15 +1087,15 @@ void API dwib_show(HWND window)
      * Position needs to be greater than -1 or
      * gravity needs to be set to CENTER.
      */
-    if(width >= 0 && height >= 0 && 
-      (x >= 0 || (hgravity & 0xf) == DW_GRAV_CENTER) && 
+    if(width >= 0 && height >= 0 &&
+      (x >= 0 || (hgravity & 0xf) == DW_GRAV_CENTER) &&
       (y >= 0 || (vgravity & 0xf) == DW_GRAV_CENTER))
         dw_window_set_pos_size(window, x, y, width, height);
     else if (width >= 0 && height >= 0)
         dw_window_set_size(window, width, height);
     else if(x >= 0 && y >= 0)
         dw_window_set_pos(window, x, y);
-    
+
     /* Finally show the window */
     dw_window_show(window);
 }
@@ -1135,4 +1135,17 @@ void API dwib_close(DWIB handle)
 {
     xmlDocPtr doc = handle;
     xmlFreeDoc(doc);
+}
+
+/*
+ * Gets the window handle for a named widget. Effectively a wrapper for dw_window_get_data()
+ * Parameters:
+ *       handle: A handle to a window.
+ *       name: The name of the widget who's handle is required.
+ * Returns:
+ *       A handle to a widget or NULL on failure.
+ */
+HWND API dwib_window_get_handle(HWND handle, char *dataname)
+{
+    return (HWND)dw_window_get_data(handle,dataname);
 }
