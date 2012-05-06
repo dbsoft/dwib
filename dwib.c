@@ -2344,6 +2344,37 @@ int DWSIGNAL button_create(HWND window, void *data)
     return FALSE;
 }
 
+/* Put all the available images in the properties list */
+void populateImageList(HWND item)
+{
+    xmlNodePtr this = xmlDocGetRootElement(DWDoc)->children;
+    
+    while(this)
+    {
+        if(this->name && strcmp((char *)this->name, "Image") == 0)
+        {
+            xmlNodePtr node = _dwib_find_child(this, "ImageID");
+            char *val, *file = (char *)xmlNodeListGetString(DWDoc, this->children, 1);
+            int iid = 0;
+            
+            /* Load the Icon ID if available */
+            if(node && (val = (char *)xmlNodeListGetString(DWDoc, node->children, 1)) != NULL)
+                iid = atoi(val);
+           
+            if(iid > 0)
+            {
+                char buf[201];
+                
+                snprintf(buf, 200, "%d - %s", iid, file);
+                dw_listbox_append(item, buf);
+            }
+            else if(file)
+                dw_listbox_append(item, file);
+        }
+        this=this->next;
+    }
+}
+
 /* Populate the properties window for a button */
 void DWSIGNAL properties_button(xmlNodePtr node)
 {
@@ -2385,6 +2416,7 @@ void DWSIGNAL properties_button(xmlNodePtr node)
                 val = "2";
             else if(strcmp(val, "Radio") == 0)
                 val = "3";
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -2420,9 +2452,11 @@ void DWSIGNAL properties_button(xmlNodePtr node)
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
     }
-    item = dw_entryfield_new(val ? val : "", 0);
+    item = dw_combobox_new(val ? val : "", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "setting", DW_POINTER(item));
+    /* Add possible images to the list */
+    populateImageList(item);
     /* Border */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -2660,9 +2694,11 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
         if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
             val = thisval;
     }
-    item = dw_entryfield_new(val ? val : "", 0);
+    item = dw_combobox_new(val ? val : "", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_window_set_data(vbox, "setting", DW_POINTER(item));
+    /* Add possible images to the list */
+    populateImageList(item);
     
     /* If it is a new window add button */
     if(!node)

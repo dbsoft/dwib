@@ -248,6 +248,55 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
     return box;
 }
 
+/* Locate the internal image based on resource ID and 
+ * return the correct path to it... if the image ID 
+ * was not found in the list, return a placeholder ID.
+ */
+char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc)
+{
+    xmlNodePtr this = xmlDocGetRootElement(doc)->children;
+    
+    while(this)
+    {
+        if(this->name && strcmp((char *)this->name, "Image") == 0)
+        {
+            xmlNodePtr node = _dwib_find_child(this, "ImageID");
+            char *val, *file = (char *)xmlNodeListGetString(doc, this->children, 1);
+            struct dwstat st;
+            int iid = 0;
+            
+            /* Load the Icon ID if available */
+            if(node && (val = (char *)xmlNodeListGetString(doc, node->children, 1)) != NULL)
+                iid = atoi(val);
+           
+            /* Found an image with the correct resource ID */
+            if(iid == *resid)
+            {
+                /* Generate a path to the file */
+                int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+            
+                if(len)
+                    file = _dwib_combine_path(len, file, malloc(len + strlen(file) + 2));
+                    
+                if(stat(file, &st) == 0)
+                {
+                    /* Found an image... set the resource ID to 0
+                     * and return the path to the image file.
+                     */
+                    *resid = 0;
+                    return file;
+                }
+                else
+                    free(file);
+            }
+        }
+        this=this->next;
+    }
+    /* Didn't find an image return placeholder */
+    *resid = BITMAP_PLACEHOLD;
+    return NULL;
+}
+
 /* Internal function for creating a button widget from an XML tree node */
 HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
@@ -274,16 +323,31 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             button = dw_button_new(setting, 0);
             break;
         case 1:
-        {
-            int resid = atoi(setting);
+            {
+                struct dwstat st;
+                int resid = atoi(setting);
+                char *freeme = NULL;
 
-            if(_dwib_builder && resid)
-                resid = BITMAP_PLACEHOLD;
+                /* If a resource ID wasn't specified... 
+                 * check to see if it is a file that exists...
+                 */
+                if(!resid && setting && *setting && stat(setting, &st) != 0)
+                {
+                    int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+                    
+                    if(len)
+                        setting = _dwib_combine_path(len, setting, alloca(len + strlen(setting) + 2));
+                }
+                else if(_dwib_builder && resid)
+                    freeme = setting = _dwib_builder_bitmap(&resid, doc);
 
-            if(resid)
-                button = dw_bitmapbutton_new(NULL, resid);
-            else
-                button = dw_bitmapbutton_new_from_file(NULL, 0, setting);
+                if(resid)
+                    button = dw_bitmapbutton_new(NULL, resid);
+                else
+                    button = dw_bitmapbutton_new_from_file(NULL, 0, setting);
+                    
+                if(freeme)
+                    free(freeme);
             }
             break;
         case 2:
@@ -671,15 +735,28 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
 {
     HWND bitmap;
     xmlNodePtr this = _dwib_find_child(node, "setting");
-    char *thisval, *setting = "";
+    char *thisval, *setting = "", *freeme = NULL;
     int resid = 0;
 
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
+        struct dwstat st;
+        
         setting = thisval;
         resid = atoi(setting);
-        if(_dwib_builder && resid)
-            resid = BITMAP_PLACEHOLD;
+        
+        /* If a resource ID wasn't specified... 
+         * check to see if it is a file that exists...
+         */
+        if(!resid && setting && *setting && stat(setting, &st) != 0)
+        {
+            int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+            
+            if(len)
+                setting = _dwib_combine_path(len, setting, alloca(len + strlen(setting) + 2));
+        }
+        else if(_dwib_builder && resid)
+            freeme = setting = _dwib_builder_bitmap(&resid, doc);
     }
 
     bitmap = dw_bitmap_new(resid);
@@ -689,6 +766,10 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
         dw_window_set_bitmap(bitmap, resid, NULL);
 
     _dwib_item_pack(node, doc, window, packbox, bitmap, index);
+    
+    /* Free memory allocated */
+    if(freeme)
+        free(freeme);
     return bitmap;
 }
 
@@ -1159,8 +1240,12 @@ void API dwib_close(DWIB handle)
 int API dwib_image_root_set(char *path)
 {
     char *oldroot = _dwib_image_root;
-
-    /* TODO: Make sure the path exists and fail if it doesn't */
+    struct dwstat st;
+        
+    /* Make sure the path exists and fail if it doesn't */
+    if(stat(path, &st) != 0)
+        return DW_ERROR_GENERAL;
+        
     if(path && *path)
         _dwib_image_root = strdup(path);
     else
