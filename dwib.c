@@ -5338,6 +5338,9 @@ void populateImages(HWND item, xmlNodePtr rootNode)
                 imageNode->psvi = DW_POINTER(icon);
             }
             
+            /* Save for later use */
+            file = val;
+            
             /* Load the Icon ID if available */
             if(node && (val = (char *)xmlNodeListGetString(DWDoc, node->children, 1)) != NULL)
                 iid = atoi(val);
@@ -5346,7 +5349,7 @@ void populateImages(HWND item, xmlNodePtr rootNode)
             if(_dwib_find_child(imageNode, "Embedded"))
                 embedded = "Yes";
                 
-            dw_filesystem_set_file(item, continfo, 0, val ? val : "", icon);
+            dw_filesystem_set_file(item, continfo, 0, file ? file : "", icon);
             dw_filesystem_set_item(item, continfo, 0, 0, &iid);
             dw_filesystem_set_item(item, continfo, 1, 0, &embedded);
             dw_container_set_row_data(continfo, 0, imageNode);
@@ -5433,15 +5436,12 @@ int DWSIGNAL image_view_delete(HWND window, xmlNodePtr imageNode)
                     if(read(fd, imagedata, st.st_size) == st.st_size)
                     {
                         /* Create a node and base 64 encode the image data on it */
-                        if((node = xmlNewTextChild(imageNode, NULL, (xmlChar *)"Embedded", (xmlChar *)"")) != NULL)
-                        {
-                            xmlTextWriterPtr writer = xmlNewTextWriterTree(DWDoc, node, 0);
-                            xmlTextWriterStartElement(writer, (xmlChar *)"node");
-                            xmlTextWriterWriteBase64(writer, imagedata, 0, st.st_size);
-                            xmlTextWriterEndElement(writer);
-                            xmlFreeTextWriter(writer);
-                            changed = 1;
-                        }
+                        xmlTextWriterPtr writer = xmlNewTextWriterTree(DWDoc, imageNode, 0);
+                        xmlTextWriterStartElement(writer, (xmlChar *)"Embedded");
+                        xmlTextWriterWriteBase64(writer, imagedata, 0, st.st_size);
+                        xmlTextWriterEndElement(writer);
+                        xmlFreeTextWriter(writer);
+                        changed = 1;
                     }
                     close(fd);
                 }
@@ -5495,7 +5495,7 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
         dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
         dw_box_pack_start(hbox, item, -1, -1, FALSE, TRUE, 0);
-        val = node ? (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1) : NULL;
+        val = node ? (char *)xmlNodeListGetString(DWDoc, node->children, 1) : NULL;
         item = dw_spinbutton_new(val ? val : "0", 0);
         dw_spinbutton_set_limits(item, 2000, 0);
         dw_spinbutton_set_pos(item, val ? atoi(val) : 0);
