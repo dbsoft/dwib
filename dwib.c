@@ -5464,7 +5464,7 @@ int DWSIGNAL image_view_delete(HWND window, xmlNodePtr imageNode)
             {
                 /* Allocate a buffer to hold the contents and open the file */
                 char *imagedata = alloca(st.st_size);
-                int fd = open(file, O_RDONLY);
+                int fd = open(file, O_RDONLY|O_BINARY);
                 
                 if(fd != -1)
                 {
