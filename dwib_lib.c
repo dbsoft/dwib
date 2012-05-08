@@ -248,8 +248,8 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
     return box;
 }
 
-unsigned char map1[65] = {0};
-unsigned char map2[129] = {0};
+static unsigned char map1[65] = {0};
+static unsigned char map2[129] = {0};
 
 /* Generate the two translation tables */
 void _dwib_generate_table(void)
@@ -274,26 +274,33 @@ void _dwib_generate_table(void)
     dw_debug("map1=\"%s\" map2=\"%s\"\n", map1, map2);
 }
 
-/* Decode base 64 encoded text buffer */
-char *_dwib_decode64(unsigned char *in, int iOff, int iLen) 
+/* Decode base64 encoded text buffer */
+char *_dwib_decode64(unsigned char *in, int iOff, int iLen, int *oLen) 
 {
     int ip = iOff;
     int iEnd = iOff + iLen;
-    int op = 0, oLen;
+    int op = 0;
     unsigned char *out;
     
+    /* Initialize table first time */
+    if(!map1[0])
+        _dwib_generate_table();
+        
     /* Some sanity checks */
     if(iLen%4 != 0)
+    {
+        dw_debug("Invalid length\n");
         return NULL;
+    }
     
     while(iLen > 0 && in[iOff+iLen-1] == '=') 
         iLen--;
     
     /* Calculate the output size */
-    oLen = (iLen*3) / 4;
+    *oLen = (iLen*3) / 4;
  
     /* Allocate the output buffer */
-    out = calloc(1, oLen);
+    out = calloc(1, *oLen);
     
     while (ip < iEnd) 
     {
@@ -306,6 +313,7 @@ char *_dwib_decode64(unsigned char *in, int iOff, int iLen)
         /* Illegal character in Base64 encoded data. */
         if (i0 > 127 || i1 > 127 || i2 > 127 || i3 > 127)
         {
+            dw_debug("Illegal characters\n");
             free(out);
             return NULL;
         }
@@ -322,11 +330,12 @@ char *_dwib_decode64(unsigned char *in, int iOff, int iLen)
         
         /* Save the triplet in the output buffer */
         out[op++] = (unsigned char)o0;
-        if(op<oLen) 
+        if(op<*oLen) 
             out[op++] = (unsigned char)o1;
-        if(op<oLen) 
+        if(op<*oLen) 
             out[op++] = (unsigned char)o2; 
     }
+    dw_debug("Decode success\n");
     return (char *)out; 
 }
     
@@ -334,21 +343,24 @@ char *_dwib_decode64(unsigned char *in, int iOff, int iLen)
  * removes whitespace and then decodes into the
  * original binary representation. 
  */
-char *_dwib_decode64_lines(char *raw, int length) 
+char *_dwib_decode64_lines(char *raw, int *length) 
 {
     /* Allocate the temporary representation off the stack */
-    char *buf = alloca(length);
+    char *buf = alloca((*length) + 1);
     int ip, p = 0;
     
+    /* Zero out the buffer */
+    memset(buf, 0, (*length)+1);
+    
     /* Loop through the entire buffer */
-    for(ip=0; ip<length; ip++) 
+    for(ip=0; ip<(*length); ip++) 
     {
         /* Remove spaces, return, newline and tab */
         if(raw[ip] != ' ' && raw[ip] != '\r' && raw[ip] != '\n' && raw[ip] != '\t')
             buf[p++] = raw[ip]; 
     }
     /* decode64() will return a malloc()ed buffer */
-    return _dwib_decode64((unsigned char *)buf, 0, p); 
+    return _dwib_decode64((unsigned char *)buf, 0, p, length); 
 }
 
 
@@ -356,7 +368,7 @@ char *_dwib_decode64_lines(char *raw, int length)
  * return the correct path to it... if the image ID 
  * was not found in the list, return a placeholder ID.
  */
-char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc)
+char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc, int *length)
 {
     xmlNodePtr this = xmlDocGetRootElement(doc)->children;
     
@@ -378,6 +390,23 @@ char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc)
             {
                 /* Generate a path to the file */
                 int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+                
+                if((node = _dwib_find_child(this, "Embedded")) != NULL &&
+                   (val = (char *)xmlNodeListGetString(doc, node->children, 1)) != NULL)
+                {
+                    char *data;
+                    
+                    *length = strlen(val);
+                    
+                    /* Attempt to decode embedded data */
+                    if((data = _dwib_decode64_lines(val, length)) != NULL)
+                    {
+                        /* Don't reset the resource ID to 0 when 
+                         * returning embedded data.
+                         */
+                        return data;
+                    }
+                }
             
                 if(len)
                     file = _dwib_combine_path(len, file, malloc(len + strlen(file) + 2));
@@ -396,8 +425,9 @@ char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc)
         }
         this=this->next;
     }
-    /* Didn't find an image return placeholder */
-    *resid = BITMAP_PLACEHOLD;
+    /* Didn't find an image return placeholder in builder mode */
+    if(_dwib_builder)
+        *resid = BITMAP_PLACEHOLD;
     return NULL;
 }
 
@@ -430,6 +460,7 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             {
                 struct dwstat st;
                 int resid = atoi(setting);
+                int length = 0;
                 char *freeme = NULL;
 
                 /* If a resource ID wasn't specified... 
@@ -442,12 +473,17 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
                     if(len)
                         setting = _dwib_combine_path(len, setting, alloca(len + strlen(setting) + 2));
                 }
-                else if(_dwib_builder && resid)
-                    freeme = setting = _dwib_builder_bitmap(&resid, doc);
+                else if(resid)
+                    freeme = setting = _dwib_builder_bitmap(&resid, doc, &length);
 
-                if(resid)
+                /* If we have resource ID, setting data and a length it is embedded */
+                if(resid && setting && length > 0)
+                    button = dw_bitmapbutton_new_from_data(NULL, resid, setting, length);
+                /* Just the resource ID, then it is a resource */
+                else if(resid)
                     button = dw_bitmapbutton_new(NULL, resid);
-                else
+                /* Otherwise try to load it from file */
+                else if(setting)
                     button = dw_bitmapbutton_new_from_file(NULL, 0, setting);
                     
                 if(freeme)
@@ -840,7 +876,7 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     HWND bitmap;
     xmlNodePtr this = _dwib_find_child(node, "setting");
     char *thisval, *setting = "", *freeme = NULL;
-    int resid = 0;
+    int resid = 0, length = 0;
 
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
@@ -859,15 +895,20 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             if(len)
                 setting = _dwib_combine_path(len, setting, alloca(len + strlen(setting) + 2));
         }
-        else if(_dwib_builder && resid)
-            freeme = setting = _dwib_builder_bitmap(&resid, doc);
+        else if(resid)
+            freeme = setting = _dwib_builder_bitmap(&resid, doc, &length);
     }
 
     bitmap = dw_bitmap_new(resid);
-    if(setting && *setting && resid == 0)
-        dw_window_set_bitmap(bitmap, resid, setting);
-    else
+    /* If we have resource ID, setting data and a length it is embedded */
+    if(resid && setting && length > 0)
+        dw_window_set_bitmap_from_data(bitmap, resid, setting, length);
+    /* Just the resource ID, then it is a resource */
+    else if(resid)
         dw_window_set_bitmap(bitmap, resid, NULL);
+    /* Otherwise try to load it from file */
+    else if(setting && *setting)
+        dw_window_set_bitmap(bitmap, resid, setting);
 
     _dwib_item_pack(node, doc, window, packbox, bitmap, index);
     
