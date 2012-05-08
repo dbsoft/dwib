@@ -248,6 +248,110 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
     return box;
 }
 
+unsigned char map1[65] = {0};
+unsigned char map2[129] = {0};
+
+/* Generate the two translation tables */
+void _dwib_generate_table(void)
+{
+    int i = 0;
+    unsigned char c;
+    
+    for(c='A'; c<='Z'; c++) 
+        map1[i++] = c;
+    for(c='a'; c<='z'; c++) 
+        map1[i++] = c;
+    for(c='0'; c<='9'; c++) 
+        map1[i++] = c;
+    map1[i++] = '+'; 
+    map1[i++] = '/';
+    
+    for(i=0; i<128; i++) 
+        map2[i] = -1;
+    for(i=0; i<64; i++) 
+        map2[map1[i]] = (unsigned char)i;
+        
+    dw_debug("map1=\"%s\" map2=\"%s\"\n", map1, map2);
+}
+
+/* Decode base 64 encoded text buffer */
+char *_dwib_decode64(unsigned char *in, int iOff, int iLen) 
+{
+    int ip = iOff;
+    int iEnd = iOff + iLen;
+    int op = 0, oLen;
+    unsigned char *out;
+    
+    /* Some sanity checks */
+    if(iLen%4 != 0)
+        return NULL;
+    
+    while(iLen > 0 && in[iOff+iLen-1] == '=') 
+        iLen--;
+    
+    /* Calculate the output size */
+    oLen = (iLen*3) / 4;
+ 
+    /* Allocate the output buffer */
+    out = calloc(1, oLen);
+    
+    while (ip < iEnd) 
+    {
+        int i0 = in[ip++];
+        int i1 = in[ip++];
+        int i2 = ip < iEnd ? in[ip++] : 'A';
+        int i3 = ip < iEnd ? in[ip++] : 'A';
+        int b0, b1, b2, b3, o0, o1, o2;
+        
+        /* Illegal character in Base64 encoded data. */
+        if (i0 > 127 || i1 > 127 || i2 > 127 || i3 > 127)
+        {
+            free(out);
+            return NULL;
+        }
+        /* Use the precalculated table to decode */
+        b0 = map2[i0];
+        b1 = map2[i1];
+        b2 = map2[i2];
+        b3 = map2[i3];
+        
+        /* Calculate the three bytes of the triplet */
+        o0 = ( b0 <<2) | (b1>>4);
+        o1 = ((b1 & 0xf)<<4) | (b2>>2);
+        o2 = ((b2 & 3)<<6) | b3;
+        
+        /* Save the triplet in the output buffer */
+        out[op++] = (unsigned char)o0;
+        if(op<oLen) 
+            out[op++] = (unsigned char)o1;
+        if(op<oLen) 
+            out[op++] = (unsigned char)o2; 
+    }
+    return (char *)out; 
+}
+    
+/* Takes base64 encoded and line split input...
+ * removes whitespace and then decodes into the
+ * original binary representation. 
+ */
+char *_dwib_decode64_lines(char *raw, int length) 
+{
+    /* Allocate the temporary representation off the stack */
+    char *buf = alloca(length);
+    int ip, p = 0;
+    
+    /* Loop through the entire buffer */
+    for(ip=0; ip<length; ip++) 
+    {
+        /* Remove spaces, return, newline and tab */
+        if(raw[ip] != ' ' && raw[ip] != '\r' && raw[ip] != '\n' && raw[ip] != '\t')
+            buf[p++] = raw[ip]; 
+    }
+    /* decode64() will return a malloc()ed buffer */
+    return _dwib_decode64((unsigned char *)buf, 0, p); 
+}
+
+
 /* Locate the internal image based on resource ID and 
  * return the correct path to it... if the image ID 
  * was not found in the list, return a placeholder ID.
