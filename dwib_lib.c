@@ -270,8 +270,6 @@ void _dwib_generate_table(void)
         map2[i] = -1;
     for(i=0; i<64; i++) 
         map2[map1[i]] = (unsigned char)i;
-        
-    dw_debug("map1=\"%s\" map2=\"%s\"\n", map1, map2);
 }
 
 /* Decode base64 encoded text buffer */
@@ -288,11 +286,9 @@ char *_dwib_decode64(unsigned char *in, int iOff, int iLen, int *oLen)
         
     /* Some sanity checks */
     if(iLen%4 != 0)
-    {
-        dw_debug("Invalid length\n");
         return NULL;
-    }
     
+    /* Strip off trailing padding */
     while(iLen > 0 && in[iOff+iLen-1] == '=') 
         iLen--;
     
@@ -313,7 +309,6 @@ char *_dwib_decode64(unsigned char *in, int iOff, int iLen, int *oLen)
         /* Illegal character in Base64 encoded data. */
         if (i0 > 127 || i1 > 127 || i2 > 127 || i3 > 127)
         {
-            dw_debug("Illegal characters\n");
             free(out);
             return NULL;
         }
@@ -330,12 +325,11 @@ char *_dwib_decode64(unsigned char *in, int iOff, int iLen, int *oLen)
         
         /* Save the triplet in the output buffer */
         out[op++] = (unsigned char)o0;
-        if(op<*oLen) 
+        if(op<(*oLen)) 
             out[op++] = (unsigned char)o1;
-        if(op<*oLen) 
+        if(op<(*oLen)) 
             out[op++] = (unsigned char)o2; 
     }
-    dw_debug("Decode success\n");
     return (char *)out; 
 }
     
@@ -350,7 +344,7 @@ char *_dwib_decode64_lines(char *raw, int *length)
     int ip, p = 0;
     
     /* Zero out the buffer */
-    memset(buf, 0, (*length)+1);
+    memset(buf, 0, (*length) + 1);
     
     /* Loop through the entire buffer */
     for(ip=0; ip<(*length); ip++) 
