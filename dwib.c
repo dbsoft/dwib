@@ -973,10 +973,10 @@ int DWSIGNAL font_clicked(HWND window, void *data)
 /* Populate the properties window with generic item fields */
 void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
 {
-    HWND item, tmp, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND item, button, tmp, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
-    int x;
+    int x, width;
 #ifdef __OS2__
     char *sysfont = "os2font";
     char *sysfonttext = "OS/2 Font";
@@ -1131,7 +1131,6 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
             val = thisval;
     }
     tmp = item = dw_combobox_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_listbox_append(item, "Default");
     for(x=0;x<16;x++)
     {
@@ -1142,10 +1141,12 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         dw_listbox_select(item, x + 1, TRUE);
     }
     dw_window_set_data(vbox, "fcolor", DW_POINTER(item));    
-    item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
-    dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
-    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), DW_POINTER(tmp));
+    button = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), DW_POINTER(tmp));
     /* Background Color */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -1159,7 +1160,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
             val = thisval;
     }
     tmp = item = dw_combobox_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_listbox_append(item, "Default");
     for(x=0;x<16;x++)
     {
@@ -1171,7 +1172,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     }
     dw_window_set_data(vbox, "bcolor", DW_POINTER(item));    
     item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
-    dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), DW_POINTER(tmp));
     /* Font */
@@ -1187,11 +1188,11 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
             val = thisval;
     }
     tmp = item = dw_combobox_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_listbox_append(item, "Default");
     dw_window_set_data(vbox, "font", DW_POINTER(item));    
     item = dw_bitmapbutton_new("Font chooser", ICON_FONT);
-    dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(font_clicked), DW_POINTER(tmp));
     if(sysfont)
@@ -1208,11 +1209,11 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
                 val = thisval;
         }
         tmp = item = dw_combobox_new(val, 0);
-        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         dw_listbox_append(item, "Default");
         dw_window_set_data(vbox, sysfont, DW_POINTER(item));    
         item = dw_bitmapbutton_new("Font chooser", ICON_FONT);
-        dw_box_pack_start(hbox, item, PROPERTIES_HEIGHT, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
         dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(font_clicked), DW_POINTER(tmp));
     }
@@ -1277,7 +1278,7 @@ void _dwib_title(HWND scrollbox, char *title)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - 48, PROPERTIES_HEIGHT, TRUE, TRUE, 0);
     item = dw_bitmapbutton_new("Refresh Preview Widget", ICON_REFRESH);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_box_pack_start(hbox, item, 24, 24, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_widget_clicked), NULL);
 }
 
