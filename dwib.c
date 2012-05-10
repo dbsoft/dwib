@@ -5362,6 +5362,7 @@ void populateImages(HWND item, xmlNodePtr rootNode)
             char *file = val;
             HICN icon = (HICN)imageNode->psvi;
             xmlNodePtr node = _dwib_find_child(imageNode, "ImageID");
+            xmlNodePtr embedNode = _dwib_find_child(imageNode, "Embedded");
             
             /* Combine the image root and the relative path */
             if(len && val)
@@ -5370,8 +5371,28 @@ void populateImages(HWND item, xmlNodePtr rootNode)
             /* If we don't have a cached icon... */
             if(!icon)
             {
-                /* Attempt to load one from the file */
-                icon = file ? dw_icon_load_from_file(file) : 0;
+                char *embeddata;
+                
+                if(embedNode && (embeddata = (char *)xmlNodeListGetString(DWDoc, embedNode->children, 1)) != NULL)
+                {
+                    char *data;
+                    int length = strlen(embeddata);
+                    
+                    /* Attempt to decode embedded data */
+                    if((data = _dwib_decode64_lines(embeddata, &length)) != NULL)
+                    {
+                        /* Don't reset the resource ID to 0 when 
+                         * returning embedded data.
+                         */
+                        icon = dw_icon_load_from_data(data, length);
+                        free(data);
+                    }
+                }
+                if(!icon)
+                {
+                    /* Attempt to load one from the file */
+                    icon = file ? dw_icon_load_from_file(file) : 0;
+                }
                 imageNode->psvi = DW_POINTER(icon);
             }
             
@@ -5383,7 +5404,7 @@ void populateImages(HWND item, xmlNodePtr rootNode)
                 iid = atoi(val);
             
             /* Check for embedded data */
-            if(_dwib_find_child(imageNode, "Embedded"))
+            if(embedNode)
                 embedded = "Yes";
                 
             dw_filesystem_set_file(item, continfo, 0, file ? file : "", icon);

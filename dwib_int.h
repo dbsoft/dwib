@@ -39,6 +39,7 @@ void _dwib_builder_toggle(void *val);
 HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int windowlevel);
 HMENUI _dwib_child(xmlDocPtr doc, HWND window, HWND box, int windowlevel, xmlNodePtr p, HMENUI menu, int index);
 char *_dwib_combine_path(int len, char *val, char *file);
+char *_dwib_decode64_lines(char *raw, int *length); 
 
 HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc);
 void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index);
