@@ -5542,7 +5542,6 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
         HWND hbox = dw_box_new(DW_HORZ, 0);
         HWND item = dw_text_new("Image ID: ", 0);
         xmlNodePtr node = _dwib_find_child(imageNode, "ImageID");
-        int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
         char *val;
         
         /* Save the preview window on the node */
@@ -5562,14 +5561,40 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
         item = dw_checkbox_new("Embedded", 0);
         dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
         dw_window_set_data(window, "_dwib_embedded", DW_POINTER(item));
-        if(_dwib_find_child(imageNode, "Embedded"))
+        if((node = _dwib_find_child(imageNode, "Embedded")) != NULL)
             dw_checkbox_set(item, TRUE);
 
         /* Create the preview */
         item = dw_bitmap_new(0);
-        if(len && file)
-            file = _dwib_combine_path(len, file, alloca(len + strlen(file) + 2));
-        dw_window_set_bitmap(item, 0, file);
+        if(node)
+        {
+            char *embeddata;
+            
+            if((embeddata = (char *)xmlNodeListGetString(DWDoc, node->children, 1)) != NULL)
+            {
+                char *data;
+                int length = strlen(embeddata);
+                
+                /* Attempt to decode embedded data */
+                if((data = _dwib_decode64_lines(embeddata, &length)) != NULL)
+                {
+                    /* Don't reset the resource ID to 0 when 
+                     * returning embedded data.
+                     */
+                    dw_window_set_bitmap_from_data(item, 0,  data, length);
+                    free(data);
+                }
+            }
+        }
+        else
+        {
+            int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+            
+            if(len && file)
+                file = _dwib_combine_path(len, file, alloca(len + strlen(file) + 2));
+            
+            dw_window_set_bitmap(item, 0, file);
+        }
         dw_box_pack_start(vbox, item, -1, -1, TRUE, TRUE, 0);
 
         /* Connect signal handlers */
