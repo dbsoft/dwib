@@ -5633,7 +5633,7 @@ int DWSIGNAL image_manager_delete(HWND item, void *data)
 {
     HWND window = data ? (HWND)data : item;
     HWND entry = (HWND)dw_window_get_data(window, "_dwib_directory");
-    char *imageroot, *path = dw_window_get_text(entry);
+    char *path = dw_window_get_text(entry);
     xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
     xmlNodePtr imageNode =  _dwib_find_child(rootNode, "ImageRoot");
     
