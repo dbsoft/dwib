@@ -5250,9 +5250,9 @@ int DWSIGNAL image_browse_clicked(HWND button, void *data)
 {
     HWND window = (HWND)data;
     HWND entry = (HWND)dw_window_get_data(window, "_dwib_directory");
-    char *picked;
+    char *picked, *defpath = dw_window_get_text(entry);
     
-    if(entry && (picked = dw_file_browse("Pick developer images folder:", "", "", DW_DIRECTORY_OPEN)))
+    if(entry && (picked = dw_file_browse("Pick developer images folder:", defpath, "", DW_DIRECTORY_OPEN)))
     {
         xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
         xmlNodePtr imageNode = _dwib_find_child(rootNode, "ImageRoot");
@@ -5268,6 +5268,8 @@ int DWSIGNAL image_browse_clicked(HWND button, void *data)
         dwib_image_root_set(picked);
         dw_free(picked);
     }
+    if(defpath)
+        dw_free(defpath);
     return TRUE;
 }
 
@@ -5278,6 +5280,28 @@ int DWSIGNAL image_add_clicked(HWND button, void *data)
     HWND entry = (HWND)dw_window_get_data(window, "_dwib_directory");
     HWND cont = (HWND)dw_window_get_data(window, "_dwib_imagelist");
     char *file, *path = dw_window_get_text(entry);
+    xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+    xmlNodePtr imageNode = _dwib_find_child(rootNode, "ImageRoot");
+    
+    /* Update the image root if it changed */
+    if(imageNode)
+    {
+        char *imageroot = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
+        
+        /* Update the node unless the text is the same, or both are NULL */
+        if(!((imageroot && path && strcmp(imageroot, path) == 0) ||
+            (path == imageroot)))
+        {
+            xmlNodeSetContent(imageNode, (xmlChar *)path);
+            dwib_image_root_set(path);
+        }
+    }
+    else if(!imageNode && path && *path)
+    {
+        /* Add an image root if it doesn't exist and has content */
+        imageNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"ImageRoot", (xmlChar *)path);
+        dwib_image_root_set(path);
+    }
     
     /* Try to select an image file */
     if((file = dw_file_browse("Pick an image file:", path, NULL, DW_FILE_OPEN)) != NULL)
@@ -5287,8 +5311,6 @@ int DWSIGNAL image_add_clicked(HWND button, void *data)
             HICN icon = dw_icon_load_from_file(file);
             int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
             void *continfo = dw_container_alloc(cont, 1);
-            xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
-            xmlNodePtr imageNode;
             unsigned long iid = 0;
             char *val = file, *embedded = "No";
             
@@ -5610,7 +5632,34 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
 int DWSIGNAL image_manager_delete(HWND item, void *data)
 {
     HWND window = data ? (HWND)data : item;
-    xmlNodePtr imageNode, rootNode = xmlDocGetRootElement(DWDoc);
+    HWND entry = (HWND)dw_window_get_data(window, "_dwib_directory");
+    char *imageroot, *path = dw_window_get_text(entry);
+    xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+    xmlNodePtr imageNode =  _dwib_find_child(rootNode, "ImageRoot");
+    
+    /* Update the image root if it changed */
+    if(imageNode)
+    {
+        char *imageroot = (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1);
+        
+        /* Update the node unless the text is the same, or both are NULL */
+        if(!((imageroot && path && strcmp(imageroot, path) == 0) ||
+            (path == imageroot)))
+        {
+            xmlNodeSetContent(imageNode, (xmlChar *)path);
+            dwib_image_root_set(path);
+        }
+    }
+    else if(!imageNode && path && *path)
+    {
+        /* Add an image root if it doesn't exist and has content */
+        imageNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"ImageRoot", (xmlChar *)path);
+        dwib_image_root_set(path);
+    }
+
+    /* Free the temporary memory if needed */
+    if(path)
+        dw_free(path);
     
     hwndImages = 0;
     
