@@ -660,6 +660,9 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     if(oddcolor != DW_RGB_TRANSPARENT || evencolor != DW_RGB_TRANSPARENT)
         dw_container_set_stripe(container, oddcolor, evencolor);
 
+    if((this = _dwib_find_child(node, "idstring")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+        dw_window_set_data(container, "_dw_textcomp", DW_INT_TO_POINTER(1));
+        
     _dwib_item_pack(node, doc, window, packbox, container, index);
     return container;
 }

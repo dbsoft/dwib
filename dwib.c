@@ -827,6 +827,7 @@ void save_properties(void)
             retval |= updateNode(node, vbox, "subtype", FALSE);
             retval |= save_item(node, vbox);
             retval |= updateNode(node, vbox, "multi", TRUE);
+            retval |= updateNode(node, vbox, "idstring", TRUE);
             retval |= updateNode(node, vbox, "oddcolor", FALSE);
             retval |= updateNode(node, vbox, "evencolor", FALSE);
             retval |= updateNode(node, vbox, "splitcol", FALSE);
@@ -1007,6 +1008,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     }
     item = dw_entryfield_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_tooltip(item, "Use as parameter to dwib_window_get_handle().");
     dw_window_set_data(vbox, "dataname", DW_POINTER(item));
     if(box)
     {
@@ -1995,6 +1997,23 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "multi", DW_POINTER(item));
+    /* Row Identification */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Row Ident", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalzero;
+    if((this = _dwib_find_child(node, "idstring")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_checkbox_new("String", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_tooltip(item, "Enable string comparison of row data instead of pointer. (REXX Compatible)");
+    dw_window_set_data(vbox, "idstring", DW_POINTER(item));
     /* Odd Color */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -3449,6 +3468,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     }
     item = dw_entryfield_new(val, 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_tooltip(item, "Use as parameter to dwib_window_get_handle().");
     dw_window_set_data(vbox, "dataname", DW_POINTER(item));
     /* Menu ID */
     hbox = dw_box_new(DW_HORZ, 0);
