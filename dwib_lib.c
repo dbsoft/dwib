@@ -851,9 +851,21 @@ HWND _dwib_html_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
 
     html = dw_html_new(0);
 
-    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-        dw_html_url(html, thisval);
-
+    if(html)
+    {
+        if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+            dw_html_url(html, thisval);
+    }
+    else if(_dwib_builder)
+    {
+        /* Some platforms currently don't support the HTML widget... or 
+         * can be compiled with it turned off... in this case make sure 
+         * to tell them that there would be something here.
+         */
+        html = dw_text_new("This platform does not support the HTML widget.", 0);
+        dw_window_set_style(html, DW_DT_CENTER | DW_DT_VCENTER, DW_DT_CENTER | DW_DT_VCENTER);
+    }
+    
     _dwib_item_pack(node, doc, window, packbox, html, index);
     return html;
 }
