@@ -5779,7 +5779,7 @@ void toolbar_text_buttons_create(void)
     
     vbox = dw_box_new(DW_VERT, 0);
     dw_window_set_data(hwndToolbar, "vbox", DW_POINTER(vbox));
-    dw_box_pack_end(hbox, vbox, 0, 0, FALSE, FALSE, 0);
+    dw_box_pack_end(hbox, vbox, 0, 0, FALSE, TRUE, 0);
     item = dw_button_new("Window", 0);
     dw_window_set_data(hwndToolbar, "window", DW_POINTER(item));
     dw_box_pack_start(vbox, item, TOOLBAR_WIDTH, TOOLBAR_HEIGHT, FALSE, FALSE, 0);
@@ -5872,7 +5872,7 @@ void toolbar_bitmap_buttons_create(void)
     
     vbox = dw_box_new(DW_VERT, 0);
     dw_window_set_data(hwndToolbar, "vbox", DW_POINTER(vbox));
-    dw_box_pack_end(hbox, vbox, 0, 0, FALSE, FALSE, 0);
+    dw_box_pack_end(hbox, vbox, 0, 0, FALSE, TRUE, 0);
     item = dw_bitmapbutton_new("Window", TYPE_WINDOW + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "window", DW_POINTER(item));
