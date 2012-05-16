@@ -4206,6 +4206,10 @@ int DWSIGNAL new_clicked(HWND button, void *data)
         /* Make sure no preview windows are open */
         destroyPreviews();
         
+        /* Make sure the image manager/view windows aren't open */
+        if(hwndImages)
+            image_manager_delete(hwndImages, NULL);
+        
         /* Remove the current tree */
         dw_tree_clear(tree);
         
@@ -4252,6 +4256,10 @@ int DWSIGNAL open_clicked(HWND button, void *data)
             
             /* Make sure no preview windows are open */
             destroyPreviews();
+            
+            /* Make sure the image manager/view windows aren't open */
+            if(hwndImages)
+                image_manager_delete(hwndImages, NULL);
             
             /* Free the existing doc */
             if(DWDoc)
