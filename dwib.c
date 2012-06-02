@@ -12,7 +12,8 @@
 #include "dwib_int.h"
 #include "dwib.h"
 
-HWND hwndToolbar, hwndProperties, hwndImages = 0, hwndLocale = 0, hwndAbout = 0;
+HWND hwndToolbar, hwndProperties, hwndDefaultLocale, hwndImages = 0, hwndLocale = 0, hwndAbout = 0;
+HMENUI menuLocale;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 char *DWFilename = NULL;
@@ -114,7 +115,7 @@ void saveconfig(void)
         if(f==NULL)
         {
             /* Show an error message */
-            dw_messagebox(DWIB_NAME, DW_MB_ERROR | DW_MB_OK, "Could not save settings. Inipath = \"%s\"", inipath);
+            dw_messagebox(APP_NAME, DW_MB_ERROR | DW_MB_OK, "Could not save settings. Inipath = \"%s\"", inipath);
             free(inipath);
             free(inidir);
             return;
@@ -371,7 +372,7 @@ int is_packable(xmlNodePtr node, int message)
     }
     if(message)
     {
-        dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be packable (window, box, splitbar, notebook page)");
+        dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be packable (window, box, splitbar, notebook page)");
     }
     return FALSE;
 }
@@ -432,18 +433,18 @@ void setTitle(void)
 {
     if(DWFilename)
     {
-        int buflen = (int)strlen(DWIB_NAME) + strlen(DWFilename) + 4;
+        int buflen = (int)strlen(APP_NAME) + strlen(DWFilename) + 4;
         char *tmpbuf = (char *)malloc(buflen); 
 
         if(tmpbuf)
         {
-            snprintf(tmpbuf, buflen, "%s - %s",  DWIB_NAME, DWFilename);
+            snprintf(tmpbuf, buflen, "%s - %s",  APP_NAME, DWFilename);
             dw_window_set_text(hwndToolbar, tmpbuf);
             free(tmpbuf);
         }
     }
     else
-        dw_window_set_text(hwndToolbar, DWIB_NAME);
+        dw_window_set_text(hwndToolbar, APP_NAME);
 }
 
 /* Gets the contents of the list and puts it into the XML tree...
@@ -933,6 +934,57 @@ int DWSIGNAL locale_manager_delete(HWND item, void *data)
 /* Handle creating locale manager */
 int DWSIGNAL locale_add_clicked(HWND button, void *data)
 {
+    HWND combo = (HWND)data;
+    char *locale = dw_window_get_text(combo);
+    xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+    xmlNodePtr localesNode = _dwib_find_child(rootNode, "Locales");
+    
+    if(locale)
+    {
+        if(*locale)
+        {
+            /* Make sure the locale doesn't already exist */
+            if(localesNode)
+            {
+                xmlNodePtr p;
+                
+                for(p=localesNode->children;p;p = p->next)
+                {
+                    if(strcmp((char *)p->name, locale) == 0)
+                    {
+                        /* It does already exist so throw up an error and...
+                         * reset variables so it doesn't add a new one.
+                         */
+                        dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "Locale \"%s\" already exists.", locale);
+                        dw_free(locale);
+                        p = NULL;
+                        locale = NULL;
+                    }
+                }
+            }            
+            else /* Add a Locales node if one doesn't already exist */
+                localesNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"Locales", (xmlChar *)"");
+            /* If we should add it... add the new locale */
+            if(locale && localesNode)
+            {
+                xmlNodePtr this = xmlNewTextChild(localesNode, NULL, (xmlChar *)locale, (xmlChar *)"");
+                
+                /* Add to the combobox and the menu */
+                if(this)
+                {
+                    HWND item = dw_menu_append_item(menuLocale, locale, DW_MENU_AUTO, 0, TRUE, TRUE, DW_NOMENU);
+                    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(preview_locale_clicked), NULL);
+                    dw_listbox_append(combo, locale);
+                    dw_messagebox(APP_NAME, DW_MB_OK, "Locale: %s", locale);
+                }
+            }
+        }
+        else
+            dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "Enter a locale identifier in the combobox; \"de_DE\" for example.");
+        /* Free memory */
+        if(locale)
+            dw_free(locale);
+    }
     return FALSE;
 }
 
@@ -947,6 +999,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         HWND vbox = dw_box_new(DW_VERT, 0);
         HWND hbox = dw_box_new(DW_HORZ, 0);
         HWND item = dw_text_new("Default Locale: ", 0);
+        HWND combo;
         char *val = NULL, *thisval;
         int width;
         
@@ -977,7 +1030,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         /* Locale Text Row */
         hbox = dw_box_new(DW_HORZ, 0);
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
-        item = dw_combobox_new("", 0);
+        combo = item = dw_combobox_new("", 0);
         dw_box_pack_start(hbox, item, width, -1, FALSE, TRUE, 0);
         item = dw_entryfield_new("", 0);
         dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
@@ -990,7 +1043,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
         item = dw_button_new("+", 0);
         dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
-        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_add_clicked), DW_POINTER(hwndLocale));
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_add_clicked), DW_POINTER(combo));
         item = dw_button_new("-", 0);
         dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
         dw_window_disable(item);
@@ -4333,7 +4386,7 @@ int DWSIGNAL new_clicked(HWND button, void *data)
     xmlNodePtr current = DWDoc ? xmlDocGetRootElement(DWDoc) : NULL;
     
     if(!current || !current->children ||
-       dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
+       dw_messagebox(APP_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
         HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
@@ -4380,7 +4433,7 @@ int DWSIGNAL open_clicked(HWND button, void *data)
     xmlNodePtr current = DWDoc ? xmlDocGetRootElement(DWDoc) : NULL;
     
     if(!current || !current->children ||
-       dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
+       dw_messagebox(APP_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
     {
         char *filename = dw_file_browse("Open interface", ".", "xml", DW_FILE_OPEN);
         xmlDocPtr doc;
@@ -4559,10 +4612,10 @@ int DWSIGNAL refresh_clicked(HWND button, void *data)
                 dwib_show(preview);
             }
             else
-                dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Failed to load window definition.");
+                dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "Failed to load window definition.");
         }
         else
-            dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Could not find a window title to load.");
+            dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "Could not find a window title to load.");
     }
     return FALSE;
 }
@@ -4577,10 +4630,10 @@ int DWSIGNAL delete_clicked(HWND button, void *data)
     
     if(strcmp((char *)node->name, "DynamicWindows") == 0)
     {
-        dw_messagebox(DWIB_NAME, DW_MB_OK, "No node selected.");
+        dw_messagebox(APP_NAME, DW_MB_OK, "No node selected.");
         return FALSE;
     }
-    if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to remove the current node (%s)?", 
+    if(dw_messagebox(APP_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to remove the current node (%s)?", 
                      node && node->name ? (char *)node->name : ""))
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
@@ -4612,10 +4665,10 @@ int DWSIGNAL cut_clicked(HWND button, void *data)
     
     if(strcmp((char *)node->name, "DynamicWindows") == 0)
     {
-        dw_messagebox(DWIB_NAME, DW_MB_OK, "No node selected.");
+        dw_messagebox(APP_NAME, DW_MB_OK, "No node selected.");
         return FALSE;
     }
-    if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to cut the current node (%s) to the clipboard?", 
+    if(dw_messagebox(APP_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to cut the current node (%s) to the clipboard?", 
                      node && node->name ? (char *)node->name : ""))
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
@@ -4650,7 +4703,7 @@ int DWSIGNAL copy_clicked(HWND button, void *data)
     
     if(strcmp((char *)node->name, "DynamicWindows") == 0)
     {
-        dw_messagebox(DWIB_NAME, DW_MB_OK, "No node selected.");
+        dw_messagebox(APP_NAME, DW_MB_OK, "No node selected.");
         return FALSE;
     }
     if(DWClipNode)
@@ -4741,7 +4794,7 @@ int DWSIGNAL paste_clicked(HWND button, void *data)
                     
                     if(count > 1)
                     {
-                        dw_messagebox(DWIB_NAME, DW_MB_OK, "Splitbars can't have more than two children packed.");
+                        dw_messagebox(APP_NAME, DW_MB_OK, "Splitbars can't have more than two children packed.");
                         return FALSE;
                     }
                 }
@@ -4751,18 +4804,18 @@ int DWSIGNAL paste_clicked(HWND button, void *data)
     
     if(strcmp((char *)node->name, "DynamicWindows") == 0)
     {
-        dw_messagebox(DWIB_NAME, DW_MB_OK, "No node selected.");
+        dw_messagebox(APP_NAME, DW_MB_OK, "No node selected.");
         return FALSE;
     }
     else if(strcmp((char *)node->name, "Window") != 0 && strcmp((char *)DWClipNode->name, "Menu") == 0)
     {
-        dw_messagebox(DWIB_NAME, DW_MB_OK, "The menu on the clipboard needs to be pasted into a top-level window.");
+        dw_messagebox(APP_NAME, DW_MB_OK, "The menu on the clipboard needs to be pasted into a top-level window.");
         return FALSE;
     }
     else if(strcmp((char *)DWClipNode->name, "NotebookPage") == 0)
     {
         if(strcmp((char *)node->name, "Notebook") != 0)
-            dw_messagebox(DWIB_NAME, DW_MB_OK, "The notebook page on the clipboard needs to be pasted into a notebook widget.");
+            dw_messagebox(APP_NAME, DW_MB_OK, "The notebook page on the clipboard needs to be pasted into a notebook widget.");
         else
         {
             /* Actually copy the node */
@@ -4819,7 +4872,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
                     
                     if(count > 1)
                     {
-                        dw_messagebox(DWIB_NAME, DW_MB_ERROR | DW_MB_OK, "Splitbars can't have more than two children packed.");
+                        dw_messagebox(APP_NAME, DW_MB_ERROR | DW_MB_OK, "Splitbars can't have more than two children packed.");
                         return FALSE;
                     }
                 }
@@ -4839,7 +4892,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
         }
         else
         {
-            dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be a notebook.");
+            dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be a notebook.");
         }
     }
     else if(which == TYPE_MENU)
@@ -4851,7 +4904,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
         }
         else
         {
-            dw_messagebox(DWIB_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be a window or menu.");
+            dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be a window or menu.");
         }
     }
     else if(is_packable(currentNode, TRUE))
@@ -5101,7 +5154,7 @@ int DWSIGNAL toolbar_focus(HWND toolbar, void *data)
 /* Closing the toolbar window */
 int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
 {
-    if(dw_messagebox(DWIB_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to exit Interface Builder?"))
+    if(dw_messagebox(APP_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to exit Interface Builder?"))
         dw_main_quit();
     return TRUE;
 }
@@ -5314,11 +5367,11 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
         if(html)
         {
             /* We have access to the HTML widget so create a browser window */
-            HWND window = dw_window_new(DW_DESKTOP, DWIB_NAME " Browser", DW_FCF_COMPOSITED |
+            HWND window = dw_window_new(DW_DESKTOP, APP_NAME " Browser", DW_FCF_COMPOSITED |
                                         DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
             HWND vbox = dw_box_new(DW_VERT, 0);
             HWND hbox = dw_box_new(DW_HORZ, 0);
-            HWND item = dw_menu_append_item(menuWindows, DWIB_NAME " Browser", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+            HWND item = dw_menu_append_item(menuWindows, APP_NAME " Browser", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
             
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_show_window), DW_POINTER(window));
             dw_window_set_data(window, "dwib_menu", DW_POINTER(item));
@@ -5372,7 +5425,7 @@ int DWSIGNAL about_clicked(HWND button, void *data)
         /* We have access to the HTML widget so create a browser window */
         HWND vbox = dw_box_new(DW_VERT, 0);
         HWND hbox = dw_box_new(DW_HORZ, 0);
-        HWND item = dw_text_new(DWIB_NAME, 0);
+        HWND item = dw_text_new(APP_NAME, 0);
         char verbuf[100] = {0};
         
         hwndAbout = dw_window_new(DW_DESKTOP, "About", DW_FCF_COMPOSITED |
@@ -6113,6 +6166,21 @@ void toolbar_bitmap_buttons_create(void)
     dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
 }
 
+/* Handle changing the default locale */
+int DWSIGNAL preview_locale_clicked(HWND item, void *data)
+{
+   xmlNodePtr node = data;
+   char *localename = data;
+   
+   if(node)
+   {
+      localename = xmlNodeListGetString(DWDoc, node->children, 1);
+   }
+   dwib_locale_set(localename);
+   dw_window_set_style(item, DW_MIS_CHECKED, DW_MIS_CHECKED);
+   return FALSE;
+}
+
 void dwib_init(void)
 {
     HWND vbox, hbox, item;
@@ -6133,7 +6201,7 @@ void dwib_init(void)
     DWCurrNode = xmlNewNode(NULL, (xmlChar *)"DynamicWindows");
     xmlDocSetRootElement(DWDoc, DWCurrNode);
     
-    hwndToolbar = dw_window_new(DW_DESKTOP, DWIB_NAME, DW_FCF_COMPOSITED |
+    hwndToolbar = dw_window_new(DW_DESKTOP, APP_NAME, DW_FCF_COMPOSITED |
                                 DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_window_set_data(hwndToolbar, "hbox", DW_POINTER(hbox));
@@ -6173,6 +6241,11 @@ void dwib_init(void)
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(live_preview_clicked), NULL);
     item = dw_menu_append_item(submenu, "Visual Toolbar", DW_MENU_AUTO, BitmapButtons ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(bitmap_buttons_clicked), NULL);
+    menuLocale = dw_menu_new(0);
+    hwndDefaultLocale = dw_menu_append_item(menuLocale, "Default", DW_MENU_AUTO, DW_MIS_CHECKED, TRUE, TRUE, DW_NOMENU);
+    dw_signal_connect(hwndDefaultLocale, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(preview_locale_clicked), NULL);
+    item = dw_menu_append_item(menuLocale, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "Preview Locale", DW_MENU_AUTO, 0, TRUE, FALSE, menuLocale);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Expand All", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(expand_all_clicked), DW_INT_TO_POINTER(1));

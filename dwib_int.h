@@ -6,7 +6,7 @@
 #ifndef DWIB_INT_H
 #define DWIB_INT_H
 
-#define DWIB_NAME "Dynamic Windows Interface Builder"
+#define APP_NAME "Dynamic Windows Interface Builder"
 
 enum DWTYPES
 {
@@ -65,6 +65,7 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
 void DWSIGNAL properties_window(xmlNodePtr node);
 int DWSIGNAL preview_delete(HWND window, void *data);
 int DWSIGNAL image_manager_delete(HWND item, void *data);
+int DWSIGNAL preview_locale_clicked(HWND item, void *data);
 void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype, char *colalign, int disable);
 void properties_current(void);
 int generateNode(char *buf, xmlNodePtr p);
