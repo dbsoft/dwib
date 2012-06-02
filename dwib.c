@@ -962,7 +962,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         if(hwndLocale)
             locale_manager_delete(hwndLocale, NULL);
         
-        hwndLocale = dw_window_new(DW_DESKTOP, "Locale Manager", DW_FCF_COMPOSITED | DW_FCF_MINMAX |
+        hwndLocale = dw_window_new(DW_DESKTOP, "Locale Manager", DW_FCF_MINMAX |
                                    DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
         
         /* Default Locale Row */
