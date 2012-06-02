@@ -993,15 +993,30 @@ int DWSIGNAL locale_add_clicked(HWND button, void *data)
 int DWSIGNAL locale_manager_clicked(HWND button, void *data)
 {
     xmlNodePtr this = data;
+    char *val = NULL, *thisval;
     
-    if(this)
+    if(this && (thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        val = thisval;
+        
+    if(hwndLocale)
     {
-        /* We have access to the HTML widget so create a browser window */
+        HWND combo = (HWND)dw_window_get_data(hwndLocale, "combo");
+        HWND entry = (HWND)dw_window_get_data(hwndLocale, "entry");
+        HWND def = (HWND)dw_window_get_data(hwndLocale, "default");
+        
+        if(def)
+            dw_window_set_text(def, val ? val : "");
+        if(entry)
+            dw_window_set_text(entry, "");
+        if(combo)
+            dw_window_set_text(combo, "");
+    }
+    else
+    {
         HWND vbox = dw_box_new(DW_VERT, 0);
         HWND hbox = dw_box_new(DW_HORZ, 0);
         HWND item = dw_text_new("Default Locale: ", 0);
         HWND combo;
-        char *val = NULL, *thisval;
         int width;
         xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
         xmlNodePtr localesNode = _dwib_find_child(rootNode, "Locales");
@@ -1010,9 +1025,6 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         
         if(width < 100)
             width = 100;
-        
-        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
-            val = thisval;
         
         /* Make sure the locale manager window isn't open */
         if(hwndLocale)
@@ -1028,12 +1040,14 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         dw_box_pack_start(hbox, item, width, -1, FALSE, TRUE, 0);
         item = dw_entryfield_new(val ? val : "", 0);
         dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_window_set_data(hwndLocale, "default", DW_POINTER(item));
         dw_window_disable(item);
         
         /* Locale Text Row */
         hbox = dw_box_new(DW_HORZ, 0);
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
         combo = item = dw_combobox_new("", 0);
+        dw_window_set_data(hwndLocale, "combo", DW_POINTER(combo));
         dw_box_pack_start(hbox, item, width, -1, FALSE, TRUE, 0);
         /* Populate the combobox if we can */
         if(localesNode)
@@ -1047,6 +1061,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         }
         item = dw_entryfield_new("", 0);
         dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_window_set_data(hwndLocale, "entry", DW_POINTER(item));
         
         /* Something to expand between the buttons and content */
         dw_box_pack_start(vbox, 0, 0, 0, TRUE, TRUE, 0);
@@ -1071,6 +1086,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         dw_window_set_size(hwndLocale, 0, 0);
         dw_window_show(hwndLocale);
     }
+    dw_window_set_data(hwndLocale, "node", DW_POINTER(this));
     return FALSE;
 }
 
@@ -4455,6 +4471,10 @@ int DWSIGNAL new_clicked(HWND button, void *data)
         if(hwndImages)
             image_manager_delete(hwndImages, NULL);
         
+        /* Make sure the locale manager window isn't open */
+        if(hwndLocale)
+            locale_manager_delete(hwndLocale, NULL);
+        
         /* Remove the current tree */
         dw_tree_clear(tree);
         
@@ -4509,6 +4529,10 @@ int DWSIGNAL open_clicked(HWND button, void *data)
             if(hwndImages)
                 image_manager_delete(hwndImages, NULL);
             
+            /* Make sure the locale manager window isn't open */
+            if(hwndLocale)
+                locale_manager_delete(hwndLocale, NULL);
+        
             /* Free the existing doc */
             if(DWDoc)
                 xmlFreeDoc(DWDoc);
@@ -6338,6 +6362,8 @@ void dwib_init(void)
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(properties_inspector_clicked), NULL);
     item = dw_menu_append_item(menuWindows, "Image Manager", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_manager_clicked), NULL);
+    item = dw_menu_append_item(menuWindows, "Locale Manager", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), NULL);
     item = dw_menu_append_item(menuWindows, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(menu, "~Windows", DW_MENU_AUTO, 0, TRUE, FALSE, menuWindows);
     
