@@ -28,6 +28,7 @@
 #include "Font.xpm"
 #include "Color.xpm"
 #include "Refresh.xpm"
+#include "Locale.xpm"
 #endif
 
 #if GTK_MAJOR_VERSION > 2
@@ -35,12 +36,13 @@
 #include "Font.h"
 #include "Color.h"
 #include "Refresh.h"
+#include "Locale.h"
 #endif
 
 /* Associated IDs */
 #include "resources.h"
 
-#define RESOURCE_MAX 24
+#define RESOURCE_MAX 25
 
 long _resource_id[RESOURCE_MAX] = {
 ICON_APP,
@@ -66,6 +68,7 @@ ICON_MENU,
 ICON_FONT,
 ICON_COLOR,
 ICON_REFRESH,
+ICON_LOCALE,
 BITMAP_PLACEHOLD
 };
 
@@ -94,10 +97,12 @@ char *_resource_data[RESOURCE_MAX] = {
 (char *)Font,
 (char *)Color,
 (char *)Refresh,
+(char *)Locale,
 #else
 (char *)Font_xpm,
 (char *)Color_xpm,
 (char *)Refresh_xpm,
+(char *)Locale_xpm,
 #endif
 (char *)Placehold_xpm
 };
