@@ -920,10 +920,78 @@ char *defvalstr = "", *defvalint = "-1", *defvaltrue = "1", *defvalzero = "0";
 
 extern char *Colors[];
 
+/* Internal function to add or update locale text from the dialog into the XML tree */
+void locale_manager_update(void)
+{
+    if(hwndLocale)
+    {
+        xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+        xmlNodePtr localesNode = _dwib_find_child(rootNode, "Locales");
+        HWND combo = (HWND)dw_window_get_data(hwndLocale, "combo");
+        HWND entry = (HWND)dw_window_get_data(hwndLocale, "entry");
+        xmlNodePtr node = (xmlNodePtr)dw_window_get_data(hwndLocale, "node");
+        
+        if(localesNode && combo && entry && node)
+        {
+            char *localename = dw_window_get_text(combo);
+            char *localetext = dw_window_get_text(entry);
+            
+            /* Make sure we have something to update with */
+            if(localename && *localename && localetext)
+            {
+                xmlNodePtr p;
+                
+                dw_debug("Locale name: %s Locale text: %s\n", localename, localetext);
+                
+                /* Make sure this is for a valid locale */
+                for(p=localesNode->children;p;p = p->next)
+                {
+                    /* Yes we have a valid locale! */
+                    if(strcmp(p->name, localename) == 0)
+                    {
+                        char *newnodename = alloca(strlen((char *)node->name) + strlen(localename) + 2);
+                        xmlNodePtr parentnode = node->parent;
+                        xmlNodePtr localnode;
+    
+                        /* Create the new node name: basename_localename */
+                        strcpy(newnodename, (char *)node->name);
+                        strcat(newnodename, "_");
+                        strcat(newnodename, localename);
+                        
+                        /* See if there is an existing node with that name */
+                        localnode = _dwib_find_child(parentnode, newnodename);
+                        
+                        /* If the locale text has content... */
+                        if(*localetext)
+                        {
+                            /* Create or update the node with new content */
+                            if(!localnode)
+                                localnode = xmlNewTextChild(parentnode, NULL, (xmlChar *)newnodename, (xmlChar *)localetext);
+                            else
+                                xmlNodeSetContent(localnode, (xmlChar *)localetext);
+                        }
+                        /* Otherwise free any existing node */
+                        else if(localnode)
+                            xmlFreeNode(localnode);
+                            
+                   }
+                }
+            }
+            /* Free memory when done */
+            if(localename)
+                dw_free(localename);
+            if(localetext)
+                dw_free(localetext);
+        }
+    }
+}
+
 /* Handle closing the locale manager window */
 int DWSIGNAL locale_manager_delete(HWND item, void *data)
 {
     HWND window = data ? (HWND)data : item;
+    
+    locale_manager_update();
     
     hwndLocale = 0;
     
@@ -989,6 +1057,42 @@ int DWSIGNAL locale_add_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Callback to handle user selection in the site combobox */
+int DWSIGNAL locale_manager_select(HWND hwnd, int item, void *data)
+{
+    char buf[101] = {0};
+    HWND entry = (HWND)data;
+    xmlNodePtr node = (xmlNodePtr)dw_window_get_data(hwndLocale, "node");
+    
+    dw_listbox_get_text(hwnd, item, buf, 101);
+    
+    locale_manager_update();
+    
+    if(node && entry)
+    {
+        char *newnodename = alloca(strlen((char *)node->name) + strlen(buf) + 2);
+        xmlNodePtr parentnode = node->parent;
+        xmlNodePtr localnode;
+        char *thisval;
+
+        /* Create the new node name: basename_localename */
+        strcpy(newnodename, (char *)node->name);
+        strcat(newnodename, "_");
+        strcat(newnodename, buf);
+        
+        /* See if there is an existing node with that name */
+        localnode = _dwib_find_child(parentnode, newnodename);
+        
+        if(localnode && (thisval = (char *)xmlNodeListGetString(DWDoc, localnode->children, 1)))
+            dw_window_set_text(entry, thisval);
+        else
+            dw_window_set_text(entry, "");
+    }
+    
+    dw_debug("Selected: %d Text: %s\n", item, buf);
+    return FALSE;
+}
+
 /* Handle creating locale manager */
 int DWSIGNAL locale_manager_clicked(HWND button, void *data)
 {
@@ -1003,6 +1107,8 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         HWND combo = (HWND)dw_window_get_data(hwndLocale, "combo");
         HWND entry = (HWND)dw_window_get_data(hwndLocale, "entry");
         HWND def = (HWND)dw_window_get_data(hwndLocale, "default");
+        
+        locale_manager_update();
         
         if(def)
             dw_window_set_text(def, val ? val : "");
@@ -1062,6 +1168,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         item = dw_entryfield_new("", 0);
         dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
         dw_window_set_data(hwndLocale, "entry", DW_POINTER(item));
+        dw_signal_connect(combo, DW_SIGNAL_LIST_SELECT, DW_SIGNAL_FUNC(locale_manager_select), DW_POINTER(item));
         
         /* Something to expand between the buttons and content */
         dw_box_pack_start(vbox, 0, 0, 0, TRUE, TRUE, 0);
@@ -3172,8 +3279,13 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
+    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     
     properties_item(node, scrollbox, FALSE, FALSE);
     
@@ -3335,9 +3447,10 @@ int DWSIGNAL box_create(HWND window, void *data)
 /* Populate the properties window for a box */
 void DWSIGNAL properties_box(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int width;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -3415,8 +3528,13 @@ void DWSIGNAL properties_box(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
+    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     /* Split % */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
