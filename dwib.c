@@ -947,7 +947,7 @@ void locale_manager_update(void)
                 for(p=localesNode->children;p;p = p->next)
                 {
                     /* Yes we have a valid locale! */
-                    if(strcmp(p->name, localename) == 0)
+                    if(strcmp((char *)p->name, localename) == 0)
                     {
                         char *newnodename = alloca(strlen((char *)node->name) + strlen(localename) + 2);
                         xmlNodePtr parentnode = node->parent;
