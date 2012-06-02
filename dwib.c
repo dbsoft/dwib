@@ -12,7 +12,7 @@
 #include "dwib_int.h"
 #include "dwib.h"
 
-HWND hwndToolbar, hwndProperties, hwndImages = 0, hwndStrings = 0, hwndAbout = 0;
+HWND hwndToolbar, hwndProperties, hwndImages = 0, hwndLocale = 0, hwndAbout = 0;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 char *DWFilename = NULL;
@@ -919,6 +919,95 @@ char *defvalstr = "", *defvalint = "-1", *defvaltrue = "1", *defvalzero = "0";
 
 extern char *Colors[];
 
+/* Handle closing the locale manager window */
+int DWSIGNAL locale_manager_delete(HWND item, void *data)
+{
+    HWND window = data ? (HWND)data : item;
+    
+    hwndLocale = 0;
+    
+    dw_window_destroy(window);
+    return TRUE;
+}
+
+/* Handle creating locale manager */
+int DWSIGNAL locale_add_clicked(HWND button, void *data)
+{
+    return FALSE;
+}
+
+/* Handle creating locale manager */
+int DWSIGNAL locale_manager_clicked(HWND button, void *data)
+{
+    xmlNodePtr this = data;
+    
+    if(this)
+    {
+        /* We have access to the HTML widget so create a browser window */
+        HWND vbox = dw_box_new(DW_VERT, 0);
+        HWND hbox = dw_box_new(DW_HORZ, 0);
+        HWND item = dw_text_new("Default Locale: ", 0);
+        char *val = NULL, *thisval;
+        int width;
+        
+        dw_window_get_preferred_size(item, &width, NULL);
+        
+        if(width < 100)
+            width = 100;
+        
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+        
+        /* Make sure the locale manager window isn't open */
+        if(hwndLocale)
+            locale_manager_delete(hwndLocale, NULL);
+        
+        hwndLocale = dw_window_new(DW_DESKTOP, "Locale Manager", DW_FCF_COMPOSITED | DW_FCF_MINMAX |
+                                   DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
+        
+        /* Default Locale Row */
+        dw_window_set_style(item, DW_DT_CENTER | DW_DT_VCENTER, DW_DT_CENTER | DW_DT_VCENTER);
+        dw_box_pack_start(hwndLocale, vbox, 0, 0, TRUE, TRUE, 0);
+        dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, item, width, -1, FALSE, TRUE, 0);
+        item = dw_entryfield_new(val ? val : "", 0);
+        dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_window_disable(item);
+        
+        /* Locale Text Row */
+        hbox = dw_box_new(DW_HORZ, 0);
+        dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+        item = dw_combobox_new("", 0);
+        dw_box_pack_start(hbox, item, width, -1, FALSE, TRUE, 0);
+        item = dw_entryfield_new("", 0);
+        dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        
+        /* Something to expand between the buttons and content */
+        dw_box_pack_start(vbox, 0, 0, 0, TRUE, TRUE, 0);
+        
+        /* Button box */
+        hbox = dw_box_new(DW_HORZ, 0);
+        dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
+        item = dw_button_new("+", 0);
+        dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_add_clicked), DW_POINTER(hwndLocale));
+        item = dw_button_new("-", 0);
+        dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_window_disable(item);
+        dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+        item = dw_button_new("Done", 0);
+        dw_box_pack_start(hbox, item, -1, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        
+        /* Delete handlers */
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_delete), DW_POINTER(hwndLocale));
+        dw_signal_connect(hwndLocale, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(locale_manager_delete), NULL);
+        
+        dw_window_set_size(hwndLocale, 0, 0);
+        dw_window_show(hwndLocale);
+    }
+    return FALSE;
+}
+
 /* Populate the properties dialog with nothing */
 void properties_none(void)
 {
@@ -1117,8 +1206,13 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
                 val = thisval;
         }
         item = dw_entryfield_new(val, 0);
-        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+        dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+        dw_window_get_preferred_size(button, &width, NULL);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
         dw_window_set_data(vbox, "tooltip", DW_POINTER(item));
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     }
     /* Foreground Color */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1287,9 +1381,10 @@ void _dwib_title(HWND scrollbox, char *title)
 /* Populate the properties window for a text */
 void DWSIGNAL properties_text(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int width;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -1339,8 +1434,13 @@ void DWSIGNAL properties_text(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "label", DW_POINTER(item));
+    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     /* Alignment */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -1445,9 +1545,10 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
 /* Populate the properties window for a entryfield */
 void DWSIGNAL properties_entryfield(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int width;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -1497,8 +1598,13 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
+    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     /* Limit */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -1609,9 +1715,10 @@ int DWSIGNAL rem_clicked(HWND window, void *data)
 /* Populate the properties window for a combobox */
 void DWSIGNAL properties_combobox(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int width;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -1638,8 +1745,13 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
+    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     /* List */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, TRUE, 0);
@@ -2687,9 +2799,10 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
 /* Populate the properties window for a bitmap */
 void DWSIGNAL properties_bitmap(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int width;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -2716,8 +2829,13 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
             val = thisval;
     }
     item = dw_combobox_new(val ? val : "", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "setting", DW_POINTER(item));
+    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     /* Add possible images to the list */
     populateImageList(item);
     
@@ -2942,9 +3060,10 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
 /* Populate the properties window for a notebook page */
 void DWSIGNAL properties_notebook_page(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int width;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -2989,8 +3108,13 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "statustext", DW_POINTER(item));
+    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     /* Orientation */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -3425,9 +3549,10 @@ int DWSIGNAL toggle_clicked(HWND window, void *data)
 /* Populate the properties menubar for a menu */
 void DWSIGNAL properties_menu(xmlNodePtr node)
 {
-    HWND item, checkable, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, checkable, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int width;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -3453,8 +3578,13 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
+    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     /* Data name*/
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -3576,9 +3706,10 @@ int DWSIGNAL window_create(HWND window, void *data)
 /* Populate the properties window for a window */
 void DWSIGNAL properties_window(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int width;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -3604,8 +3735,13 @@ void DWSIGNAL properties_window(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
+    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     /* Size */ 
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -5136,8 +5272,6 @@ int DWSIGNAL generic_delete(HWND window, void *data)
      */
     if(item == hwndAbout)
         hwndAbout = 0;
-    else if(item == hwndStrings)
-        hwndStrings = 0;
     return FALSE;
 }
 

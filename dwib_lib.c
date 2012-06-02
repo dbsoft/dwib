@@ -1095,14 +1095,24 @@ HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int
 HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
 {
     xmlNodePtr this = _dwib_find_child(node, "title");
-    char *thisval, *title = "";
+    char *thisval, *title = "Preview: ";
     unsigned long flags = 0;
     int bordersize = -1, orient = DW_HORZ, padding = 0;
     int x = -1, y = -1, width = -1, height = -1, hgravity = 0, vgravity = 0;
     HWND ret, box;
 
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-        title = thisval;
+    {
+        if(_dwib_builder)
+        {
+            char *buf = alloca(strlen(thisval) + strlen(title) + 1);
+            strcpy(buf, title);
+            strcat(buf, thisval);
+            title = buf;
+        }
+        else 
+            title = thisval;
+    }
     if((this = _dwib_find_child(node, "bordersize")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         bordersize = atoi(thisval);
     if((this = _dwib_find_child(node, "close")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
