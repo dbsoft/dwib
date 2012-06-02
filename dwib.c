@@ -959,6 +959,7 @@ int DWSIGNAL locale_add_clicked(HWND button, void *data)
                         dw_free(locale);
                         p = NULL;
                         locale = NULL;
+                        break;
                     }
                 }
             }            
@@ -973,9 +974,9 @@ int DWSIGNAL locale_add_clicked(HWND button, void *data)
                 if(this)
                 {
                     HWND item = dw_menu_append_item(menuLocale, locale, DW_MENU_AUTO, 0, TRUE, TRUE, DW_NOMENU);
-                    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(preview_locale_clicked), NULL);
+                    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(preview_locale_clicked), DW_POINTER(this));
+                    this->psvi = DW_POINTER(item);
                     dw_listbox_append(combo, locale);
-                    dw_messagebox(APP_NAME, DW_MB_OK, "Locale: %s", locale);
                 }
             }
         }
@@ -1002,6 +1003,8 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         HWND combo;
         char *val = NULL, *thisval;
         int width;
+        xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+        xmlNodePtr localesNode = _dwib_find_child(rootNode, "Locales");
         
         dw_window_get_preferred_size(item, &width, NULL);
         
@@ -1032,6 +1035,16 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
         combo = item = dw_combobox_new("", 0);
         dw_box_pack_start(hbox, item, width, -1, FALSE, TRUE, 0);
+        /* Populate the combobox if we can */
+        if(localesNode)
+        {
+            xmlNodePtr p;
+            
+            for(p=localesNode->children;p;p = p->next)
+            {
+                dw_listbox_append(combo, (char *)p->name);
+            }
+        }
         item = dw_entryfield_new("", 0);
         dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
         
@@ -4380,6 +4393,49 @@ void reloadTree(void)
     }
 }
 
+/* Internal function to destroy the locale menu items */
+void destroyLocaleMenu(void)
+{
+    xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+    xmlNodePtr localesNode = _dwib_find_child(rootNode, "Locales");
+    
+    if(localesNode)
+    {
+        xmlNodePtr p;
+        
+        for(p=localesNode->children;p;p = p->next)
+        {
+            if(p->psvi)
+            {
+                /* Get rid of the menu item */
+                dw_window_destroy((HWND)p->psvi);
+            }
+        }
+    }
+    /* Make sure the default locale is selected */
+    dw_window_set_style(hwndDefaultLocale, DW_MIS_CHECKED, DW_MIS_CHECKED);
+    dwib_locale_set(NULL);
+}
+
+/* Internal function to create the locale menu items */
+void createLocaleMenu(void)
+{
+    xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+    xmlNodePtr localesNode = _dwib_find_child(rootNode, "Locales");
+    
+    if(localesNode)
+    {
+        xmlNodePtr p;
+        
+        for(p=localesNode->children;p;p = p->next)
+        {
+            HWND item = dw_menu_append_item(menuLocale, (char *)p->name, DW_MENU_AUTO, 0, TRUE, TRUE, DW_NOMENU);
+            dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(preview_locale_clicked), DW_POINTER(p));
+            p->psvi = DW_POINTER(item);
+        }
+    }
+}
+
 /* Handle starting a new layout */
 int DWSIGNAL new_clicked(HWND button, void *data)
 {
@@ -4401,6 +4457,9 @@ int DWSIGNAL new_clicked(HWND button, void *data)
         
         /* Remove the current tree */
         dw_tree_clear(tree);
+        
+        /* Destroy menu items */
+        destroyLocaleMenu();
         
         /* Remove the properties */
         dw_window_destroy(vbox);
@@ -4458,6 +4517,9 @@ int DWSIGNAL open_clicked(HWND button, void *data)
             DWDoc = doc; 
             DWCurrNode = xmlDocGetRootElement(DWDoc);
             reloadTree();
+            
+            /* Populate locale menu */
+            createLocaleMenu();
 
             /* Trim off the path using Unix or DOS format */
             tmpptr = strrchr(filename, '/');
@@ -6169,16 +6231,33 @@ void toolbar_bitmap_buttons_create(void)
 /* Handle changing the default locale */
 int DWSIGNAL preview_locale_clicked(HWND item, void *data)
 {
-   xmlNodePtr node = data;
-   char *localename = data;
+    xmlNodePtr node = data;
+    char *localename = NULL;
+    xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+    xmlNodePtr localesNode = _dwib_find_child(rootNode, "Locales");
    
-   if(node)
-   {
-      localename = xmlNodeListGetString(DWDoc, node->children, 1);
-   }
-   dwib_locale_set(localename);
-   dw_window_set_style(item, DW_MIS_CHECKED, DW_MIS_CHECKED);
-   return FALSE;
+    if(node)
+    {
+        dw_window_set_style(hwndDefaultLocale, DW_MIS_UNCHECKED, DW_MIS_UNCHECKED);
+        localename = (char *)node->name;
+    }
+    dwib_locale_set(localename);
+    dw_window_set_style(item, DW_MIS_CHECKED, DW_MIS_CHECKED);
+    
+    if(localesNode)
+    {
+        xmlNodePtr p;
+        
+        for(p=localesNode->children;p;p = p->next)
+        {
+            if(p->psvi && (!localename || strcmp((char *)p->name, localename) != 0))
+            {
+                /* Make sure all others are unchecked */
+                dw_window_set_style((HWND)p->psvi, DW_MIS_UNCHECKED, DW_MIS_UNCHECKED);
+            }
+        }
+    }
+    return FALSE;
 }
 
 void dwib_init(void)
