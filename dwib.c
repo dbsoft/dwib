@@ -1140,15 +1140,11 @@ int DWSIGNAL locale_manager_select(HWND hwnd, int item, void *data)
     return FALSE;
 }
 
-/* Handle creating locale manager */
-int DWSIGNAL locale_manager_clicked(HWND button, void *data)
+/* Internal function to reset the locale manager window...
+ * so we can be sure the node it is operating on is still valid.
+ */
+void locale_manager_reset(char *val)
 {
-    xmlNodePtr this = data;
-    char *val = NULL, *thisval;
-    
-    if(this && (thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
-        val = thisval;
-        
     if(hwndLocale)
     {
         HWND combo = (HWND)dw_window_get_data(hwndLocale, "combo");
@@ -1161,9 +1157,24 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
             dw_window_set_text(def, val ? val : "");
         if(entry)
             dw_window_set_text(entry, "");
+        dw_listbox_select(combo, -1, TRUE);
         if(combo)
             dw_window_set_text(combo, "");
+        dw_window_set_data(hwndLocale, "node", NULL);
     }
+}
+
+/* Handle creating locale manager */
+int DWSIGNAL locale_manager_clicked(HWND button, void *data)
+{
+    xmlNodePtr this = data;
+    char *val = NULL, *thisval;
+    
+    if(this && (thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        val = thisval;
+        
+    if(hwndLocale)
+        locale_manager_reset(val);
     else
     {
         HWND vbox = dw_box_new(DW_VERT, 0);
@@ -1238,8 +1249,8 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         dw_signal_connect(hwndLocale, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(locale_manager_delete), NULL);
         
         dw_window_set_size(hwndLocale, 0, 0);
-        dw_window_show(hwndLocale);
     }
+    dw_window_show(hwndLocale);
     dw_window_set_data(hwndLocale, "node", DW_POINTER(this));
     return FALSE;
 }
@@ -5383,6 +5394,9 @@ void toolbar_select(xmlNodePtr node)
 /* Handle loading a new item when selectng the tree */
 int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, void *itemdata)
 {
+    /* Reset the locale window */
+    locale_manager_reset(NULL);
+    
     /* Save existing data... if any... here */
     save_properties();
     
