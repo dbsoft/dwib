@@ -458,7 +458,7 @@ int saveList(xmlNodePtr node, HWND vbox)
     if(node && list && dw_window_get_data(list, "_dwib_modified"))
     {
         int x, count = dw_listbox_count(list);
-        char buf[100];
+        char buf[101] = {0};
         
         if(this)
         {
@@ -930,14 +930,17 @@ void locale_manager_update(void)
         HWND combo = (HWND)dw_window_get_data(hwndLocale, "combo");
         HWND entry = (HWND)dw_window_get_data(hwndLocale, "entry");
         xmlNodePtr node = (xmlNodePtr)dw_window_get_data(hwndLocale, "node");
+        int selected = DW_POINTER_TO_INT(dw_window_get_data(hwndLocale, "selected"));
         
-        if(localesNode && combo && entry && node)
+        if(localesNode && combo && entry && node && selected > 0)
         {
-            char *localename = dw_window_get_text(combo);
             char *localetext = dw_window_get_text(entry);
+            char localename[101] = {0};
+            
+            dw_listbox_get_text(combo, selected-1, localename, 100);
             
             /* Make sure we have something to update with */
-            if(localename && *localename && localetext)
+            if(localename[0] && localetext)
             {
                 xmlNodePtr p;
                 
@@ -972,14 +975,15 @@ void locale_manager_update(void)
                         }
                         /* Otherwise free any existing node */
                         else if(localnode)
+                        {
+                            xmlUnlinkNode(localnode);
                             xmlFreeNode(localnode);
+                        }
                             
                    }
                 }
             }
             /* Free memory when done */
-            if(localename)
-                dw_free(localename);
             if(localetext)
                 dw_free(localetext);
         }
@@ -1000,6 +1004,50 @@ int DWSIGNAL locale_manager_delete(HWND item, void *data)
 }
 
 /* Handle creating locale manager */
+int DWSIGNAL locale_rem_clicked(HWND button, void *data)
+{
+    HWND combo = (HWND)dw_window_get_data(hwndLocale, "combo");
+    int selected = DW_POINTER_TO_INT(dw_window_get_data(hwndLocale, "selected"));
+    xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
+    xmlNodePtr localesNode = _dwib_find_child(rootNode, "Locales");
+
+    if(selected < 1)
+        dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "No locale selected for removal.");
+    else if(localesNode && combo)
+    {
+        char localename[101] = {0};
+
+        dw_listbox_get_text(combo, selected-1, localename, 100);
+        
+        /* Make sure we have something to update with */
+        if(localename[0])
+        {
+            xmlNodePtr p;
+            
+            /* Make sure this is for a valid locale */
+            for(p=localesNode->children;p;p = p->next)
+            {
+                /* Yes we have a valid locale! */
+                if(strcmp((char *)p->name, localename) == 0)
+                    break;
+            }
+            if(p && dw_messagebox(APP_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to remove locale \"%s\"?  Doing so may leave orphaned locale data on individual widgets.", localename) == DW_MB_RETURN_YES)
+            {
+                /* Remove the entry from the combobox */
+                dw_listbox_delete(combo, selected-1);
+                /* Remove it from the menu */
+                if(p->psvi)
+                    dw_window_destroy((HWND)p->psvi);
+                /* Finally remove it from the XML tree */
+                xmlUnlinkNode(p);
+                xmlFreeNode(p);
+            }
+        }
+    }               
+    return FALSE;
+}
+
+/* Handle adding a new locale definition */
 int DWSIGNAL locale_add_clicked(HWND button, void *data)
 {
     HWND combo = (HWND)data;
@@ -1064,7 +1112,7 @@ int DWSIGNAL locale_manager_select(HWND hwnd, int item, void *data)
     HWND entry = (HWND)data;
     xmlNodePtr node = (xmlNodePtr)dw_window_get_data(hwndLocale, "node");
     
-    dw_listbox_get_text(hwnd, item, buf, 101);
+    dw_listbox_get_text(hwnd, item, buf, 100);
     
     locale_manager_update();
     
@@ -1088,6 +1136,9 @@ int DWSIGNAL locale_manager_select(HWND hwnd, int item, void *data)
         else
             dw_window_set_text(entry, "");
     }
+    
+    /* Save the current selection so we don't have to rely on the combobox entry field */
+    dw_window_set_data(hwndLocale, "selected", DW_INT_TO_POINTER(item+1));
     
     dw_debug("Selected: %d Text: %s\n", item, buf);
     return FALSE;
@@ -1181,7 +1232,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_add_clicked), DW_POINTER(combo));
         item = dw_button_new("-", 0);
         dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
-        dw_window_disable(item);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_rem_clicked), DW_POINTER(combo));
         dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
         item = dw_button_new("Done", 0);
         dw_box_pack_start(hbox, item, -1, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
