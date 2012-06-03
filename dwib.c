@@ -1157,7 +1157,6 @@ void locale_manager_reset(char *val)
             dw_window_set_text(def, val ? val : "");
         if(entry)
             dw_window_set_text(entry, "");
-        dw_listbox_select(combo, -1, TRUE);
         if(combo)
             dw_window_set_text(combo, "");
         dw_window_set_data(hwndLocale, "selected", NULL);
