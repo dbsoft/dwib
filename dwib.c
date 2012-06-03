@@ -1136,7 +1136,7 @@ int DWSIGNAL locale_manager_select(HWND hwnd, int item, void *data)
     }
     
     /* Save the current selection so we don't have to rely on the combobox entry field */
-    dw_window_set_data(hwndLocale, "selected", DW_INT_TO_POINTER(item+1));
+    dw_window_set_data(hwndLocale, "selected", DW_INT_TO_POINTER((item+1)));
     return FALSE;
 }
 
