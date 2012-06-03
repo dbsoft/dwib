@@ -1160,6 +1160,7 @@ void locale_manager_reset(char *val)
         dw_listbox_select(combo, -1, TRUE);
         if(combo)
             dw_window_set_text(combo, "");
+        dw_window_set_data(hwndLocale, "selected", NULL);
         dw_window_set_data(hwndLocale, "node", NULL);
     }
 }
