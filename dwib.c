@@ -931,7 +931,7 @@ void locale_manager_update(void)
         HWND entry = (HWND)dw_window_get_data(hwndLocale, "entry");
         xmlNodePtr node = (xmlNodePtr)dw_window_get_data(hwndLocale, "node");
         int selected = DW_POINTER_TO_INT(dw_window_get_data(hwndLocale, "selected"));
-        
+
         if(localesNode && combo && entry && node && selected > 0)
         {
             char *localetext = dw_window_get_text(entry);
@@ -943,8 +943,6 @@ void locale_manager_update(void)
             if(localename[0] && localetext)
             {
                 xmlNodePtr p;
-                
-                dw_debug("Locale name: %s Locale text: %s\n", localename, localetext);
                 
                 /* Make sure this is for a valid locale */
                 for(p=localesNode->children;p;p = p->next)
@@ -1139,8 +1137,6 @@ int DWSIGNAL locale_manager_select(HWND hwnd, int item, void *data)
     
     /* Save the current selection so we don't have to rely on the combobox entry field */
     dw_window_set_data(hwndLocale, "selected", DW_INT_TO_POINTER(item+1));
-    
-    dw_debug("Selected: %d Text: %s\n", item, buf);
     return FALSE;
 }
 
