@@ -670,6 +670,10 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
 
     container = dw_container_new(0, multi);
 
+    /* Attempt to get localized column title for the filesystem sub-type */
+    if(type == 1 && (this = _dwib_find_locale_child(node, "coltitle")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && *thisval)
+        dw_filesystem_set_column_title(container, thisval);
+    
     /* If we have columns set them up */
     if((this = _dwib_find_child(node, "Columns")))
         _dwib_populate_container(container, this, doc, type, splitcol);

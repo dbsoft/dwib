@@ -827,6 +827,7 @@ void save_properties(void)
         case TYPE_CONTAINER:
             retval |= updateNode(node, vbox, "subtype", FALSE);
             retval |= save_item(node, vbox);
+            retval |= updateNode(node, vbox, "coltitle", FALSE);
             retval |= updateNode(node, vbox, "multi", TRUE);
             retval |= updateNode(node, vbox, "idstring", TRUE);
             retval |= updateNode(node, vbox, "oddcolor", FALSE);
@@ -1313,7 +1314,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     HWND item, button, tmp, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
-    int x, width;
+    int x, width = 0;
 #ifdef __OS2__
     char *sysfont = "os2font";
     char *sysfonttext = "OS/2 Font";
@@ -1459,7 +1460,10 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
         dw_window_set_data(vbox, "tooltip", DW_POINTER(item));
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+        if(node)
+            dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+        else
+            dw_window_disable(button);
     }
     /* Foreground Color */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1610,19 +1614,28 @@ int DWSIGNAL refresh_widget_clicked(HWND window, void *data)
 }
 
 /* Internal function to create a title with a refresh button */
-void _dwib_title(HWND scrollbox, char *title)
+void _dwib_title(HWND scrollbox, char *title, xmlNodePtr node)
 {
-    HWND item = dw_text_new(title, 0);
-    HWND hbox = dw_box_new(DW_HORZ, 0);
-
-    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, 0, 24, 24, FALSE, FALSE, 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - 48, PROPERTIES_HEIGHT, TRUE, TRUE, 0);
-    item = dw_bitmapbutton_new("Refresh Preview Widget", ICON_REFRESH);
-    dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_widget_clicked), NULL);
+    if(node)
+    {
+        HWND item = dw_text_new(title, 0);
+        HWND hbox = dw_box_new(DW_HORZ, 0);
+        
+        dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, 0, 24, 24, FALSE, FALSE, 0);
+        dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - 48, PROPERTIES_HEIGHT, TRUE, TRUE, 0);
+        item = dw_bitmapbutton_new("Refresh Preview Widget", ICON_REFRESH);
+        dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
+        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+        dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_widget_clicked), NULL);
+    }
+    else 
+    {
+        HWND item = dw_text_new(title, 0);
+        dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
+        dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);        
+    }
 }
 
 /* Populate the properties window for a text */
@@ -1641,7 +1654,7 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Text Widget");
+    _dwib_title(scrollbox, "Text Widget", node);
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1687,7 +1700,10 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "label", DW_POINTER(item));
-    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(button);
     /* Alignment */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -1805,7 +1821,7 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Entryfield Widget");
+    _dwib_title(scrollbox, "Entryfield Widget", node);
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1851,7 +1867,10 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
-    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(button);
     /* Limit */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -1975,7 +1994,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Combobox Widget");
+    _dwib_title(scrollbox, "Combobox Widget", node);
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -1998,7 +2017,10 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
-    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(button);
     /* List */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, TRUE, 0);
@@ -2085,7 +2107,7 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Listbox Widget");
+    _dwib_title(scrollbox, "Listbox Widget", node);
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -2313,7 +2335,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Container Widget");
+    _dwib_title(scrollbox, "Container Widget", node);
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2340,6 +2362,30 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
+    /* Filesystem Column */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Filesystem Column", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "coltitle")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+            val = thisval;
+    }
+    item = dw_entryfield_new(val, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_window_set_tooltip(item, "Title for the main filesytem column.");
+    dw_window_set_data(vbox, "coltitle", DW_POINTER(item));
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else
+        dw_window_disable(button);
     /* Multiple select */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -2518,7 +2564,7 @@ void DWSIGNAL properties_tree(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Tree Widget");
+    _dwib_title(scrollbox, "Tree Widget", node);
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -2580,7 +2626,7 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Multi-line Edit Widget");
+    _dwib_title(scrollbox, "Multi-line Edit Widget", node);
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -2671,7 +2717,7 @@ void DWSIGNAL properties_render(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Render Widget");
+    _dwib_title(scrollbox, "Render Widget", node);
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -2770,7 +2816,7 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Button Widget");
+    _dwib_title(scrollbox, "Button Widget", node);
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2918,7 +2964,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Ranged Widget");
+    _dwib_title(scrollbox, "Ranged Widget", node);
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3059,7 +3105,7 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Bitmap Widget");
+    _dwib_title(scrollbox, "Bitmap Widget", node);
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -3082,7 +3128,10 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "setting", DW_POINTER(item));
-    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(button);
     /* Add possible images to the list */
     populateImageList(item);
     
@@ -3144,7 +3193,7 @@ void DWSIGNAL properties_html(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "HTML Widget");
+    _dwib_title(scrollbox, "HTML Widget", node);
     
     properties_item(node, scrollbox, TRUE, FALSE);
     
@@ -3225,7 +3274,7 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Notebook Widget");
+    _dwib_title(scrollbox, "Notebook Widget", node);
     
     properties_item(node, scrollbox, TRUE, FALSE);
     
@@ -3320,9 +3369,7 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Notebook Page Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Notebook Page Widget", NULL);
     
     /* Title */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3343,7 +3390,10 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(button);
     
     properties_item(node, scrollbox, FALSE, FALSE);
     
@@ -3366,7 +3416,10 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "statustext", DW_POINTER(item));
-    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(button);
     /* Orientation */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -3446,7 +3499,7 @@ void DWSIGNAL properties_calendar(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Calendar Widget");
+    _dwib_title(scrollbox, "Calendar Widget", node);
     
     properties_item(node, scrollbox, TRUE, TRUE);
     
@@ -3518,7 +3571,7 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Box Widget");
+    _dwib_title(scrollbox, "Box Widget", node);
     
     /* Sub-type */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3592,7 +3645,10 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(button);
     /* Split % */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -3671,7 +3727,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    _dwib_title(scrollbox, "Padding");
+    _dwib_title(scrollbox, "Padding", node);
 
     /* Required size */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3820,9 +3876,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Menu Widget", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Menu Widget", NULL);
     
     /* Create the actual properties - Title */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3842,7 +3896,10 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(button);
     /* Data name*/
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -3977,9 +4034,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_box_pack_start(vbox, scrollbox, 1, 1, TRUE, TRUE, 0);
     
     /* Title display */
-    item = dw_text_new("Top-level Window", 0);
-    dw_window_set_style(item, DW_DT_VCENTER | DW_DT_CENTER, DW_DT_VCENTER | DW_DT_CENTER);
-    dw_box_pack_start(scrollbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    _dwib_title(scrollbox, "Top-level Window", NULL);
     
     /* Create the actual properties - Title */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3999,7 +4054,10 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(button);
     /* Size */ 
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
