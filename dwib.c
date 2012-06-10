@@ -951,34 +951,20 @@ void locale_manager_update(void)
                     /* Yes we have a valid locale! */
                     if(strcmp((char *)p->name, localename) == 0)
                     {
-                        char *newnodename = alloca(strlen((char *)node->name) + strlen(localename) + 2);
-                        xmlNodePtr parentnode = node->parent;
-                        xmlNodePtr localnode;
-    
-                        /* Create the new node name: basename_localename */
-                        strcpy(newnodename, (char *)node->name);
-                        strcat(newnodename, "_");
-                        strcat(newnodename, localename);
+                        xmlAttrPtr att = xmlHasProp(node, (xmlChar *)localename);
                         
-                        /* See if there is an existing node with that name */
-                        localnode = _dwib_find_child(parentnode, newnodename);
-                        
-                        /* If the locale text has content... */
+                        /* If we have text... */ 
                         if(*localetext)
                         {
-                            /* Create or update the node with new content */
-                            if(!localnode)
-                                localnode = xmlNewTextChild(parentnode, NULL, (xmlChar *)newnodename, (xmlChar *)localetext);
+                            /* Either change or create a new property */
+                            if(att)
+                                xmlSetProp(node, (xmlChar *)localename, (xmlChar *)localetext);
                             else
-                                xmlNodeSetContent(localnode, (xmlChar *)localetext);
+                                xmlNewProp(node, (xmlChar *)localename, (xmlChar *)localetext);
                         }
-                        /* Otherwise free any existing node */
-                        else if(localnode)
-                        {
-                            xmlUnlinkNode(localnode);
-                            xmlFreeNode(localnode);
-                        }
-                            
+                        /* Otherwise remove the existing property */
+                        else if(att)
+                            xmlRemoveProp(att);
                    }
                 }
             }
@@ -1117,21 +1103,13 @@ int DWSIGNAL locale_manager_select(HWND hwnd, int item, void *data)
     
     if(node && entry)
     {
-        char *newnodename = alloca(strlen((char *)node->name) + strlen(buf) + 2);
-        xmlNodePtr parentnode = node->parent;
-        xmlNodePtr localnode;
-        char *thisval;
+        char *thisval = (char *)xmlGetProp(node, (xmlChar *)buf);
 
-        /* Create the new node name: basename_localename */
-        strcpy(newnodename, (char *)node->name);
-        strcat(newnodename, "_");
-        strcat(newnodename, buf);
-        
-        /* See if there is an existing node with that name */
-        localnode = _dwib_find_child(parentnode, newnodename);
-        
-        if(localnode && (thisval = (char *)xmlNodeListGetString(DWDoc, localnode->children, 1)))
+        if(thisval)
+        {
             dw_window_set_text(entry, thisval);
+            xmlFree(thisval);
+        }
         else
             dw_window_set_text(entry, "");
     }
@@ -2268,6 +2246,8 @@ void populate_columns(HWND vbox, HWND scrollbox, HWND combo, xmlNodePtr node)
                     /* Add the column to the OS/2 split column list */
                     snprintf(buf, 20, "%d", count);
                     dw_listbox_append(combo, buf);
+                    
+                    /* TODO: xmlFree now? */
                 }
             }
         }

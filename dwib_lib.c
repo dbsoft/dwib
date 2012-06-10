@@ -39,27 +39,6 @@ xmlNodePtr _dwib_find_child(xmlNodePtr node, char *name)
     return NULL;
 }
 
-/* Returns a child of node with the specified name handling locale.
- * Returns NULL on failure.
- */
-xmlNodePtr _dwib_find_locale_child(xmlNodePtr node, char *name)
-{
-    if(_dwib_locale)
-    {
-        char *tmpname = alloca(strlen(name) + strlen(_dwib_locale) + 2);
-        xmlNodePtr tmpnode;
-        
-        /* Generate temp node name */
-        strcpy(tmpname, name);
-        strcat(tmpname, "_");
-        strcat(tmpname, _dwib_locale);
-        
-        if((tmpnode = _dwib_find_child(node, tmpname)))
-            return tmpnode;
-    }
-    return _dwib_find_child(node, name);
-}
-
 char *Colors[] =
 {
     "Black",
@@ -110,6 +89,22 @@ int _dwib_get_color(char *color)
     return DW_CLR_DEFAULT;
 }
 
+/* Internal function to check if a node has a locale property
+ * for the current locale and return that, or return the default.
+ */
+char * _dwib_get_locale_string(xmlNodePtr node, xmlDocPtr doc)
+{
+    if(_dwib_locale)
+    {
+        xmlAttrPtr att = xmlHasProp(node, (xmlChar *)_dwib_locale);
+        xmlChar *result;
+        
+        if(att && (result = xmlGetProp(node, (xmlChar *)_dwib_locale)))
+            return (char *)result;
+    }
+    return (char *)xmlNodeListGetString(doc, node->children, 1);
+}
+
 /* Internal function for handling packing of items into boxes */
 void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND item, int index)
 {
@@ -129,7 +124,7 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
         vexpand = atoi(thisval);
     if((this = _dwib_find_child(node, "padding")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         padding = atoi(thisval);
-    if((this = _dwib_find_child(node, "enabled")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval) == 0)
+    if((this = _dwib_find_child(node, "enabled")) && (thisval = _dwib_get_locale_string(this, doc)) && atoi(thisval) == 0)
         dw_window_disable(item);
     if((this = _dwib_find_child(node, "dataname")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dataname = thisval;
@@ -146,7 +141,7 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
 #endif
     if((this || (this = _dwib_find_child(node, "font"))) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && strcmp(thisval, "Default"))
         dw_window_set_font(item, thisval);
-    if((this = _dwib_find_locale_child(node, "tooltip")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && *thisval)
+    if((this = _dwib_find_child(node, "tooltip")) && (thisval = _dwib_get_locale_string(this, doc)) && *thisval)
         dw_window_set_tooltip(item, thisval);
     if((this = _dwib_find_child(node, "fcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         fcolor = _dwib_get_color(thisval);
@@ -180,12 +175,12 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
 HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox)
 {
     HWND box;
-    xmlNodePtr this = _dwib_find_locale_child(node, "statustext");
+    xmlNodePtr this = _dwib_find_child(node, "statustext");
     char *thisval;
     int flags = 0, orient = DW_HORZ;
     unsigned long pageid = dw_notebook_page_new(packbox, flags, FALSE);
 
-    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((thisval = _dwib_get_locale_string(this, doc)))
         dw_notebook_page_set_status_text(packbox, pageid, thisval);
     if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1))
        && (atoi(thisval) || strcmp(thisval, "Vertical") == 0))
@@ -198,7 +193,7 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
     /* Save the page ID in the box data */
     dw_window_set_data(box, "_dwib_pageid", DW_INT_TO_POINTER(pageid));
 
-    if((this = _dwib_find_locale_child(node, "title")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((this = _dwib_find_child(node, "title")) && (thisval = _dwib_get_locale_string(this, doc)))
         dw_notebook_page_set_text(packbox, pageid, thisval);
     return box;
 }
@@ -237,7 +232,7 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
         else if(strcmp(thisval, "Splitbar") == 0)
             type = 3;
     }
-    if((this = _dwib_find_locale_child(node, "title")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((this = _dwib_find_child(node, "title")) && (thisval = _dwib_get_locale_string(this, doc)))
         title = thisval;
     if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1))
        && (atoi(thisval) || strcmp(thisval, "Vertical") == 0))
@@ -464,7 +459,7 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
         else if(strcmp(thisval, "Radio") == 0)
             type = 3;
     }
-    if((this = _dwib_find_locale_child(node, "setting")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((this = _dwib_find_child(node, "setting")) && (thisval = _dwib_get_locale_string(this, doc)))
         setting = thisval;
 
     switch(type)
@@ -539,7 +534,7 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
         if(strcmp(thisval, "Status") == 0)
             type = 1;
     }
-    if((this = _dwib_find_locale_child(node, "label")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((this = _dwib_find_child(node, "label")) && (thisval = _dwib_get_locale_string(this, doc)))
         label = thisval;
     if((this = _dwib_find_child(node, "alignment")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
@@ -671,7 +666,7 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     container = dw_container_new(0, multi);
 
     /* Attempt to get localized column title for the filesystem sub-type */
-    if(type == 1 && (this = _dwib_find_locale_child(node, "coltitle")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && *thisval)
+    if(type == 1 && (this = _dwib_find_child(node, "coltitle")) && (thisval = _dwib_get_locale_string(this, doc)) && *thisval)
         dw_filesystem_set_column_title(container, thisval);
     
     /* If we have columns set them up */
@@ -755,7 +750,7 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
         if(strcmp(thisval, "Password") == 0)
             type = 1;
     }
-    if((this = _dwib_find_locale_child(node, "deftext")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((this = _dwib_find_child(node, "deftext")) && (thisval = _dwib_get_locale_string(this, doc)))
         deftext = thisval;
 
     switch(type)
@@ -768,7 +763,7 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
             break;
     }
 
-    if((this = _dwib_find_locale_child(node, "deftext")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((this = _dwib_find_child(node, "deftext")) && (thisval = _dwib_get_locale_string(this, doc)))
         dw_entryfield_set_limit(entryfield, atoi(thisval));
 
     if(entryfield)
@@ -799,10 +794,10 @@ void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc)
 HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND combobox;
-    xmlNodePtr this = _dwib_find_locale_child(node, "deftext");
+    xmlNodePtr this = _dwib_find_child(node, "deftext");
     char *thisval, *deftext = "";
 
-    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((thisval = _dwib_get_locale_string(this, doc)))
         deftext = thisval;
 
     combobox = dw_combobox_new(deftext, 0);
@@ -850,10 +845,10 @@ HWND _dwib_render_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
 HWND _dwib_mle_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND mle;
-    xmlNodePtr this = _dwib_find_locale_child(node, "deftext");
+    xmlNodePtr this = _dwib_find_child(node, "deftext");
     char *thisval, *deftext = "";
 
-    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((thisval = _dwib_get_locale_string(this, doc)))
     {
         deftext = thisval;
     }
@@ -909,11 +904,11 @@ HWND _dwib_calendar_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
 HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index)
 {
     HWND bitmap;
-    xmlNodePtr this = _dwib_find_locale_child(node, "setting");
+    xmlNodePtr this = _dwib_find_child(node, "setting");
     char *thisval, *setting = "", *freeme = NULL;
     int resid = 0, length = 0;
 
-    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((thisval = _dwib_get_locale_string(this, doc)))
     {
         struct dwstat st;
         
@@ -978,11 +973,11 @@ HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
 HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packbox, HMENUI submenu)
 {
     HWND menuitem;
-    xmlNodePtr this = _dwib_find_locale_child(node, "title");
+    xmlNodePtr this = _dwib_find_child(node, "title");
     char *thisval, *title = "", *dataname = NULL;
     int flags = 0, checkable = 0, menuid = 0;
 
-    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((thisval = _dwib_get_locale_string(this, doc)))
         title = thisval;
     if((this = _dwib_find_child(node, "checkable")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         checkable = atoi(thisval);
@@ -1120,14 +1115,14 @@ HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int
 /* Internal function for creating a window from an XML tree node */
 HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
 {
-    xmlNodePtr this = _dwib_find_locale_child(node, "title");
+    xmlNodePtr this = _dwib_find_child(node, "title");
     char *thisval, *title = "Preview: ";
     unsigned long flags = 0;
     int bordersize = -1, orient = DW_HORZ, padding = 0;
     int x = -1, y = -1, width = -1, height = -1, hgravity = 0, vgravity = 0;
     HWND ret, box;
 
-    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    if((thisval = _dwib_get_locale_string(this, doc)))
     {
         if(_dwib_builder)
         {
