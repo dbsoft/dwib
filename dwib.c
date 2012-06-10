@@ -2096,7 +2096,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_window_set_data(vbox, "list", DW_POINTER(item));
     if((this = _dwib_find_child(node, "List")))
     {
-        _dwib_populate_list(item, this, DWDoc);
+        _dwib_populate_list(item, this, DWDoc, FALSE);
         dw_window_set_data(item, "node", DW_POINTER(this));
     }
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2209,7 +2209,7 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, 150, TRUE, TRUE, 0);
     if((this = _dwib_find_child(node, "List")))
     {
-        _dwib_populate_list(item, this, DWDoc);
+        _dwib_populate_list(item, this, DWDoc, FALSE);
         dw_window_set_data(item, "node", DW_POINTER(this));
     }
     dw_window_set_data(vbox, "list", DW_POINTER(item));

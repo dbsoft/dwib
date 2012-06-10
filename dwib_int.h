@@ -34,7 +34,7 @@ enum DWTYPES
 /* Internal library functions */
 int _dwib_get_color(char *color);
 xmlNodePtr _dwib_find_child(xmlNodePtr node, char *name);
-void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc);
+void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc, int locale);
 void _dwib_builder_toggle(void *val);
 HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int windowlevel);
 HMENUI _dwib_child(xmlDocPtr doc, HWND window, HWND box, int windowlevel, xmlNodePtr p, HMENUI menu, int index);

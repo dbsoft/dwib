@@ -772,7 +772,7 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
 }
 
 /* Fills in a listbox/combobox with items from the List node */
-void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc)
+void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc, int locale)
 {
     xmlNodePtr p;
 
@@ -780,9 +780,9 @@ void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc)
     {
         if(strcmp((char *)p->name, "Item") == 0)
         {
-            char *thisval;
+            char *thisval = locale ? _dwib_get_locale_string(p, doc) : (char *)xmlNodeListGetString(doc, p->children, 1);
 
-            if((thisval = _dwib_get_locale_string(p, doc)))
+            if(thisval)
             {
                 dw_listbox_append(list, thisval);
             }
@@ -805,7 +805,7 @@ HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
     _dwib_item_pack(node, doc, window, packbox, combobox, index);
 
     if((this = _dwib_find_child(node, "List")))
-        _dwib_populate_list(combobox, this, doc);
+        _dwib_populate_list(combobox, this, doc, TRUE);
 
     return combobox;
 }
@@ -962,7 +962,7 @@ HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
     listbox = dw_listbox_new(0, multi);
 
     if((this = _dwib_find_child(node, "List")))
-        _dwib_populate_list(listbox, this, doc);
+        _dwib_populate_list(listbox, this, doc, TRUE);
 
     _dwib_item_pack(node, doc, window, packbox, listbox, index);
 
