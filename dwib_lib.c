@@ -874,7 +874,7 @@ HWND _dwib_html_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
 
     if(html)
     {
-        if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        if((thisval = _dwib_get_locale_string(this, doc)))
             dw_html_url(html, thisval);
     }
     else if(_dwib_builder)

@@ -3271,9 +3271,10 @@ int DWSIGNAL html_create(HWND window, void *data)
 /* Populate the properties window for a HTML */
 void DWSIGNAL properties_html(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int width;
     
     dw_window_destroy(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -3300,8 +3301,16 @@ void DWSIGNAL properties_html(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "URL", DW_POINTER(item));
+    if(this)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(button);
     
     /* If it is a new window add button */
     if(!node)
