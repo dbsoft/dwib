@@ -595,7 +595,7 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
                 {
                     char *thisval;
 
-                    if((thisval = (char *)xmlNodeListGetString(doc, p->children, 1)))
+                    if((thisval = _dwib_get_locale_string(p, doc)))
                     {
                         char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
                         char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
@@ -782,7 +782,7 @@ void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc)
         {
             char *thisval;
 
-            if((thisval = (char *)xmlNodeListGetString(doc, p->children, 1)))
+            if((thisval = _dwib_get_locale_string(p, doc)))
             {
                 dw_listbox_append(list, thisval);
             }

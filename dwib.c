@@ -458,19 +458,38 @@ int saveList(xmlNodePtr node, HWND vbox)
     if(node && list && dw_window_get_data(list, "_dwib_modified"))
     {
         int x, count = dw_listbox_count(list);
+        xmlNodePtr thisNode;
         char buf[101] = {0};
         
-        if(this)
-        {
-            xmlUnlinkNode(this);
-            xmlFreeNode(this);
-        }
-        this = xmlNewTextChild(node, NULL, (xmlChar *)"List", (xmlChar *)"");
+        /* Create a list node if one doesn't exist */
+        if(!this)
+            this = xmlNewTextChild(node, NULL, (xmlChar *)"List", (xmlChar *)"");
+        
+        thisNode = this->children;
         
         for(x=0;x<count;x++)
         {
             dw_listbox_get_text(list, x, buf, 100);
-            xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)buf);
+            
+            /* Update or create a list item */
+            if(thisNode)
+                xmlNodeSetContent(thisNode, (xmlChar *)buf);
+            else 
+                thisNode = xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)buf);
+            
+            if(thisNode)
+                thisNode = thisNode->next;
+        }
+        /* Remove any trailing nodes */
+        while(thisNode)
+        {
+            /* Otherwise remove the node if it exists */
+            xmlNodePtr freeme = thisNode;
+            
+            thisNode = thisNode->next;
+            
+            xmlUnlinkNode(freeme);
+            xmlFreeNode(freeme);
         }
         dw_window_set_data(list, "_dwib_modified", NULL);
         return 1;
@@ -489,14 +508,13 @@ int save_columns(xmlNodePtr node, HWND vbox)
     if(node)
     {
         char buf[50];
+        xmlNodePtr thisNode;
         
-        if(this)
-        {
-            xmlUnlinkNode(this);
-            xmlFreeNode(this);
-        }
+        /* Create a columns node if one doesn't exist */
+        if(!this)
+            this = xmlNewTextChild(node, NULL, (xmlChar *)"Columns", (xmlChar *)"");
         
-        this = xmlNewTextChild(node, NULL, (xmlChar *)"Columns", (xmlChar *)"");
+        thisNode = this->children;
         
         count++;
         
@@ -517,12 +535,33 @@ int save_columns(xmlNodePtr node, HWND vbox)
                 char *coltype = dw_window_get_text(combo1);
                 char *colalign = dw_window_get_text(combo2);
                 
+                /* If we have a valid column... */
                 if(colname && *colname && coltype && *coltype && colalign && *colalign)
                 {
-                    xmlNodePtr thisNode = xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)colname);
+                    /* Create or update the column node */
+                    if(thisNode)
+                        xmlNodeSetContent(thisNode, (xmlChar *)colname);
+                    else 
+                        thisNode = xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)colname);
                     xmlSetProp(thisNode, (xmlChar *)"ColType", (xmlChar *)coltype);
                     xmlSetProp(thisNode, (xmlChar *)"ColAlign", (xmlChar *)colalign);
                 }
+                else if(thisNode) 
+                {
+                    /* Otherwise remove the node if it exists */
+                    xmlNodePtr freeme = thisNode;
+                    
+                    thisNode = thisNode->next;
+                    
+                    xmlUnlinkNode(freeme);
+                    xmlFreeNode(freeme);
+                }
+                
+                /* Advance to the next node if available */
+                if(thisNode)
+                    thisNode = thisNode->next;
+                
+                /* Free temporary memory */
                 if(colname)
                     dw_free(colname);
                 if(coltype)
@@ -530,6 +569,17 @@ int save_columns(xmlNodePtr node, HWND vbox)
                 if(colalign)
                     dw_free(colalign);
             }
+        }
+        /* Remove any trailing nodes */
+        while(thisNode)
+        {
+            /* Otherwise remove the node if it exists */
+            xmlNodePtr freeme = thisNode;
+            
+            thisNode = thisNode->next;
+            
+            xmlUnlinkNode(freeme);
+            xmlFreeNode(freeme);
         }
         return 1;
     }
@@ -1438,7 +1488,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
         dw_window_set_data(vbox, "tooltip", DW_POINTER(item));
-        if(node)
+        if(this)
             dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
         else
             dw_window_disable(button);
@@ -1678,7 +1728,7 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "label", DW_POINTER(item));
-    if(node)
+    if(this)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     else 
         dw_window_disable(button);
@@ -1845,7 +1895,7 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
-    if(node)
+    if(this)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     else 
         dw_window_disable(button);
@@ -1995,7 +2045,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
-    if(node)
+    if(this)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     else 
         dw_window_disable(button);
@@ -2165,7 +2215,7 @@ int DWSIGNAL add_row_clicked(HWND window, void *data)
     dw_window_disable(button);
     
     count++;
-    add_row(vbox, scrollbox, count, "", "", "", FALSE);
+    add_row(vbox, scrollbox, count, "", "", "", NULL, FALSE);
     dw_window_set_data(vbox, "colcount", DW_INT_TO_POINTER(count));
     /* Add a final entry for the blank field */
     snprintf(buf, 50, "%d", count+1);
@@ -2174,17 +2224,25 @@ int DWSIGNAL add_row_clicked(HWND window, void *data)
 }
 
 /* Add a single row */
-void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype, char *colalign, int disable)
+void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype, char *colalign, xmlNodePtr node, int disable)
 {
-    HWND item, hbox = dw_box_new(DW_HORZ, 0);
+    HWND button, item, hbox = dw_box_new(DW_HORZ, 0);
     char buf[50];
-    int x = 0, which = 0;
+    int x = 0, which = 0, width;
     
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     item = dw_entryfield_new(colname, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(button, &width, NULL);
     snprintf(buf, 50, "entryfield%d", count);
     dw_window_set_data(vbox, buf, DW_POINTER(item));
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - BUTTON_ICON_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - (BUTTON_ICON_WIDTH + width), PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    if(node)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), node);
+    else
+        dw_window_disable(button);
     item = dw_combobox_new(coltype, 0);
     snprintf(buf, 50, "coltype%d", count);
     dw_window_set_data(vbox, buf, DW_POINTER(item));
@@ -2240,7 +2298,7 @@ void populate_columns(HWND vbox, HWND scrollbox, HWND combo, xmlNodePtr node)
                     char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
                     char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
 
-                    add_row(vbox, scrollbox, count, thisval, coltype ? coltype : "", colalign ? colalign : "", TRUE);
+                    add_row(vbox, scrollbox, count, thisval, coltype ? coltype : "", colalign ? colalign : "", p, TRUE);
                     count++;
 
                     /* Add the column to the OS/2 split column list */
@@ -2252,7 +2310,7 @@ void populate_columns(HWND vbox, HWND scrollbox, HWND combo, xmlNodePtr node)
             }
         }
     }
-    add_row(vbox, scrollbox, count, "", "", "", FALSE);
+    add_row(vbox, scrollbox, count, "", "", "", NULL, FALSE);
     dw_window_set_data(vbox, "colcount", DW_INT_TO_POINTER(count));
     /* Add a final entry for the blank field */
     snprintf(buf, 20, "%d", count+1);
@@ -2362,7 +2420,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_tooltip(item, "Title for the main filesytem column.");
     dw_window_set_data(vbox, "coltitle", DW_POINTER(item));
-    if(node)
+    if(this)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     else
         dw_window_disable(button);
@@ -3108,7 +3166,7 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "setting", DW_POINTER(item));
-    if(node)
+    if(this)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     else 
         dw_window_disable(button);
@@ -3370,7 +3428,7 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    if(node)
+    if(this)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     else 
         dw_window_disable(button);
@@ -3396,7 +3454,7 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "statustext", DW_POINTER(item));
-    if(node)
+    if(this)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     else 
         dw_window_disable(button);
@@ -3625,7 +3683,7 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    if(node)
+    if(this)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     else 
         dw_window_disable(button);
@@ -3876,7 +3934,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    if(node)
+    if(this)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     else 
         dw_window_disable(button);
@@ -4034,7 +4092,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    if(node)
+    if(this)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
     else 
         dw_window_disable(button);
