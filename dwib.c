@@ -2006,10 +2006,46 @@ int DWSIGNAL rem_clicked(HWND window, void *data)
     return FALSE;
 }
 
+/* Special handling when editing the list */
+int DWSIGNAL locale_manager_list_clicked(HWND button, void *data)
+{
+    HWND listcombo = (HWND)data;
+    
+    if(listcombo)
+    {
+        int selected = dw_listbox_selected(listcombo);
+        
+        if(selected == DW_ERROR_UNKNOWN)
+            dw_messagebox(APP_NAME, DW_MB_ERROR | DW_MB_OK, "No list item selected.");
+        else 
+        {
+            xmlNodePtr node = (xmlNodePtr)dw_window_get_data(listcombo, "node");
+            int x;
+            
+            if(node)
+            {
+                node = node->children;
+                
+                /* Locate the node associated with that list entry */
+                for(x=0;x<selected && node;x++)
+                {
+                    node = node->next;
+                }
+                
+                if(node)
+                    locale_manager_clicked(button, node);
+                else 
+                    dw_messagebox(APP_NAME, DW_MB_ERROR | DW_MB_OK, "Internal data has not been created yet for this list item, please refresh the item and try again.");
+            }
+        }
+    }
+    return TRUE;
+}
+
 /* Populate the properties window for a combobox */
 void DWSIGNAL properties_combobox(xmlNodePtr node)
 {
-    HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, list, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int width;
@@ -2055,18 +2091,26 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     item = dw_text_new("List", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    item = dw_listbox_new(0, FALSE);
+    list = item = dw_listbox_new(0, FALSE);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, 150, TRUE, TRUE, 0);
     dw_window_set_data(vbox, "list", DW_POINTER(item));
     if((this = _dwib_find_child(node, "List")))
     {
         _dwib_populate_list(item, this, DWDoc);
+        dw_window_set_data(item, "node", DW_POINTER(this));
     }
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
     item = dw_entryfield_new("", 0);
     dw_window_set_data(vbox, "list_entry", DW_POINTER(item));
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    if(this)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
+    else
+        dw_window_disable(button);
     item = dw_button_new("+", 0);
     dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_clicked), DW_POINTER(vbox));
@@ -2123,7 +2167,7 @@ int DWSIGNAL listbox_create(HWND window, void *data)
 /* Populate the properties window for a listbox */
 void DWSIGNAL properties_listbox(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, list, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *val = defvalzero, *thisval;
     xmlNodePtr this;
     
@@ -2161,11 +2205,12 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     item = dw_text_new("List", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
-    item = dw_listbox_new(0, FALSE);
+    list = item = dw_listbox_new(0, FALSE);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, 150, TRUE, TRUE, 0);
     if((this = _dwib_find_child(node, "List")))
     {
         _dwib_populate_list(item, this, DWDoc);
+        dw_window_set_data(item, "node", DW_POINTER(this));
     }
     dw_window_set_data(vbox, "list", DW_POINTER(item));
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2173,6 +2218,13 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     item = dw_entryfield_new("", 0);
     dw_window_set_data(vbox, "list_entry", DW_POINTER(item));
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    if(this)
+        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
+    else
+        dw_window_disable(button);
     item = dw_button_new("+", 0);
     dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_clicked), DW_POINTER(vbox));
