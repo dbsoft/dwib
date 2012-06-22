@@ -101,7 +101,7 @@ install: FORCE
 	$(INSTALL) -d $(prefix)/lib; \
 	$(INSTALL) -d $(prefix)/bin; \
 	$(INSTALL) dwib.h $(prefix)/include; \
-	sed -e 's/@DWIB_MAJOR_VERSION@/$(VER_MAJ)/' -e 's/@DWIB_MINOR_VERSION@/$(VER_MIN)/' -e 's/@DWIB_SUB_VERSION@/$(VER_REV)/' < dwib-config1 > dwib-config
+	sed -e 's/@DWIB_MAJOR_VERSION@/'$(VER_MAJ)'/' -e 's/@DWIB_MINOR_VERSION@/'$(VER_MIN)'/' -e 's/@DWIB_SUB_VERSION@/'$(VER_REV)'/' < dwib-config1 > dwib-config
 	$(INSTALL) dwib-config $(prefix)/bin; \
 	$(INSTALL) $(TARGET) $(prefix)/bin; \
 	$(INSTALL) $(SYSCONF_LINK_TARGET_SHARED)  $(prefix)/lib; \
