@@ -24,6 +24,7 @@ extern char *_dwib_image_root;
 
 char *Classes[] =
 {
+    "None",
     "Window",
     "Box",
     "Text",
@@ -349,14 +350,14 @@ int DWSIGNAL render_expose(HWND window, DWExpose *exp, void *data)
 /* Returns TRUE if the node is a valid class */
 int is_valid(xmlNodePtr node)
 {
-    int x = 0;
+    int x = 1;
     
     while(Classes[x] && strcmp(Classes[x], (char *)node->name))
     {
         x++;
     }
     if(Classes[x])
-        return x+1;
+        return x;
     return FALSE;
 }
 
@@ -365,8 +366,8 @@ int is_packable(xmlNodePtr node, int message)
 {
     if(node->name &&
        (strcmp((char *)node->name, "Window") == 0 ||
-       strcmp((char *)node->name, "Box") == 0 ||
-       strcmp((char *)node->name, "NotebookPage") == 0))
+        strcmp((char *)node->name, "Box") == 0 ||
+        strcmp((char *)node->name, "NotebookPage") == 0))
     {
         return TRUE;
     }
@@ -1601,11 +1602,12 @@ int DWSIGNAL text_create(HWND window, void *data)
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Text", (xmlChar *)subtype);
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -1644,7 +1646,7 @@ int DWSIGNAL refresh_widget_clicked(HWND window, void *data)
 /* Internal function to create a title with a refresh button */
 void _dwib_title(HWND scrollbox, char *title, xmlNodePtr node)
 {
-    if(node)
+    if(node && node->parent)
     {
         HWND item = dw_text_new(title, 0);
         HWND hbox = dw_box_new(DW_HORZ, 0);
@@ -1666,6 +1668,21 @@ void _dwib_title(HWND scrollbox, char *title, xmlNodePtr node)
     }
 }
 
+/* Destroy the properties window contents... */
+void destroy_properties_box(HWND vbox)
+{
+    xmlNodePtr node = (xmlNodePtr)dw_window_get_data(vbox, "node");
+    
+    /* Check if the active node is linked */
+    if(node && !node->parent)
+    {
+        /* If it isn't linked, free it */
+        xmlFreeNode(node);
+    }
+    /* Finally destroy the box */
+    dw_window_destroy(vbox);
+}
+
 /* Populate the properties window for a text */
 void DWSIGNAL properties_text(xmlNodePtr node)
 {
@@ -1674,8 +1691,9 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     xmlNodePtr this;
     int width;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -1785,7 +1803,7 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_window_set_data(vbox, "valignment", DW_POINTER(item));  
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -1800,11 +1818,12 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Entryfield", (xmlChar *)subtype);
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -1841,8 +1860,9 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     xmlNodePtr this;
     int width;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -1917,7 +1937,7 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_window_set_data(vbox, "limit", DW_POINTER(item));
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -1931,11 +1951,12 @@ int DWSIGNAL combobox_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Combobox", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -2050,8 +2071,9 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     xmlNodePtr this;
     int width;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -2119,7 +2141,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(rem_clicked), DW_POINTER(vbox));
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -2133,11 +2155,12 @@ int DWSIGNAL listbox_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Listbox", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -2171,8 +2194,9 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     char *val = defvalzero, *thisval;
     xmlNodePtr this;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -2233,7 +2257,7 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(rem_clicked), DW_POINTER(vbox));
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -2376,11 +2400,12 @@ int DWSIGNAL container_create(HWND window, void *data)
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Container", (xmlChar *)subtype);
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -2417,8 +2442,9 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     xmlNodePtr this;
     int x, width;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -2599,7 +2625,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_listbox_select(tmp, atoi(val), TRUE);
 
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -2613,11 +2639,12 @@ int DWSIGNAL tree_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Tree", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -2646,8 +2673,9 @@ void DWSIGNAL properties_tree(xmlNodePtr node)
 {
     HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -2659,7 +2687,7 @@ void DWSIGNAL properties_tree(xmlNodePtr node)
     properties_item(node, scrollbox, TRUE, TRUE);
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -2673,11 +2701,12 @@ int DWSIGNAL mle_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"MLE", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -2708,8 +2737,9 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -2752,7 +2782,7 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -2766,11 +2796,12 @@ int DWSIGNAL render_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Render", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -2799,8 +2830,9 @@ void DWSIGNAL properties_render(xmlNodePtr node)
 {
     HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -2812,7 +2844,7 @@ void DWSIGNAL properties_render(xmlNodePtr node)
     properties_item(node, scrollbox, TRUE, TRUE);
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -2827,11 +2859,12 @@ int DWSIGNAL button_create(HWND window, void *data)
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Button", (xmlChar *)subtype);
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -2898,8 +2931,9 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -2991,7 +3025,7 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     dw_window_set_data(vbox, "borderless", DW_POINTER(item));
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -3006,11 +3040,12 @@ int DWSIGNAL ranged_create(HWND window, void *data)
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Ranged", (xmlChar *)subtype);
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -3046,8 +3081,9 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -3137,7 +3173,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     dw_window_set_data(vbox, "lower", DW_POINTER(item));
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -3151,11 +3187,12 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Bitmap", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -3187,8 +3224,9 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     xmlNodePtr this;
     int width;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -3226,7 +3264,7 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     populateImageList(item);
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -3240,11 +3278,12 @@ int DWSIGNAL html_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"HTML", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -3276,8 +3315,9 @@ void DWSIGNAL properties_html(xmlNodePtr node)
     xmlNodePtr this;
     int width;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -3313,7 +3353,7 @@ void DWSIGNAL properties_html(xmlNodePtr node)
         dw_window_disable(button);
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -3327,19 +3367,17 @@ int DWSIGNAL notebook_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Notebook", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
     if(!thisNode)
         return FALSE;
-    
-    /* Create a sub-node for holding children */
-    xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
     
     treeitem = dw_tree_insert(tree, "Notebook", hIcons[TYPE_NOTEBOOK], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
@@ -3365,8 +3403,9 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -3401,7 +3440,7 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
     dw_window_set_data(vbox, "position", DW_POINTER(item));    
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -3416,19 +3455,17 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
     char buf[200], *title = dw_window_get_text((HWND)dw_window_get_data(vbox, "title"));
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packablePageNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packablePageNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && strcmp((char *)currentNode->name, "Notebook") == 0 && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && strcmp((char *)currentNode->name, "Notebook") == 0 && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"NotebookPage", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
     if(!thisNode)
         return FALSE;
-    
-    /* Create a sub-node for holding children */
-    xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
     
     snprintf(buf, 200, "Page - (%s)", title ? title : "");
     
@@ -3460,8 +3497,9 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     xmlNodePtr this;
     int width;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -3543,7 +3581,7 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_window_set_data(vbox, "orientation", DW_POINTER(item));    
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -3557,11 +3595,12 @@ int DWSIGNAL calendar_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Calendar", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
@@ -3590,8 +3629,9 @@ void DWSIGNAL properties_calendar(xmlNodePtr node)
 {
     HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -3603,7 +3643,7 @@ void DWSIGNAL properties_calendar(xmlNodePtr node)
     properties_item(node, scrollbox, TRUE, TRUE);
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -3618,19 +3658,17 @@ int DWSIGNAL box_create(HWND window, void *data)
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
     char buf[200], *subtype = dw_window_get_text((HWND)dw_window_get_data(vbox, "subtype"));
-    xmlNodePtr boxNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr boxNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(boxNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        boxNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Box", (xmlChar *)subtype);
+        boxNode = xmlAddChild(parentNode, boxNode);
     }
     
     /* Dropout on failure */
     if(!boxNode)
         return FALSE;
-    
-    /* Create a sub-node for holding children */
-    xmlNewTextChild(boxNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
     
     snprintf(buf, 200, "Box - (%s)", subtype ? subtype : "");
     
@@ -3662,8 +3700,9 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     xmlNodePtr this;
     int width;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -3766,7 +3805,7 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     dw_window_set_data(vbox, "splitper", DW_POINTER(item));
 
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -3780,19 +3819,17 @@ int DWSIGNAL padding_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr thisNode = NULL, parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr parentNode, currentNode = packableNode(DWCurrNode);
+    xmlNodePtr thisNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    if(currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
+    if(thisNode && currentNode && is_packable(currentNode, TRUE) && (parentNode = _dwib_find_child(currentNode, "Children")))
     {
-        thisNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Padding", (xmlChar *)"");
+        thisNode = xmlAddChild(parentNode, thisNode);
     }
     
     /* Dropout on failure */
     if(!thisNode)
         return FALSE;
-    
-    /* Create a sub-node for holding children */
-    xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
     
     treeitem = dw_tree_insert(tree, "Padding", hIcons[TYPE_PADDING], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
@@ -3818,8 +3855,9 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -3887,7 +3925,7 @@ void DWSIGNAL properties_padding(xmlNodePtr node)
     dw_window_set_data(vbox, "vexpand", DW_POINTER(item));
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -3902,21 +3940,18 @@ int DWSIGNAL menu_create(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
-    xmlNodePtr boxNode = NULL;
     char buf[200], *title = dw_window_get_text((HWND)dw_window_get_data(vbox, "title"));
+    xmlNodePtr boxNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
     /* Menus can only be added to the window... or other menus */
-    if(strcmp((char *)DWCurrNode->name, "Window") == 0 ||
-       strcmp((char *)DWCurrNode->name, "Menu") == 0)
+    if((strcmp((char *)DWCurrNode->name, "Window") == 0 ||
+        strcmp((char *)DWCurrNode->name, "Menu") == 0) && boxNode)
     {
-        boxNode = xmlNewTextChild(parentNode, NULL, (xmlChar *)"Menu", (xmlChar *)"");
+        boxNode = xmlAddChild(parentNode, boxNode);
     }
     
     if(!boxNode)
         return FALSE;
-    
-    /* Create a sub-node for holding children */
-    xmlNewTextChild(boxNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
     
     snprintf(buf, 200, "Menu - (%s)", title ? title : "");
     
@@ -3967,8 +4002,9 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     xmlNodePtr this;
     int width;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -4079,7 +4115,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     dw_window_set_data(vbox, "enabled", DW_POINTER(item));
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -4091,14 +4127,19 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
 int DWSIGNAL window_create(HWND window, void *data)
 {
     xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
-    xmlNodePtr windowNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"Window", (xmlChar *)"");
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
     HTREEITEM treeitem;
     char buf[200], *title = dw_window_get_text((HWND)dw_window_get_data(vbox, "title"));
+    xmlNodePtr windowNode = (xmlNodePtr)dw_window_get_data(vbox, "node");
     
-    /* Create a sub-node for holding children */
-    xmlNewTextChild(windowNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+    if(windowNode)
+    {
+        windowNode = xmlAddChild(rootNode, windowNode);
+    }
+    
+    if(!windowNode)
+        return FALSE;
     
     snprintf(buf, 200, "Window - (%s)", title ? title : "");
     
@@ -4112,7 +4153,7 @@ int DWSIGNAL window_create(HWND window, void *data)
     
     save_properties();
     
-    properties_current();
+    dw_tree_item_select(tree, treeitem);
     
     return FALSE;
 }
@@ -4125,8 +4166,9 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     xmlNodePtr this;
     int width;
     
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
+    dw_window_set_data(vbox, "node", DW_POINTER(node));
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     scrollbox = dw_scrollbox_new(DW_VERT, 2);
@@ -4479,7 +4521,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_window_set_data(vbox, "orientation", DW_POINTER(item));
     
     /* If it is a new window add button */
-    if(!node)
+    if(!node || !node->parent)
     {
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
@@ -4721,7 +4763,7 @@ void reloadTree(void)
     dw_tree_clear(tree);
     
     /* Remove the properties */
-    dw_window_destroy(vbox);
+    destroy_properties_box(vbox);
     properties_none();
     
     if(!rootNode)
@@ -4815,7 +4857,7 @@ int DWSIGNAL new_clicked(HWND button, void *data)
         destroyLocaleMenu();
         
         /* Remove the properties */
-        dw_window_destroy(vbox);
+        destroy_properties_box(vbox);
         properties_none();
         
         /* Free the existing doc */
@@ -5059,7 +5101,7 @@ int DWSIGNAL delete_clicked(HWND button, void *data)
         HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
         
         /* Remove the properties */
-        dw_window_destroy(vbox);
+        destroy_properties_box(vbox);
         properties_none();
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
@@ -5094,7 +5136,7 @@ int DWSIGNAL cut_clicked(HWND button, void *data)
         HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
         
         /* Remove the properties */
-        dw_window_destroy(vbox);
+        destroy_properties_box(vbox);
         properties_none();
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
@@ -5265,6 +5307,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
     xmlNodePtr currentNode = (which == TYPE_NOTEBOOK_PAGE && packablePageNode(DWCurrNode)) ? packablePageNode(DWCurrNode) :
                                 ((which == TYPE_WINDOW || (which == TYPE_MENU && is_menu(DWCurrNode))) 
                                 ? DWCurrNode : packableNode(DWCurrNode));
+    xmlNodePtr thisNode = NULL;
     
     if(!data || !currentNode)
     {
@@ -5301,17 +5344,26 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
     
     if(which == TYPE_WINDOW)
     {
-        properties_window(NULL);
+        thisNode = xmlNewNode(NULL, (xmlChar *)Classes[which]);
+        /* Create a sub-node for holding children */
+        xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+        
+        properties_window(thisNode);
     }
     else if(which == TYPE_NOTEBOOK_PAGE)
     {
         if(strcmp((char *)currentNode->name, "Notebook") == 0)
         {
-            properties_notebook_page(NULL);
+            thisNode = xmlNewNode(NULL, (xmlChar *)Classes[which]);
+            /* Create a sub-node for holding children */
+            xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+            
+            properties_notebook_page(thisNode);
         }
         else
         {
             dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be a notebook.");
+            return FALSE;
         }
     }
     else if(which == TYPE_MENU)
@@ -5319,64 +5371,75 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
         if(strcmp((char *)currentNode->name, "Window") == 0 ||
            strcmp((char *)currentNode->name, "Menu") == 0)
         {
-            properties_menu(NULL);
+            thisNode = xmlNewNode(NULL, (xmlChar *)Classes[which]);
+            /* Create a sub-node for holding children */
+            xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+            
+            properties_menu(thisNode);
         }
         else
         {
             dw_messagebox(APP_NAME, DW_MB_OK | DW_MB_ERROR, "Selected widget needs to be a window or menu.");
+            return FALSE;
         }
     }
     else if(is_packable(currentNode, TRUE))
     {
+        thisNode = xmlNewNode(NULL, (xmlChar *)Classes[which]);
+        
         switch(which)
         {
             case TYPE_BOX:
-                properties_box(NULL);
+            {
+                /* Create a sub-node for holding children */
+                xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+                properties_box(thisNode);
                 break;
+            }
             case TYPE_TEXT:
-                properties_text(NULL);
+                properties_text(thisNode);
                 break;
             case TYPE_ENTRYFIELD:
-                properties_entryfield(NULL);
+                properties_entryfield(thisNode);
                 break;
             case TYPE_COMBOBOX:
-                properties_combobox(NULL);
+                properties_combobox(thisNode);
                 break;
             case TYPE_LISTBOX:
-                properties_listbox(NULL);
+                properties_listbox(thisNode);
                 break;
             case TYPE_CONTAINER:
-                properties_container(NULL);
+                properties_container(thisNode);
                 break;
             case TYPE_TREE:
-                properties_tree(NULL);
+                properties_tree(thisNode);
                 break;
             case TYPE_MLE:
-                properties_mle(NULL);
+                properties_mle(thisNode);
                 break;
             case TYPE_RENDER:
-                properties_render(NULL);
+                properties_render(thisNode);
                 break;
             case TYPE_BUTTON:
-                properties_button(NULL);
+                properties_button(thisNode);
                 break;
             case TYPE_RANGED:
-                properties_ranged(NULL);
+                properties_ranged(thisNode);
                 break;
             case TYPE_BITMAP:
-                properties_bitmap(NULL);
+                properties_bitmap(thisNode);
                 break;
             case TYPE_NOTEBOOK:
-                properties_notebook(NULL);
+                properties_notebook(thisNode);
                 break;
             case TYPE_HTML:
-                properties_html(NULL);
+                properties_html(thisNode);
                 break;
             case TYPE_CALENDAR:
-                properties_calendar(NULL);
+                properties_calendar(thisNode);
                 break;
             case TYPE_PADDING:
-                properties_padding(NULL);
+                properties_padding(thisNode);
                 break;
             default:
                 return FALSE;
@@ -5489,6 +5552,8 @@ void properties_current(void)
             dw_window_set_data(hwndProperties, "type", DW_INT_TO_POINTER(TYPE_MENU));
         }
     }
+    else
+        properties_none();
     
     if((vbox = (HWND)dw_window_get_data(hwndProperties, "box")))
         dw_window_set_data(vbox, "node", DW_POINTER(DWCurrNode));    
