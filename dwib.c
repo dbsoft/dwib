@@ -1285,10 +1285,31 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Destroy the properties window contents... */
+void destroy_properties_box(HWND vbox)
+{
+    if(vbox)
+    {
+        xmlNodePtr node = (xmlNodePtr)dw_window_get_data(vbox, "node");
+        
+        /* Check if the active node is linked */
+        if(node && !node->parent)
+        {
+            /* If it isn't linked, free it */
+            xmlFreeNode(node);
+        }
+        /* Finally destroy the box */
+        dw_window_destroy(vbox);
+    }
+}
+
 /* Populate the properties dialog with nothing */
 void properties_none(void)
 {
-    HWND item, vbox = dw_box_new(DW_VERT, 0);
+    HWND item, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    /* Remove the properties */
+    destroy_properties_box(vbox);
+    vbox = dw_box_new(DW_VERT, 0);
     dw_box_pack_start(hwndProperties, vbox, 1, 1, TRUE, TRUE, 0);
     dw_window_set_data(hwndProperties, "box", DW_POINTER(vbox));
     item = dw_text_new("No item selected", 0);
@@ -1338,9 +1359,9 @@ int DWSIGNAL font_clicked(HWND window, void *data)
 }
 
 /* Populate the properties window with generic item fields */
-void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
+HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
 {
-    HWND item, button, tmp, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND item, button, tmp, localebutton = 0, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int x, width = 0;
@@ -1483,16 +1504,12 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
                 val = thisval;
         }
         item = dw_entryfield_new(val, 0);
-        button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+        localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
         dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
         dw_window_get_preferred_size(button, &width, NULL);
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
         dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
         dw_window_set_data(vbox, "tooltip", DW_POINTER(item));
-        if(this)
-            dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-        else
-            dw_window_disable(button);
     }
     /* Foreground Color */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1593,6 +1610,7 @@ void properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(font_clicked), DW_POINTER(tmp));
     }
+    return localebutton;
 }
 
 /* Create a new text definition */
@@ -1668,25 +1686,11 @@ void _dwib_title(HWND scrollbox, char *title, xmlNodePtr node)
     }
 }
 
-/* Destroy the properties window contents... */
-void destroy_properties_box(HWND vbox)
-{
-    xmlNodePtr node = (xmlNodePtr)dw_window_get_data(vbox, "node");
-    
-    /* Check if the active node is linked */
-    if(node && !node->parent)
-    {
-        /* If it isn't linked, free it */
-        xmlFreeNode(node);
-    }
-    /* Finally destroy the box */
-    dw_window_destroy(vbox);
-}
-
 /* Populate the properties window for a text */
 void DWSIGNAL properties_text(xmlNodePtr node)
 {
     HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localebutton, localetooltipbutton;
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int width;
@@ -1725,7 +1729,7 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", DW_POINTER(item));    
     
-    properties_item(node, scrollbox, TRUE, FALSE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, FALSE);
     
     /* Text */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1740,16 +1744,12 @@ void DWSIGNAL properties_text(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "label", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(button);
     /* Alignment */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -1805,10 +1805,24 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(text_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "label")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton);
+    
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
    
 /* Create a new entryfield definition */
@@ -1856,6 +1870,7 @@ int DWSIGNAL entryfield_create(HWND window, void *data)
 void DWSIGNAL properties_entryfield(xmlNodePtr node)
 {
     HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localebutton, localetooltipbutton;
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int width;
@@ -1894,7 +1909,7 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", DW_POINTER(item));    
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* Default Text */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1909,16 +1924,12 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(button);
     /* Limit */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -1939,10 +1950,24 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(entryfield_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "deftext")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton);
+    
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new combobox definition */
@@ -2067,6 +2092,7 @@ int DWSIGNAL locale_manager_list_clicked(HWND button, void *data)
 void DWSIGNAL properties_combobox(xmlNodePtr node)
 {
     HWND button, list, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localebutton, localebutton2, localetooltipbutton;
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int width;
@@ -2082,7 +2108,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     /* Title display */
     _dwib_title(scrollbox, "Combobox Widget", node);
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* Default Text */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2097,16 +2123,12 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton2 = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(button);
     /* List */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, TRUE, 0);
@@ -2126,13 +2148,9 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     item = dw_entryfield_new("", 0);
     dw_window_set_data(vbox, "list_entry", DW_POINTER(item));
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
-    else
-        dw_window_disable(button);
     item = dw_button_new("+", 0);
     dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_clicked), DW_POINTER(vbox));
@@ -2143,10 +2161,29 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(combobox_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "List")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
+    else
+        dw_window_disable(localebutton);
+    
+    if((this = _dwib_find_child(node, "deftext")))
+        dw_signal_connect(localebutton2, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton2);
+    
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new listbox definition */
@@ -2191,6 +2228,7 @@ int DWSIGNAL listbox_create(HWND window, void *data)
 void DWSIGNAL properties_listbox(xmlNodePtr node)
 {
     HWND button, list, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localebutton, localetooltipbutton;
     char *val = defvalzero, *thisval;
     xmlNodePtr this;
     
@@ -2205,7 +2243,7 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     /* Title display */
     _dwib_title(scrollbox, "Listbox Widget", node);
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* Multiple select */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2242,13 +2280,9 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     item = dw_entryfield_new("", 0);
     dw_window_set_data(vbox, "list_entry", DW_POINTER(item));
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
-    else
-        dw_window_disable(button);
     item = dw_button_new("+", 0);
     dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_clicked), DW_POINTER(vbox));
@@ -2259,10 +2293,24 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(listbox_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "List")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
+    else
+        dw_window_disable(localebutton);
+    
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 char *ColTypes[] =
@@ -2438,6 +2486,7 @@ int DWSIGNAL container_create(HWND window, void *data)
 void DWSIGNAL properties_container(xmlNodePtr node)
 {
     HWND item, button, scrollbox, tmp, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localebutton, localetooltipbutton;
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int x, width;
@@ -2476,7 +2525,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", DW_POINTER(item));    
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* Filesystem Column */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2491,17 +2540,13 @@ void DWSIGNAL properties_container(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val, 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_tooltip(item, "Title for the main filesytem column.");
     dw_window_set_data(vbox, "coltitle", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else
-        dw_window_disable(button);
     /* Multiple select */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -2627,10 +2672,24 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(container_create), NULL);
     }
+
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "coltitle")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton);
+    
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new tree definition */
@@ -2671,7 +2730,8 @@ int DWSIGNAL tree_create(HWND window, void *data)
 /* Populate the properties window for a tree */
 void DWSIGNAL properties_tree(xmlNodePtr node)
 {
-    HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, localetooltipbutton, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    xmlNodePtr this;
     
     destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -2684,15 +2744,24 @@ void DWSIGNAL properties_tree(xmlNodePtr node)
     /* Title display */
     _dwib_title(scrollbox, "Tree Widget", node);
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(tree_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new MLE definition */
@@ -2734,6 +2803,7 @@ int DWSIGNAL mle_create(HWND window, void *data)
 void DWSIGNAL properties_mle(xmlNodePtr node)
 {
     HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localetooltipbutton;
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -2748,7 +2818,7 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     /* Title display */
     _dwib_title(scrollbox, "Multi-line Edit Widget", node);
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* Word wrap */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2784,10 +2854,19 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(mle_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new render definition */
@@ -2828,7 +2907,8 @@ int DWSIGNAL render_create(HWND window, void *data)
 /* Populate the properties window for a render */
 void DWSIGNAL properties_render(xmlNodePtr node)
 {
-    HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, localetooltipbutton, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    xmlNodePtr this;
     
     destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -2841,15 +2921,24 @@ void DWSIGNAL properties_render(xmlNodePtr node)
     /* Title display */
     _dwib_title(scrollbox, "Render Widget", node);
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(render_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new button definition */
@@ -2928,8 +3017,10 @@ void populateImageList(HWND item)
 void DWSIGNAL properties_button(xmlNodePtr node)
 {
     HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localebutton, localetooltipbutton;
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
+    int width;
     
     destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -2972,7 +3063,7 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", DW_POINTER(item));    
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* State */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3003,7 +3094,11 @@ void DWSIGNAL properties_button(xmlNodePtr node)
             val = thisval;
     }
     item = dw_combobox_new(val ? val : "", 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    localebutton = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    dw_window_set_style(localebutton, DW_BS_NOBORDER, DW_BS_NOBORDER);
+    dw_window_get_preferred_size(localebutton, &width, NULL);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, localebutton, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "setting", DW_POINTER(item));
     /* Add possible images to the list */
     populateImageList(item);
@@ -3027,10 +3122,24 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(button_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "setting")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton);
+    
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new ranged definition */
@@ -3077,7 +3186,7 @@ int DWSIGNAL ranged_create(HWND window, void *data)
 /* Populate the properties window for a ranged */
 void DWSIGNAL properties_ranged(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, localetooltipbutton, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -3121,7 +3230,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", DW_POINTER(item));    
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* Position */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3175,10 +3284,19 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(ranged_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new bitmap definition */
@@ -3220,6 +3338,7 @@ int DWSIGNAL bitmap_create(HWND window, void *data)
 void DWSIGNAL properties_bitmap(xmlNodePtr node)
 {
     HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localebutton, localetooltipbutton;
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int width;
@@ -3235,7 +3354,7 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     /* Title display */
     _dwib_title(scrollbox, "Bitmap Widget", node);
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* Default Text */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3250,26 +3369,36 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
             val = thisval;
     }
     item = dw_combobox_new(val ? val : "", 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "setting", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(button);
     /* Add possible images to the list */
     populateImageList(item);
     
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(bitmap_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "setting")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton);
+    
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new HTML definition */
@@ -3311,6 +3440,7 @@ int DWSIGNAL html_create(HWND window, void *data)
 void DWSIGNAL properties_html(xmlNodePtr node)
 {
     HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localebutton, localetooltipbutton;
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int width;
@@ -3326,7 +3456,7 @@ void DWSIGNAL properties_html(xmlNodePtr node)
     /* Title display */
     _dwib_title(scrollbox, "HTML Widget", node);
     
-    properties_item(node, scrollbox, TRUE, FALSE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, FALSE);
     
     /* URL */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3341,24 +3471,34 @@ void DWSIGNAL properties_html(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "URL", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(button);
     
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(html_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "URL")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton);
+    
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new notebook definition */
@@ -3399,7 +3539,7 @@ int DWSIGNAL notebook_create(HWND window, void *data)
 /* Populate the properties window for a notebook */
 void DWSIGNAL properties_notebook(xmlNodePtr node)
 {
-    HWND item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, localetooltipbutton, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     
@@ -3414,7 +3554,7 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
     /* Title display */
     _dwib_title(scrollbox, "Notebook Widget", node);
     
-    properties_item(node, scrollbox, TRUE, FALSE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, FALSE);
     
     /* Tab Position */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3442,10 +3582,19 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(notebook_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new notebook page definition */
@@ -3493,6 +3642,7 @@ int DWSIGNAL notebook_page_create(HWND window, void *data)
 void DWSIGNAL properties_notebook_page(xmlNodePtr node)
 {
     HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localebutton, localebutton2, localetooltipbutton;
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int width;
@@ -3521,18 +3671,14 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(button);
     
-    properties_item(node, scrollbox, FALSE, FALSE);
+    localetooltipbutton = properties_item(node, scrollbox, FALSE, FALSE);
     
     /* Status Text */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3547,16 +3693,12 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val ? val : "", 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton2 = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "statustext", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(button);
     /* Orientation */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -3583,10 +3725,29 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(notebook_page_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "title")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton);
+    
+    if((this = _dwib_find_child(node, "statustext")))
+        dw_signal_connect(localebutton2, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton2);
+    
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new calendar definition */
@@ -3627,7 +3788,8 @@ int DWSIGNAL calendar_create(HWND window, void *data)
 /* Populate the properties window for a calendar */
 void DWSIGNAL properties_calendar(xmlNodePtr node)
 {
-    HWND item, scrollbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND item, scrollbox, localetooltipbutton, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    xmlNodePtr this;
     
     destroy_properties_box(vbox);
     vbox = dw_box_new(DW_VERT, 0);
@@ -3640,15 +3802,24 @@ void DWSIGNAL properties_calendar(xmlNodePtr node)
     /* Title display */
     _dwib_title(scrollbox, "Calendar Widget", node);
     
-    properties_item(node, scrollbox, TRUE, TRUE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, TRUE);
     
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(calendar_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }
 
 /* Create a new box definition */
@@ -3696,6 +3867,7 @@ int DWSIGNAL box_create(HWND window, void *data)
 void DWSIGNAL properties_box(xmlNodePtr node)
 {
     HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND localebutton, localetooltipbutton;
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int width;
@@ -3740,7 +3912,7 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "subtype", DW_POINTER(item));    
     
-    properties_item(node, scrollbox, TRUE, FALSE);
+    localetooltipbutton = properties_item(node, scrollbox, TRUE, FALSE);
     
     /* Orientation */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3777,16 +3949,12 @@ void DWSIGNAL properties_box(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val, 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(button);
     /* Split % */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -3807,10 +3975,24 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(box_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "title")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton);
+    
+    if((this = _dwib_find_child(node, "tooltip")))
+        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localetooltipbutton);
 }    
 
 /* Create a new padding definition */
@@ -3997,7 +4179,7 @@ int DWSIGNAL toggle_clicked(HWND window, void *data)
 /* Populate the properties menubar for a menu */
 void DWSIGNAL properties_menu(xmlNodePtr node)
 {
-    HWND button, item, checkable, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, checkable, scrollbox, hbox, localebutton, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int width;
@@ -4025,16 +4207,12 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val, 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(button);
     /* Data name*/
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -4117,10 +4295,19 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "title")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton);    
 }
 
 /* Create a new window definition */
@@ -4161,7 +4348,7 @@ int DWSIGNAL window_create(HWND window, void *data)
 /* Populate the properties window for a window */
 void DWSIGNAL properties_window(xmlNodePtr node)
 {
-    HWND button, item, scrollbox, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
+    HWND button, item, scrollbox, localebutton, hbox, vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     char *thisval, *val = defvalstr;
     xmlNodePtr this;
     int width;
@@ -4189,16 +4376,12 @@ void DWSIGNAL properties_window(xmlNodePtr node)
             val = thisval;
     }
     item = dw_entryfield_new(val, 0);
-    button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
+    localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
-    if(this)
-        dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(button);
     /* Size */ 
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -4523,10 +4706,19 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     /* If it is a new window add button */
     if(!node || !node->parent)
     {
+        /* Create any sub-nodes with defaults */
+        save_properties();
+        
         item = dw_button_new("Create", 0);
         dw_box_pack_start(vbox, item, 1, 30, TRUE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(window_create), NULL);
     }
+    
+    /* Update the locale buttons */
+    if((this = _dwib_find_child(node, "title")))
+        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+    else 
+        dw_window_disable(localebutton);    
 }
 
 /* Handle saving the current layout */
@@ -4756,14 +4948,11 @@ void reloadTree(void)
 {
     xmlNodePtr p, rootNode = xmlDocGetRootElement(DWDoc);
     HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
-    HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HTREEITEM treeitem;
     
     /* Remove the current tree */
     dw_tree_clear(tree);
     
-    /* Remove the properties */
-    destroy_properties_box(vbox);
     properties_none();
     
     if(!rootNode)
@@ -4836,7 +5025,6 @@ int DWSIGNAL new_clicked(HWND button, void *data)
        dw_messagebox(APP_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
-        HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
         char *oldfilename = DWFilename;
 
         /* Make sure no preview windows are open */
@@ -4856,8 +5044,6 @@ int DWSIGNAL new_clicked(HWND button, void *data)
         /* Destroy menu items */
         destroyLocaleMenu();
         
-        /* Remove the properties */
-        destroy_properties_box(vbox);
         properties_none();
         
         /* Free the existing doc */
@@ -5098,10 +5284,7 @@ int DWSIGNAL delete_clicked(HWND button, void *data)
                      node && node->name ? (char *)node->name : ""))
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
-        HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
         
-        /* Remove the properties */
-        destroy_properties_box(vbox);
         properties_none();
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
@@ -5133,10 +5316,7 @@ int DWSIGNAL cut_clicked(HWND button, void *data)
                      node && node->name ? (char *)node->name : ""))
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
-        HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
         
-        /* Remove the properties */
-        destroy_properties_box(vbox);
         properties_none();
         
         DWCurrNode = xmlDocGetRootElement(DWDoc);
@@ -5348,6 +5528,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
         /* Create a sub-node for holding children */
         xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
         
+        dw_window_set_data(hwndProperties, "type", DW_INT_TO_POINTER(which));
         properties_window(thisNode);
     }
     else if(which == TYPE_NOTEBOOK_PAGE)
@@ -5358,6 +5539,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
             /* Create a sub-node for holding children */
             xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
             
+            dw_window_set_data(hwndProperties, "type", DW_INT_TO_POINTER(which));
             properties_notebook_page(thisNode);
         }
         else
@@ -5375,6 +5557,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
             /* Create a sub-node for holding children */
             xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
             
+            dw_window_set_data(hwndProperties, "type", DW_INT_TO_POINTER(which));
             properties_menu(thisNode);
         }
         else
@@ -5387,6 +5570,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
     {
         thisNode = xmlNewNode(NULL, (xmlChar *)Classes[which]);
         
+        dw_window_set_data(hwndProperties, "type", DW_INT_TO_POINTER(which));
         switch(which)
         {
             case TYPE_BOX:
@@ -5445,7 +5629,6 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
                 return FALSE;
         }
     }
-    dw_window_set_data(hwndProperties, "type", DW_INT_TO_POINTER(which));
     return FALSE;
 }
 
