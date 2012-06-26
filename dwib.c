@@ -451,56 +451,6 @@ void setTitle(void)
 /* Gets the contents of the list and puts it into the XML tree...
  * replacing any previous contents of the list.
  */
-int saveList(xmlNodePtr node, HWND vbox)
-{
-    HWND list = (HWND)dw_window_get_data(vbox, "list");
-    xmlNodePtr this = _dwib_find_child(node, "List");
-    
-    if(node && list && dw_window_get_data(list, "_dwib_modified"))
-    {
-        int x, count = dw_listbox_count(list);
-        xmlNodePtr thisNode;
-        char buf[101] = {0};
-        
-        /* Create a list node if one doesn't exist */
-        if(!this)
-            this = xmlNewTextChild(node, NULL, (xmlChar *)"List", (xmlChar *)"");
-        
-        thisNode = this->children;
-        
-        for(x=0;x<count;x++)
-        {
-            dw_listbox_get_text(list, x, buf, 100);
-            
-            /* Update or create a list item */
-            if(thisNode)
-                xmlNodeSetContent(thisNode, (xmlChar *)buf);
-            else 
-                thisNode = xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)buf);
-            
-            if(thisNode)
-                thisNode = thisNode->next;
-        }
-        /* Remove any trailing nodes */
-        while(thisNode)
-        {
-            /* Otherwise remove the node if it exists */
-            xmlNodePtr freeme = thisNode;
-            
-            thisNode = thisNode->next;
-            
-            xmlUnlinkNode(freeme);
-            xmlFreeNode(freeme);
-        }
-        dw_window_set_data(list, "_dwib_modified", NULL);
-        return 1;
-    }
-    return 0;
-}
-
-/* Gets the contents of the list and puts it into the XML tree...
- * replacing any previous contents of the list.
- */
 int save_columns(xmlNodePtr node, HWND vbox)
 {
     int x, count = DW_POINTER_TO_INT(dw_window_get_data(vbox, "colcount"));
@@ -868,12 +818,12 @@ void save_properties(void)
         case TYPE_COMBOBOX:
             retval |= save_item(node, vbox);
             retval |= updateNode(node, vbox, "deftext", FALSE);
-            retval |= saveList(node, vbox);
+            retval |= DW_POINTER_TO_INT(dw_window_get_data((HWND)dw_window_get_data(vbox, "list"), "_dwib_modified"));
             break;
         case TYPE_LISTBOX:
             retval |= save_item(node, vbox);
             retval |= updateNode(node, vbox, "multi", TRUE);
-            retval |= saveList(node, vbox);
+            retval |= DW_POINTER_TO_INT(dw_window_get_data((HWND)dw_window_get_data(vbox, "list"), "_dwib_modified"));
             break;
         case TYPE_CONTAINER:
             retval |= updateNode(node, vbox, "subtype", FALSE);
@@ -1988,9 +1938,6 @@ int DWSIGNAL combobox_create(HWND window, void *data)
     if(!thisNode)
         return FALSE;
     
-    /* Create a sub-node for holding children */
-    xmlNewTextChild(thisNode, NULL, (xmlChar *)"List", (xmlChar *)"");
-    
     treeitem = dw_tree_insert(tree, "Combobox", hIcons[TYPE_COMBOBOX], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
     dw_tree_item_expand(tree, (HTREEITEM)currentNode->_private);
@@ -2014,8 +1961,9 @@ int DWSIGNAL add_clicked(HWND window, void *data)
     HWND vbox = (HWND)data;
     HWND list = (HWND)dw_window_get_data(vbox, "list");
     HWND entry = (HWND)dw_window_get_data(vbox, "list_entry");
+    xmlNodePtr node = (xmlNodePtr)dw_window_get_data(list, "node");
     
-    if(vbox && entry && list)
+    if(vbox && entry && list && node)
     {
         char *text = dw_window_get_text(entry);
         
@@ -2025,6 +1973,7 @@ int DWSIGNAL add_clicked(HWND window, void *data)
             {
                 dw_listbox_append(list, text);
                 dw_window_set_text(entry, "");
+                xmlNewTextChild(node, NULL, (xmlChar *)"Item", (xmlChar *)text);
                 dw_window_set_data(list, "_dwib_modified", DW_INT_TO_POINTER(1));
             }
             dw_free(text);
@@ -2038,13 +1987,28 @@ int DWSIGNAL rem_clicked(HWND window, void *data)
 {
     HWND vbox = (HWND)data;
     HWND list = (HWND)dw_window_get_data(vbox, "list");
+    xmlNodePtr p, node = (xmlNodePtr)dw_window_get_data(list, "node");
     
-    if(vbox && list)
+    if(vbox && list && node)
     {
         int selected = dw_listbox_selected(list);
         
         if(selected != DW_LIT_NONE)
         {
+            int current = -1;
+            
+            for(p=node->children;p;p = p->next)
+            {
+                if(strcmp((char *)p->name, "Item") == 0)
+                    current++;
+                
+                if(current == selected)
+                {
+                    xmlUnlinkNode(p);
+                    xmlFreeNode(p);
+                    break;
+                }
+            }
             dw_listbox_delete(list, selected);
             dw_window_set_data(list, "_dwib_modified", DW_INT_TO_POINTER(1));
         }
@@ -2170,10 +2134,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     }
     
     /* Update the locale buttons */
-    if((this = _dwib_find_child(node, "List")))
-        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
-    else
-        dw_window_disable(localebutton);
+    dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
     
     if((this = _dwib_find_child(node, "deftext")))
         dw_signal_connect(localebutton2, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
@@ -2203,9 +2164,6 @@ int DWSIGNAL listbox_create(HWND window, void *data)
     /* Dropout on failure */
     if(!thisNode)
         return FALSE;
-    
-    /* Create a sub-node for holding children */
-    xmlNewTextChild(thisNode, NULL, (xmlChar *)"List", (xmlChar *)"");
     
     treeitem = dw_tree_insert(tree, "Listbox", hIcons[TYPE_LISTBOX], (HTREEITEM)currentNode->_private, thisNode);
     thisNode->_private = DW_POINTER(treeitem);
@@ -2302,10 +2260,7 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     }
     
     /* Update the locale buttons */
-    if((this = _dwib_find_child(node, "List")))
-        dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
-    else
-        dw_window_disable(localebutton);
+    dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
     
     if((this = _dwib_find_child(node, "tooltip")))
         dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
@@ -5587,11 +5542,19 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
                 properties_entryfield(thisNode);
                 break;
             case TYPE_COMBOBOX:
+            {
+                /* Create a sub-node for holding list items */
+                xmlNewTextChild(thisNode, NULL, (xmlChar *)"List", (xmlChar *)"");
                 properties_combobox(thisNode);
                 break;
+            }
             case TYPE_LISTBOX:
+            {
+                /* Create a sub-node for holding list items */
+                xmlNewTextChild(thisNode, NULL, (xmlChar *)"List", (xmlChar *)"");
                 properties_listbox(thisNode);
                 break;
+            }
             case TYPE_CONTAINER:
                 properties_container(thisNode);
                 break;
