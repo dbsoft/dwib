@@ -13,7 +13,7 @@
 #include "dwib.h"
 
 HWND hwndToolbar, hwndProperties, hwndDefaultLocale, hwndImages = 0, hwndLocale = 0, hwndAbout = 0;
-HMENUI menuLocale;
+HMENUI menuLocale, menuRecent;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
 char *DWFilename = NULL;
@@ -1144,6 +1144,18 @@ void locale_manager_reset(char *val)
     }
 }
 
+/* Reset the locale manager if it is editing the passed node */
+void locale_manager_check(xmlNodePtr node)
+{
+    if(hwndLocale)
+    {
+        xmlNodePtr this = (xmlNodePtr)dw_window_get_data(hwndLocale, "node");
+        
+        if(this == node)
+            locale_manager_reset(NULL);
+    }
+}
+
 /* Handle creating locale manager */
 int DWSIGNAL locale_manager_clicked(HWND button, void *data)
 {
@@ -2004,6 +2016,7 @@ int DWSIGNAL rem_clicked(HWND window, void *data)
                 
                 if(current == selected)
                 {
+                    locale_manager_check(p);
                     xmlUnlinkNode(p);
                     xmlFreeNode(p);
                     break;
@@ -4677,7 +4690,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
 }
 
 /* Handle saving the current layout */
-int DWSIGNAL save_clicked(HWND button, void *data)
+int DWSIGNAL save_as_clicked(HWND button, void *data)
 {
     char *filename = dw_file_browse("Save interface", ".", "xml", DW_FILE_SAVE);
     
@@ -4706,6 +4719,27 @@ int DWSIGNAL save_clicked(HWND button, void *data)
         /* Update the window title */
         setTitle();
     }
+    return FALSE;
+}
+
+/* Handle saving the current layout */
+int DWSIGNAL save_clicked(HWND button, void *data)
+{
+    if(DWFilename)
+    {
+        /* Make sure the XML tree is up-to-date */
+        save_properties();
+        
+        /* Enable indenting in the output */
+        xmlIndentTreeOutput = 1;
+        
+        xmlSaveFormatFile(DWFilename, DWDoc, 1);
+        
+        /* Update the window title */
+        setTitle();
+    }
+    else 
+        save_as_clicked(button, data);
     return FALSE;
 }
 
@@ -6876,7 +6910,14 @@ void dwib_init(void)
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "~Open", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(open_clicked), NULL);
+    /* Recent file menu */
+    menuRecent = dw_menu_new(0);
+    item = dw_menu_append_item(menuRecent, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(submenu, "Open Recent", DW_MENU_AUTO, 0, TRUE, FALSE, menuRecent);
+    item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "~Save", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
+    item = dw_menu_append_item(submenu, "S~ave as", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "~Exit", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
