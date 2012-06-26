@@ -1131,7 +1131,7 @@ int DWSIGNAL locale_add_clicked(HWND button, void *data)
                 }
             }            
             else /* Add a Locales node if one doesn't already exist */
-                localesNode = xmlNewTextChild(rootNode, NULL, (xmlChar *)"Locales", (xmlChar *)"");
+                localesNode = xmlNewChild(rootNode, NULL, (xmlChar *)"Locales", NULL);
             /* If we should add it... add the new locale */
             if(locale && localesNode)
             {
@@ -7015,7 +7015,7 @@ void dwib_init(void)
     item = dw_menu_append_item(submenu, "~Save", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
     item = dw_menu_append_item(submenu, "S~ave as", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_as_clicked), NULL);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "~Exit", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_delete), NULL);
