@@ -563,27 +563,16 @@ int save_columns(xmlNodePtr node, HWND vbox)
                 char *colalign = dw_window_get_text(combo2);
                 
                 /* If we have a valid column... */
-                if(colname && *colname && coltype && *coltype && colalign && *colalign)
+                if(colname && coltype && *coltype && colalign && *colalign)
                 {
                     /* Create or update the column node */
                     if(thisNode)
                         xmlNodeSetContent(thisNode, (xmlChar *)colname);
-                    else 
+                    else
                         thisNode = xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)colname);
                     xmlSetProp(thisNode, (xmlChar *)"ColType", (xmlChar *)coltype);
                     xmlSetProp(thisNode, (xmlChar *)"ColAlign", (xmlChar *)colalign);
                 }
-                else if(thisNode) 
-                {
-                    /* Otherwise remove the node if it exists */
-                    xmlNodePtr freeme = thisNode;
-                    
-                    thisNode = thisNode->next;
-                    
-                    xmlUnlinkNode(freeme);
-                    xmlFreeNode(freeme);
-                }
-                
                 /* Advance to the next node if available */
                 if(thisNode)
                     thisNode = thisNode->next;
@@ -2376,6 +2365,7 @@ int DWSIGNAL add_row_clicked(HWND window, void *data)
     HWND vbox = (HWND)dw_window_get_data(hwndProperties, "box");
     HWND combo = (HWND)dw_window_get_data(vbox, "splitcol");
     int count = DW_POINTER_TO_INT(dw_window_get_data(vbox, "colcount"));
+    xmlNodePtr this, node = (xmlNodePtr)dw_window_get_data(vbox, "node");
     char buf[51] = {0};
     
     snprintf(buf, 50, "addbutton%d", count);
@@ -2383,7 +2373,8 @@ int DWSIGNAL add_row_clicked(HWND window, void *data)
     dw_window_disable(button);
     
     count++;
-    add_row(vbox, scrollbox, count, "", "", "", NULL, FALSE);
+    this = _dwib_find_child(node, "Columns");
+    add_row(vbox, scrollbox, count, "", "", "", xmlNewTextChild(this, NULL, (xmlChar *)"Item", (xmlChar *)""), FALSE);
     dw_window_set_data(vbox, "colcount", DW_INT_TO_POINTER(count));
     /* Add a final entry for the blank field */
     snprintf(buf, 50, "%d", count+1);
@@ -2455,13 +2446,13 @@ void populate_columns(HWND vbox, HWND scrollbox, HWND combo, xmlNodePtr node)
     
     if(node)
     {
-        for(p=node->children;p;p = p->next)
+        for(p=node->children;p;)
         {
             if(strcmp((char *)p->name, "Item") == 0)
             {
                 char *thisval;
                 
-                if((thisval = (char *)xmlNodeListGetString(DWDoc, p->children, 1)))
+                if((thisval = (char *)xmlNodeListGetString(DWDoc, p->children, 1)) && *thisval)
                 {
                     char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
                     char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
@@ -2472,13 +2463,22 @@ void populate_columns(HWND vbox, HWND scrollbox, HWND combo, xmlNodePtr node)
                     /* Add the column to the OS/2 split column list */
                     snprintf(buf, 20, "%d", count);
                     dw_listbox_append(combo, buf);
+                    p = p->next;
+                }
+                else 
+                {
+                    /* Unlink and free any empty nodes */
+                    xmlNodePtr freeme = p;
                     
-                    /* TODO: xmlFree now? */
+                    p = p->next;
+                    
+                    xmlUnlinkNode(freeme);
+                    xmlFreeNode(freeme);
                 }
             }
         }
     }
-    add_row(vbox, scrollbox, count, "", "", "", NULL, FALSE);
+    add_row(vbox, scrollbox, count, "", "", "", xmlNewTextChild(node, NULL, (xmlChar *)"Item", (xmlChar *)""), FALSE);
     dw_window_set_data(vbox, "colcount", DW_INT_TO_POINTER(count));
     /* Add a final entry for the blank field */
     snprintf(buf, 20, "%d", count+1);

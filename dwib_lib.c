@@ -575,9 +575,12 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
 
     if(node)
     {
+        char *thisval;
+        
         for(p=node->children;p;p = p->next)
         {
-            if(strcmp((char *)p->name, "Item") == 0)
+            if(strcmp((char *)p->name, "Item") == 0 &&
+               (thisval = (char *)xmlNodeListGetString(doc, p->children, 1)) && *thisval)
             {
                 count++;
             }
@@ -591,11 +594,10 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
 
             for(p=node->children;p;p = p->next)
             {
-                if(strcmp((char *)p->name, "Item") == 0)
+                if(strcmp((char *)p->name, "Item") == 0 &&
+                   (thisval = (char *)xmlNodeListGetString(doc, p->children, 1)) && *thisval)
                 {
-                    char *thisval;
-
-                    if((thisval = _dwib_get_locale_string(p, doc)))
+                    if((thisval = _dwib_get_locale_string(p, doc)) && *thisval)
                     {
                         char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
                         char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
