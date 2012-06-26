@@ -8,6 +8,8 @@
 
 #define APP_NAME "Dynamic Windows Interface Builder"
 
+#define RECENT_MENUS 5
+
 enum DWTYPES
 {
     TYPE_WINDOW = 1,
@@ -66,6 +68,7 @@ void DWSIGNAL properties_window(xmlNodePtr node);
 int DWSIGNAL preview_delete(HWND window, void *data);
 int DWSIGNAL image_manager_delete(HWND item, void *data);
 int DWSIGNAL preview_locale_clicked(HWND item, void *data);
+int DWSIGNAL open_clicked(HWND button, void *data);
 void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype, char *colalign, xmlNodePtr node, int disable);
 void properties_current(void);
 int generateNode(char *buf, xmlNodePtr p);

@@ -13,10 +13,13 @@
 #include "dwib.h"
 
 HWND hwndToolbar, hwndProperties, hwndDefaultLocale, hwndImages = 0, hwndLocale = 0, hwndAbout = 0;
-HMENUI menuLocale, menuRecent;
+HMENUI menuLocale, menuRecent = 0;
+HWND menuItemRecent[RECENT_MENUS] = {0};
+char *filenameRecent[RECENT_MENUS] = {0};
+int menucountRecent = 0;
 xmlDocPtr DWDoc;
 xmlNodePtr DWCurrNode = NULL, DWClipNode = NULL;
-char *DWFilename = NULL;
+char *DWFilename = NULL, *DWFullFilename = NULL;
 HICN hIcons[20];
 HMENUI menuWindows;
 int AutoExpand = FALSE, PropertiesInspector = TRUE, LivePreview = TRUE, BitmapButtons = TRUE;
@@ -176,6 +179,12 @@ void saveconfig(void)
         x++;
     }
 
+    /* Save the recent menu item list */
+    for(x=0;x<RECENT_MENUS;x++)
+    {
+        if(filenameRecent[x])
+            fprintf(f, "RECENT=%s\n", filenameRecent[x]);
+    }
     fclose(f);
 }
 
@@ -217,6 +226,65 @@ void ini_getline(FILE *f, char *entry, char *entrydata)
     }
     /* NULL terminate both variables */
     entrydata[0] = entry[0] = 0;
+}
+
+/* Clear the recent menu list */
+void clear_recent(void)
+{
+    int x;
+    
+    for(x=0; x<menucountRecent; x++)
+    {
+        if(menuItemRecent[x])
+        {
+            dw_window_destroy(menuItemRecent[x]);
+            menuItemRecent[x] = 0;
+        }
+        if(filenameRecent[x])
+        {
+            free(filenameRecent[x]);
+            filenameRecent[x] = 0;
+        }
+    }
+    menucountRecent = 0;
+}
+
+/* Add an entry to the recent menu */
+void add_recent(char *filename)
+{
+    /* Trim off the path using Unix or DOS format */
+    char *tmpptr = strrchr(filename, '/');
+    if(!tmpptr)
+        tmpptr = strrchr(filename, '\\');
+    
+    if(tmpptr && *++tmpptr)
+    {
+        int x;
+        
+        /* If it is already on the menu... skip it */
+        for(x=0;x<menucountRecent;x++)
+        {     
+            if(strcmp(filename, filenameRecent[x]) == 0)
+                return;
+        }
+        /* If the menu is full... remove the oldest one */
+        if(menucountRecent == RECENT_MENUS)
+        {
+            menucountRecent--;
+            dw_window_destroy(menuItemRecent[0]);
+            free(filenameRecent[0]);
+            for(x=0;x<menucountRecent;x++)
+            {
+                menuItemRecent[x] = menuItemRecent[x+1];
+                filenameRecent[x] = filenameRecent[x+1];
+            }
+        }
+        /* Add to the menu */
+        filenameRecent[menucountRecent] = strdup(filename); 
+        menuItemRecent[menucountRecent] = dw_menu_append_item(menuRecent, tmpptr, DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU); 
+        dw_signal_connect(menuItemRecent[menucountRecent], DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(open_clicked), DW_POINTER(filenameRecent[menucountRecent]));
+        menucountRecent++;
+    }
 }
 
 /* Load the ini file from disk setting all the necessary flags */
@@ -262,6 +330,8 @@ void loadconfig(void)
     /* If we successfully opened the ini file */
     if(f)
     {
+        clear_recent();
+        
         /* Loop through the file */
         while(!feof(f))
         {
@@ -269,6 +339,12 @@ void loadconfig(void)
 
             ini_getline(f, entry, entrydata);
 
+            /* Update the recent menu */
+            if(menucountRecent < RECENT_MENUS && strcasecmp(entry, "RECENT")==0)
+            {
+                add_recent(entrydata);
+            }
+            
             /* Cycle through the possible settings */
             while(Config[x].type)
             {
@@ -4696,7 +4772,7 @@ int DWSIGNAL save_as_clicked(HWND button, void *data)
     
     if(filename)
     {
-        char *tmpptr, *oldfilename = DWFilename;
+        char *tmpptr, *oldfilename = DWFullFilename;
 
         /* Make sure the XML tree is up-to-date */
         save_properties();
@@ -4707,17 +4783,21 @@ int DWSIGNAL save_as_clicked(HWND button, void *data)
         xmlSaveFormatFile(filename, DWDoc, 1);
 
         /* Trim off the path using Unix or DOS format */
-        tmpptr = strrchr(filename, '/');
+        DWFullFilename = strdup(filename);
+        tmpptr = strrchr(DWFullFilename, '/');
         if(!tmpptr)
-            tmpptr = strrchr(filename, '\\');
+            tmpptr = strrchr(DWFullFilename, '\\');
         /* Copy the short filename */
-        DWFilename = strdup(tmpptr ? ++tmpptr : DWFilename);
+        DWFilename = tmpptr ? ++tmpptr : DWFullFilename;
+        add_recent(DWFullFilename);
         /* Free any old memory */
         if(oldfilename)
             free(oldfilename);
         dw_free(filename);
         /* Update the window title */
         setTitle();
+        /* Save the recents */
+        saveconfig();
     }
     return FALSE;
 }
@@ -4725,7 +4805,7 @@ int DWSIGNAL save_as_clicked(HWND button, void *data)
 /* Handle saving the current layout */
 int DWSIGNAL save_clicked(HWND button, void *data)
 {
-    if(DWFilename)
+    if(DWFullFilename)
     {
         /* Make sure the XML tree is up-to-date */
         save_properties();
@@ -4733,7 +4813,7 @@ int DWSIGNAL save_clicked(HWND button, void *data)
         /* Enable indenting in the output */
         xmlIndentTreeOutput = 1;
         
-        xmlSaveFormatFile(DWFilename, DWDoc, 1);
+        xmlSaveFormatFile(DWFullFilename, DWDoc, 1);
         
         /* Update the window title */
         setTitle();
@@ -5014,7 +5094,7 @@ int DWSIGNAL new_clicked(HWND button, void *data)
        dw_messagebox(APP_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
     {
         HWND tree = (HWND)dw_window_get_data(hwndToolbar, "treeview");
-        char *oldfilename = DWFilename;
+        char *oldfilename = DWFullFilename;
 
         /* Make sure no preview windows are open */
         destroyPreviews();
@@ -5045,7 +5125,7 @@ int DWSIGNAL new_clicked(HWND button, void *data)
         xmlDocSetRootElement(DWDoc, DWCurrNode);
 
         /* Clear out the existing filename */
-        DWFilename = NULL;
+        DWFullFilename = DWFilename = NULL;
         /* Free any old memory */
         if(oldfilename)
             free(oldfilename);
@@ -5064,16 +5144,19 @@ int DWSIGNAL open_clicked(HWND button, void *data)
     if(!current || !current->children ||
        dw_messagebox(APP_NAME, DW_MB_YESNO | DW_MB_QUESTION, "Are you sure you want to lose the current layout?"))
     {
-        char *filename = dw_file_browse("Open interface", ".", "xml", DW_FILE_OPEN);
+        char *filename = data ? (char *)data : dw_file_browse("Open interface", ".", "xml", DW_FILE_OPEN);
         xmlDocPtr doc;
         
         if(filename && (doc = xmlParseFile(filename)))
         {
-            char *tmpptr, *oldfilename = DWFilename;
+            char *tmpptr, *oldfilename = DWFullFilename;
             xmlNodePtr imageNode;
             
             /* Make sure no preview windows are open */
             destroyPreviews();
+            
+            /* Destroy menu items */
+            destroyLocaleMenu();
             
             /* Make sure the image manager/view windows aren't open */
             if(hwndImages)
@@ -5096,15 +5179,18 @@ int DWSIGNAL open_clicked(HWND button, void *data)
             createLocaleMenu();
 
             /* Trim off the path using Unix or DOS format */
-            tmpptr = strrchr(filename, '/');
+            DWFullFilename = strdup(filename);
+            tmpptr = strrchr(DWFullFilename, '/');
             if(!tmpptr)
-                tmpptr = strrchr(filename, '\\');
+                tmpptr = strrchr(DWFullFilename, '\\');
             /* Copy the short filename */
-            DWFilename = strdup(tmpptr ? ++tmpptr : DWFilename);
+            DWFilename = tmpptr ? ++tmpptr : DWFilename;
+            add_recent(DWFullFilename);
             /* Free any old memory */
             if(oldfilename)
                 free(oldfilename);
-            dw_free(filename);
+            if(!data)
+                dw_free(filename);
             /* Update the window title */
             setTitle();
             /* Update the path from the file */
@@ -5115,6 +5201,8 @@ int DWSIGNAL open_clicked(HWND button, void *data)
                 if(val)
                     dwib_image_root_set(val);
             }
+            /* Save the recent files config */
+            saveconfig();
         }
     }
     return FALSE;
@@ -6910,9 +6998,6 @@ void dwib_init(void)
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "~Open", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(open_clicked), NULL);
-    /* Recent file menu */
-    menuRecent = dw_menu_new(0);
-    item = dw_menu_append_item(menuRecent, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Open Recent", DW_MENU_AUTO, 0, TRUE, FALSE, menuRecent);
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "~Save", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
@@ -6987,9 +7072,13 @@ void dwib_init(void)
 /* The main entry point.  Notice we don't use WinMain() on Windows */
 int main(int argc, char *argv[])
 {
-    loadconfig();
-    
     dw_init(TRUE, argc, argv);
+    
+    /* Recent file menu */
+    menuRecent = dw_menu_new(0);
+    dw_menu_append_item(menuRecent, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
+    
+    loadconfig();
     
     dwib_init();
     
