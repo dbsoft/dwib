@@ -663,7 +663,7 @@ int updateNodeText(xmlNodePtr node, HWND vbox, char *name)
     
     if(!this)
         this = xmlNewTextChild(node, NULL, (xmlChar *)name, (xmlChar *)(val ? val : ""));
-    else if(!oldval && strcmp(oldval, val) != 0)
+    else if(!oldval || !val || strcmp(oldval, val) != 0)
         xmlNodeSetContent(this, (xmlChar *)(val ? val : ""));
     else 
         retval = 0;
