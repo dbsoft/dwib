@@ -115,17 +115,36 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
     HWND splitbox = (HWND)dw_window_get_data(box, "_dwib_box1");
 
     if((this = _dwib_find_child(node, "width")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         width = atoi(thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "height")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         height = atoi(thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "hexpand")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         hexpand = atoi(thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "vexpand")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         vexpand = atoi(thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "padding")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         padding = atoi(thisval);
-    if((this = _dwib_find_child(node, "enabled")) && (thisval = _dwib_get_locale_string(this, doc)) && atoi(thisval) == 0)
-        dw_window_disable(item);
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "enabled")) && (thisval = _dwib_get_locale_string(this, doc)))
+    {
+        if(atoi(thisval) == 0)
+            dw_window_disable(item);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "dataname")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dataname = thisval;
 #ifdef __OS2__
@@ -139,14 +158,28 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
 #else
     this = NULL;
 #endif
-    if((this || (this = _dwib_find_child(node, "font"))) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && strcmp(thisval, "Default"))
-        dw_window_set_font(item, thisval);
-    if((this = _dwib_find_child(node, "tooltip")) && (thisval = _dwib_get_locale_string(this, doc)) && *thisval)
-        dw_window_set_tooltip(item, thisval);
+    if((this || (this = _dwib_find_child(node, "font"))) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(strcmp(thisval, "Default"))
+            dw_window_set_font(item, thisval);
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "tooltip")) && (thisval = _dwib_get_locale_string(this, doc)))
+    {
+        if(*thisval)
+            dw_window_set_tooltip(item, thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "fcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         fcolor = _dwib_get_color(thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "bcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         bcolor = _dwib_get_color(thisval);
+        xmlFree(thisval);
+    }
 
     if(fcolor != DW_CLR_DEFAULT || bcolor != DW_CLR_DEFAULT)
         dw_window_set_color(item, fcolor, bcolor);
@@ -167,8 +200,12 @@ void _dwib_item_pack(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, HWND
     /* Save the item handle in the psvi field */
     node->psvi = (void *)item;
 
-    if(dataname && window)
-        dw_window_set_data(window, dataname, (void *)item);
+    if(dataname)
+    {
+        if(window && *dataname)
+            dw_window_set_data(window, dataname, (void *)item);
+        xmlFree(dataname);
+    }
 }
 
 /* Internal function for creating a notebook page widget from an XML tree node */
@@ -181,10 +218,16 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
     unsigned long pageid = dw_notebook_page_new(packbox, flags, FALSE);
 
     if((thisval = _dwib_get_locale_string(this, doc)))
-        dw_notebook_page_set_status_text(packbox, pageid, thisval);
-    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1))
-       && (atoi(thisval) || strcmp(thisval, "Vertical") == 0))
-        orient = DW_VERT;
+    {
+       dw_notebook_page_set_status_text(packbox, pageid, thisval);
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval) || strcmp(thisval, "Vertical") == 0)
+            orient = DW_VERT;
+        xmlFree(thisval);
+    }
 
     box = dw_box_new(orient, 0);
     dw_notebook_pack(packbox, pageid, box);
@@ -194,7 +237,10 @@ HWND _dwib_notebook_page_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWN
     dw_window_set_data(box, "_dwib_pageid", DW_INT_TO_POINTER(pageid));
 
     if((this = _dwib_find_child(node, "title")) && (thisval = _dwib_get_locale_string(this, doc)))
+    {
         dw_notebook_page_set_text(packbox, pageid, thisval);
+        xmlFree(thisval);
+    }
     return box;
 }
 
@@ -206,8 +252,12 @@ HWND _dwib_notebook_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
     char *thisval;
     int top = 1;
 
-    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && strcmp(thisval, "Bottom") == 0)
-        top = 0;
+    if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(strcmp(thisval, "Bottom") == 0)
+            top = 0;
+        xmlFree(thisval);
+    }
 
     notebook = dw_notebook_new(0, top);
 
@@ -220,7 +270,7 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
 {
     HWND box = 0, box1, box2;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
-    char *thisval, *title = "";
+    char *thisval, *title = NULL;
     int orient = DW_HORZ, padding = 0, type = 0, splitper = 50;
 
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -231,14 +281,21 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
             type = 2;
         else if(strcmp(thisval, "Splitbar") == 0)
             type = 3;
+        xmlFree(thisval);
     }
     if((this = _dwib_find_child(node, "title")) && (thisval = _dwib_get_locale_string(this, doc)))
         title = thisval;
-    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1))
-       && (atoi(thisval) || strcmp(thisval, "Vertical") == 0))
-        orient = DW_VERT;
+    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if((atoi(thisval) || strcmp(thisval, "Vertical") == 0))
+            orient = DW_VERT;
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "splitper")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
+    {
         splitper = atoi(thisval);
+        xmlFree(thisval);
+    }
 
     switch(type)
     {
@@ -246,7 +303,7 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
             box = dw_box_new(orient, padding);
             break;
         case 1:
-            box = dw_groupbox_new(orient, padding, title);
+            box = dw_groupbox_new(orient, padding, title ? title : "");
             break;
         case 2:
             box = dw_scrollbox_new(orient, padding);
@@ -262,6 +319,8 @@ HWND _dwib_box_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
     }
     if(box)
         _dwib_item_pack(node, doc, window, packbox, box, index);
+    if(title)
+        xmlFree(title);
     return box;
 }
 
@@ -388,13 +447,16 @@ char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc, int *length)
         if(this->name && strcmp((char *)this->name, "Image") == 0)
         {
             xmlNodePtr node = _dwib_find_child(this, "ImageID");
-            char *val, *file = (char *)xmlNodeListGetString(doc, this->children, 1);
+            char *val, *file = (char *)xmlNodeListGetString(doc, this->children, 1), *origfile = file;
             struct dwstat st;
             int iid = 0;
             
             /* Load the Icon ID if available */
             if(node && (val = (char *)xmlNodeListGetString(doc, node->children, 1)) != NULL)
+            {
                 iid = atoi(val);
+                xmlFree(val);
+            }
            
             /* Found an image with the correct resource ID */
             if(iid == *resid)
@@ -415,14 +477,19 @@ char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc, int *length)
                         /* Don't reset the resource ID to 0 when 
                          * returning embedded data.
                          */
+                        xmlFree(val);
                         return data;
                     }
+                    xmlFree(val);
                 }
             
                 if(len)
                     file = _dwib_combine_path(len, file, malloc(len + strlen(file) + 2));
                     
-                if(stat(file, &st) == 0)
+                if(origfile)
+                    xmlFree(origfile);
+                    
+                if(len && stat(file, &st) == 0)
                 {
                     /* Found an image... set the resource ID to 0
                      * and return the path to the image file.
@@ -447,7 +514,7 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
 {
     HWND button = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
-    char *thisval, *setting = "";
+    char *thisval, *setting = NULL, *origsetting = setting;
     int type = 0;
 
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
@@ -458,6 +525,7 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             type = 2;
         else if(strcmp(thisval, "Radio") == 0)
             type = 3;
+        xmlFree(thisval);
     }
     if((this = _dwib_find_child(node, "setting")) && (thisval = _dwib_get_locale_string(this, doc)))
         setting = thisval;
@@ -465,12 +533,12 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     switch(type)
     {
         case 0:
-            button = dw_button_new(setting, 0);
+            button = dw_button_new(setting ? setting : "", 0);
             break;
         case 1:
             {
                 struct dwstat st;
-                int resid = atoi(setting);
+                int resid = setting ? atoi(setting) : 0;
                 int length = 0;
                 char *freeme = NULL;
 
@@ -502,22 +570,32 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             }
             break;
         case 2:
-            button = dw_checkbox_new(setting, 0);
+            button = dw_checkbox_new(setting ? setting : "", 0);
             break;
         case 3:
-            button = dw_radiobutton_new(setting, 0);
+            button = dw_radiobutton_new(setting ? setting : "", 0);
             break;
     }
 
     if(button)
     {
-        if((this = _dwib_find_child(node, "check")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-            dw_checkbox_set(button, TRUE);
-        if((this = _dwib_find_child(node, "borderless")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-            dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+        if((this = _dwib_find_child(node, "check")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        {        
+            if(atoi(thisval))
+                dw_checkbox_set(button, TRUE);
+            xmlFree(thisval);
+        }
+        if((this = _dwib_find_child(node, "borderless")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        {
+            if(atoi(thisval))
+                dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
+            xmlFree(thisval);
+        }    
 
         _dwib_item_pack(node, doc, window, packbox, button, index);
     }
+    if(origsetting)
+        xmlFree(origsetting);
     return button;
 }
 
@@ -526,13 +604,14 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
 {
     HWND text = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
-    char *thisval, *label = "";
+    char *thisval, *label = NULL;
     int type = 0, flags = 0;
 
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Status") == 0)
             type = 1;
+        xmlFree(thisval);
     }
     if((this = _dwib_find_child(node, "label")) && (thisval = _dwib_get_locale_string(this, doc)))
         label = thisval;
@@ -542,6 +621,7 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
             flags = DW_DT_CENTER;
         else if(strcmp(thisval, "Right") == 0)
             flags = DW_DT_RIGHT;
+        xmlFree(thisval);
     }
     if((this = _dwib_find_child(node, "valignment")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
@@ -549,21 +629,24 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
             flags |= DW_DT_VCENTER;
         else if(strcmp(thisval, "Bottom") == 0)
             flags |= DW_DT_BOTTOM;
+        xmlFree(thisval);
     }
 
     switch(type)
     {
         case 0:
-            text = dw_text_new(label, 0);
+            text = dw_text_new(label ? label : "", 0);
             break;
         case 1:
-            text = dw_status_text_new(label, 0);
+            text = dw_status_text_new(label ? label : "", 0);
             break;
     }
     if(text)
         _dwib_item_pack(node, doc, window, packbox, text, index);
     if(flags)
         dw_window_set_style(text, flags, flags);
+    if(label)
+        xmlFree(label);
     return text;
 }
 
@@ -580,9 +663,11 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
         for(p=node->children;p;p = p->next)
         {
             if(strcmp((char *)p->name, "Item") == 0 &&
-               (thisval = (char *)xmlNodeListGetString(doc, p->children, 1)) && *thisval)
+               (thisval = (char *)xmlNodeListGetString(doc, p->children, 1)))
             {
-                count++;
+                if(*thisval)
+                   count++;
+                xmlFree(thisval);
             }
         }
 
@@ -590,42 +675,57 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
         {
             char **colnames = calloc(sizeof(char *), count);
             unsigned long *colflags = calloc(sizeof(unsigned long), count);
+            int x;
+
             count = 0;
 
             for(p=node->children;p;p = p->next)
             {
-                if(strcmp((char *)p->name, "Item") == 0 &&
-                   (thisval = (char *)xmlNodeListGetString(doc, p->children, 1)) && *thisval)
-                {
-                    if((thisval = _dwib_get_locale_string(p, doc)) && *thisval)
-                    {
-                        char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
-                        char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
-                        unsigned long ctype = DW_CFA_STRING;
-                        unsigned long calign = DW_CFA_LEFT;
+                char *itemval;
 
-                        if(coltype)
+                if(strcmp((char *)p->name, "Item") == 0 &&
+                   (itemval = (char *)xmlNodeListGetString(doc, p->children, 1)))
+                {
+                    if(*itemval)
+                    {
+                        if((thisval = _dwib_get_locale_string(p, doc)))
                         {
-                            if(strcmp(coltype, "Icon") == 0)
-                                ctype = DW_CFA_BITMAPORICON;
-                            else if(strcmp(coltype, "Number") == 0)
-                                ctype = DW_CFA_ULONG;
-                            else if(strcmp(coltype, "Date") == 0)
-                                ctype = DW_CFA_DATE;
-                            else if(strcmp(coltype, "Time") == 0)
-                                ctype = DW_CFA_TIME;
+                            if(*thisval)
+                            {
+                                char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
+                                char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
+                                unsigned long ctype = DW_CFA_STRING;
+                                unsigned long calign = DW_CFA_LEFT;
+
+                                if(coltype)
+                                {
+                                    if(strcmp(coltype, "Icon") == 0)
+                                        ctype = DW_CFA_BITMAPORICON;
+                                    else if(strcmp(coltype, "Number") == 0)
+                                        ctype = DW_CFA_ULONG;
+                                    else if(strcmp(coltype, "Date") == 0)
+                                        ctype = DW_CFA_DATE;
+                                    else if(strcmp(coltype, "Time") == 0)
+                                        ctype = DW_CFA_TIME;
+                                    xmlFree(coltype);
+                                }
+                                if(colalign)
+                                {
+                                    if(strcmp(colalign, "Center") == 0)
+                                        calign = DW_CFA_CENTER;
+                                    else if(strcmp(colalign, "Right") == 0)
+                                        calign = DW_CFA_RIGHT;
+                                    xmlFree(colalign);
+                                }
+                                colnames[count] = thisval;
+                                colflags[count] = ctype | calign | DW_CFA_SEPARATOR;
+                                count++;
+                            }
+                            else
+                                xmlFree(thisval);
                         }
-                        if(colalign)
-                        {
-                            if(strcmp(colalign, "Center") == 0)
-                                calign = DW_CFA_CENTER;
-                            else if(strcmp(colalign, "Right") == 0)
-                                calign = DW_CFA_RIGHT;
-                        }
-                        colnames[count] = thisval;
-                        colflags[count] = ctype | calign | DW_CFA_SEPARATOR;
-                        count++;
                     }
+                    xmlFree(itemval);
                 }
             }
             switch(type)
@@ -636,6 +736,11 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
                 case 1:
                     dw_filesystem_setup(container, colflags, colnames, count);
                     break;
+            }
+            for(x=0;x<count;x++)
+            {
+                if(colnames[x])
+                    xmlFree(colnames[x]);
             }
             free(colnames);
             free(colflags);
@@ -659,32 +764,53 @@ HWND _dwib_container_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pa
     {
         if(strcmp(thisval, "Filesystem") == 0)
             type = 1;
+        xmlFree(thisval);
     }
     if((this = _dwib_find_child(node, "multi")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         multi = atoi(thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "splitcol")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         splitcol = atoi(thisval);
+        xmlFree(thisval);
+    }
 
     container = dw_container_new(0, multi);
 
     /* Attempt to get localized column title for the filesystem sub-type */
-    if(type == 1 && (this = _dwib_find_child(node, "coltitle")) && (thisval = _dwib_get_locale_string(this, doc)) && *thisval)
-        dw_filesystem_set_column_title(container, thisval);
+    if(type == 1 && (this = _dwib_find_child(node, "coltitle")) && (thisval = _dwib_get_locale_string(this, doc)))
+    {
+        if(*thisval)
+            dw_filesystem_set_column_title(container, thisval);
+        xmlFree(thisval);
+    }
     
     /* If we have columns set them up */
     if((this = _dwib_find_child(node, "Columns")))
         _dwib_populate_container(container, this, doc, type, splitcol);
 
     if((this = _dwib_find_child(node, "oddcolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         oddcolor = _dwib_get_color(thisval);
-    if((this = _dwib_find_child(node, "evencolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+        xmlFree(thisval);
+    }
+   if((this = _dwib_find_child(node, "evencolor")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+   {
         evencolor = _dwib_get_color(thisval);
+        xmlFree(thisval);
+    }
 
     if(oddcolor != DW_RGB_TRANSPARENT || evencolor != DW_RGB_TRANSPARENT)
         dw_container_set_stripe(container, oddcolor, evencolor);
 
-    if((this = _dwib_find_child(node, "idstring")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        dw_window_set_data(container, "_dw_textcomp", DW_INT_TO_POINTER(1));
+    if((this = _dwib_find_child(node, "idstring")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            dw_window_set_data(container, "_dw_textcomp", DW_INT_TO_POINTER(1));
+        xmlFree(thisval);
+    }
         
     _dwib_item_pack(node, doc, window, packbox, container, index);
     return container;
@@ -695,8 +821,8 @@ HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
 {
     HWND ranged = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
-    char *thisval, *pos = "";
     int type = 0, upper = 100, lower = 0, position = 0, orient = DW_HORZ;
+    char *thisval, *pos = NULL;
 
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
@@ -706,6 +832,7 @@ HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             type = 2;
         if(strcmp(thisval, "Spinbutton") == 0)
             type = 3;
+        xmlFree(thisval);
     }
     if((this = _dwib_find_child(node, "position")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
@@ -729,13 +856,15 @@ HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
             dw_scrollbar_set_range(ranged, upper, 1);
             break;
         case 3:
-            ranged = dw_spinbutton_new(pos, 0);
+            ranged = dw_spinbutton_new(pos ? pos : "", 0);
             dw_spinbutton_set_limits(ranged, upper, lower);
             break;
 
     }
     if(ranged)
         _dwib_item_pack(node, doc, window, packbox, ranged, index);
+    if(pos)
+        xmlFree(pos);
     return ranged;
 }
 
@@ -744,13 +873,14 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
 {
     HWND entryfield = 0;
     xmlNodePtr this = _dwib_find_child(node, "subtype");
-    char *thisval, *deftext = "";
+    char *thisval, *deftext = NULL;
     int type = 0;
 
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Password") == 0)
             type = 1;
+        xmlFree(thisval);
     }
     if((this = _dwib_find_child(node, "deftext")) && (thisval = _dwib_get_locale_string(this, doc)))
         deftext = thisval;
@@ -758,18 +888,23 @@ HWND _dwib_entryfield_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND p
     switch(type)
     {
         case 0:
-            entryfield = dw_entryfield_new(deftext, 0);
+            entryfield = dw_entryfield_new(deftext ? deftext : "", 0);
             break;
         case 1:
-            entryfield = dw_entryfield_password_new(deftext, 0);
+            entryfield = dw_entryfield_password_new(deftext ? deftext : "", 0);
             break;
     }
 
     if((this = _dwib_find_child(node, "deftext")) && (thisval = _dwib_get_locale_string(this, doc)))
+    {
         dw_entryfield_set_limit(entryfield, atoi(thisval));
+        xmlFree(thisval);
+    }
 
     if(entryfield)
         _dwib_item_pack(node, doc, window, packbox, entryfield, index);
+    if(deftext)
+        xmlFree(deftext);
     return entryfield;
 }
 
@@ -787,6 +922,7 @@ void _dwib_populate_list(HWND list, xmlNodePtr node, xmlDocPtr doc, int locale)
             if(thisval)
             {
                 dw_listbox_append(list, thisval);
+                xmlFree(thisval);
             }
         }
     }
@@ -797,18 +933,20 @@ HWND _dwib_combobox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pac
 {
     HWND combobox;
     xmlNodePtr this = _dwib_find_child(node, "deftext");
-    char *thisval, *deftext = "";
+    char *thisval, *deftext = NULL;
 
     if((thisval = _dwib_get_locale_string(this, doc)))
         deftext = thisval;
 
-    combobox = dw_combobox_new(deftext, 0);
+    combobox = dw_combobox_new(deftext ? deftext : "", 0);
 
     _dwib_item_pack(node, doc, window, packbox, combobox, index);
 
     if((this = _dwib_find_child(node, "List")))
         _dwib_populate_list(combobox, this, doc, TRUE);
 
+    if(deftext)
+        xmlFree(deftext);
     return combobox;
 }
 
@@ -848,7 +986,7 @@ HWND _dwib_mle_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
 {
     HWND mle;
     xmlNodePtr this = _dwib_find_child(node, "deftext");
-    char *thisval, *deftext = "";
+    char *thisval, *deftext = NULL;
 
     if((thisval = _dwib_get_locale_string(this, doc)))
     {
@@ -856,12 +994,18 @@ HWND _dwib_mle_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox,
     }
 
     mle = dw_mle_new(0);
-    dw_mle_import(mle, deftext, -1);
+    dw_mle_import(mle, deftext ? deftext : "", -1);
 
-   if((this = _dwib_find_child(node, "wordwrap")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
-      dw_mle_set_word_wrap(mle, atoi(thisval));
+    if((this = _dwib_find_child(node, "wordwrap")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        dw_mle_set_word_wrap(mle, atoi(thisval));
+        xmlFree(thisval);
+    }
 
-   _dwib_item_pack(node, doc, window, packbox, mle, index);
+    _dwib_item_pack(node, doc, window, packbox, mle, index);
+   
+    if(deftext)
+        xmlFree(deftext);
     return mle;
 }
 
@@ -877,7 +1021,10 @@ HWND _dwib_html_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
     if(html)
     {
         if((thisval = _dwib_get_locale_string(this, doc)))
+        {
             dw_html_url(html, thisval);
+            xmlFree(thisval);
+        }
     }
     else if(_dwib_builder)
     {
@@ -907,14 +1054,14 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
 {
     HWND bitmap;
     xmlNodePtr this = _dwib_find_child(node, "setting");
-    char *thisval, *setting = "", *freeme = NULL;
+    char *thisval, *setting = "", *freeme = NULL, *origsetting = NULL;
     int resid = 0, length = 0;
 
     if((thisval = _dwib_get_locale_string(this, doc)))
     {
         struct dwstat st;
         
-        setting = thisval;
+        origsetting = setting = thisval;
         resid = atoi(setting);
         
         /* If a resource ID wasn't specified... 
@@ -947,6 +1094,8 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
     /* Free memory allocated */
     if(freeme)
         free(freeme);
+    if(origsetting)
+        xmlFree(origsetting);
     return bitmap;
 }
 
@@ -959,7 +1108,10 @@ HWND _dwib_listbox_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND pack
     int multi = 0;
 
     if((thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         multi = atoi(thisval);
+        xmlFree(thisval);
+    }
 
     listbox = dw_listbox_new(0, multi);
 
@@ -976,29 +1128,48 @@ HWND _dwib_menu_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HMENUI packb
 {
     HWND menuitem;
     xmlNodePtr this = _dwib_find_child(node, "title");
-    char *thisval, *title = "", *dataname = NULL;
+    char *thisval, *title = NULL, *dataname = NULL;
     int flags = 0, checkable = 0, menuid = 0;
 
     if((thisval = _dwib_get_locale_string(this, doc)))
         title = thisval;
     if((this = _dwib_find_child(node, "checkable")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         checkable = atoi(thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "menuid")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         menuid = atoi(thisval);
-    if((this = _dwib_find_child(node, "checked")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_MIS_CHECKED;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "checked")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_MIS_CHECKED;
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "enabled")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         flags |= (atoi(thisval) ? DW_MIS_ENABLED : DW_MIS_DISABLED);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "dataname")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
         dataname = thisval;
 
-    menuitem = dw_menu_append_item(packbox, title, menuid, flags, TRUE, checkable, submenu);
+    menuitem = dw_menu_append_item(packbox, title ? title : "", menuid, flags, TRUE, checkable, submenu);
     /* Save the menu item handle in the psvi field */
     node->psvi = (void *)menuitem;
 
-    if(dataname && window)
-        dw_window_set_data(window, dataname, (void *)menuitem);
+    if(dataname)
+    {
+        if(window && *dataname)
+            dw_window_set_data(window, dataname, (void *)menuitem);
+        xmlFree(dataname);
+    }
 
+    if(title)
+        xmlFree(title);
     return menuitem;
 }
 
@@ -1134,65 +1305,144 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
             title = buf;
         }
         else 
-            title = thisval;
+        {
+            title = alloca(strlen(thisval) + 1);
+            strcpy(title, thisval);
+        }
+        xmlFree(thisval);
     }
     if((this = _dwib_find_child(node, "bordersize")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         bordersize = atoi(thisval);
-    if((this = _dwib_find_child(node, "close")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_CLOSEBUTTON;
-    if((this = _dwib_find_child(node, "minimize")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_MINBUTTON;
-    if((this = _dwib_find_child(node, "maximize")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_MAXBUTTON;
-    if((this = _dwib_find_child(node, "hide")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_HIDEBUTTON;
-    if((this = _dwib_find_child(node, "resize")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_SIZEBORDER;
-    if((this = _dwib_find_child(node, "dialog")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_DLGBORDER;
-    if((this = _dwib_find_child(node, "border")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_BORDER;
-    if((this = _dwib_find_child(node, "sysmenu")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_SYSMENU;
-    if((this = _dwib_find_child(node, "tasklist")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_TASKLIST;
-    if((this = _dwib_find_child(node, "composited")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_COMPOSITED;
-    if((this = _dwib_find_child(node, "titlebar")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        flags |= DW_FCF_TITLEBAR;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "close")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_CLOSEBUTTON;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "minimize")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_MINBUTTON;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "maximize")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_MAXBUTTON;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "hide")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_HIDEBUTTON;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "resize")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_SIZEBORDER;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "dialog")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_DLGBORDER;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "border")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_BORDER;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "sysmenu")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_SYSMENU;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "tasklist")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_TASKLIST;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "composited")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_COMPOSITED;
+        xmlFree(thisval);
+    }
+    if((this = _dwib_find_child(node, "titlebar")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_TITLEBAR;
+        xmlFree(thisval);
+    }
 
     if((this = _dwib_find_child(node, "x")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         x = atoi(thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "y")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         y = atoi(thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "hgravity")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Center") == 0)
             hgravity = DW_GRAV_CENTER;
         else if(strcmp(thisval, "Right") == 0)
             hgravity = DW_GRAV_RIGHT;
+        xmlFree(thisval);
     }
-    if((this = _dwib_find_child(node, "hobstacles")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        hgravity |= DW_GRAV_OBSTACLES;
+    if((this = _dwib_find_child(node, "hobstacles")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            hgravity |= DW_GRAV_OBSTACLES;
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "vgravity")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(strcmp(thisval, "Center") == 0)
             vgravity = DW_GRAV_CENTER;
         else if(strcmp(thisval, "Bottom") == 0)
             vgravity = DW_GRAV_BOTTOM;
+        xmlFree(thisval);
     }
-    if((this = _dwib_find_child(node, "vobstacles")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) && atoi(thisval))
-        vgravity |= DW_GRAV_OBSTACLES;
+    if((this = _dwib_find_child(node, "vobstacles")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            vgravity |= DW_GRAV_OBSTACLES;
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "width")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         width = atoi(thisval);
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "height")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         height = atoi(thisval);
+        xmlFree(thisval);
+    }
 
-    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1))
-       && (atoi(thisval) || strcmp(thisval, "Vertical") == 0))
-        orient = DW_VERT;
+    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if((atoi(thisval) || strcmp(thisval, "Vertical") == 0))
+            orient = DW_VERT;
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "padding")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
         padding = atoi(thisval);
+        xmlFree(thisval);
+    }
 
     ret = dw_window_new(DW_DESKTOP, title, flags);
     /* Save the window handle in the psvi field */
@@ -1337,9 +1587,14 @@ int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window,
             xmlNodePtr this = _dwib_find_child(p, "title");
             char *val = (char *)xmlNodeListGetString(doc, this->children, 1);
 
-            if(val && strcmp(name, val) == 0)
+            if(val)
             {
-                return _dwib_children_search(p, doc, window, dataname, box, index);
+                if(strcmp(name, val) == 0)
+                {
+                    xmlFree(val);
+                    return _dwib_children_search(p, doc, window, dataname, box, index);
+                }
+                xmlFree(val);
             }
         }
     }
@@ -1453,11 +1708,20 @@ int API dwib_image_root_set(char *path)
  */
 int API dwib_locale_set(char *loc)
 {
-    char *oldlocale = _dwib_locale;
+    char *oldlocale = _dwib_locale, *encode;
     
     /* Should we check that the locale is valid? */
     _dwib_locale = loc ? strdup(loc) : loc;
-        
+    
+    /* Trim off encoding string...
+     * Often the LANG environment variable will be
+     * en_US.UTF-8 which is <language>_<COUNTRY>.<ENCODING>
+     * so trim off the .<ENCODING> to get the base...
+     * since DW only supports UTF-8 it must be UTF-8 encoded.
+     */
+    if(_dwib_locale && (encode = strchr(_dwib_locale, '.')))
+        *encode = 0;
+
     /* Free memory if needed */
     if(oldlocale)
         free(oldlocale);
