@@ -6850,6 +6850,7 @@ int DWSIGNAL image_view_delete(HWND window, xmlNodePtr imageNode)
 int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
 {
     char *file = imageNode ? (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1) : NULL;
+    char *origfile = file;
 
     /* If an image view for this image is already open... */
     if(imageNode && imageNode->_private)
@@ -6925,8 +6926,8 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
         dw_window_set_size(window, 0, 0);
         dw_window_show(window);
     }
-    if(file)
-        xmlFree(file);
+    if(origfile)
+        xmlFree(origfile);
     return TRUE;
 }
 
