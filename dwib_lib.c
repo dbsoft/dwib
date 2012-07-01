@@ -462,7 +462,8 @@ char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc, int *length)
             if(iid == *resid)
             {
                 /* Generate a path to the file */
-                int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+                int statres, len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+                char *freeme = NULL;
                 
                 if((node = _dwib_find_child(this, "Embedded")) != NULL &&
                    (val = (char *)xmlNodeListGetString(doc, node->children, 1)) != NULL)
@@ -484,12 +485,14 @@ char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc, int *length)
                 }
             
                 if(len)
-                    file = _dwib_combine_path(len, file, malloc(len + strlen(file) + 2));
+                    freeme = file = _dwib_combine_path(len, file, malloc(len + strlen(file) + 2));
                     
+                statres = stat(file, &st);
+
                 if(origfile)
                     xmlFree(origfile);
                     
-                if(len && stat(file, &st) == 0)
+                if(statres == 0)
                 {
                     /* Found an image... set the resource ID to 0
                      * and return the path to the image file.
@@ -497,8 +500,8 @@ char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc, int *length)
                     *resid = 0;
                     return file;
                 }
-                else
-                    free(file);
+                else if(freeme)
+                    free(freeme);
             }
         }
         this=this->next;
