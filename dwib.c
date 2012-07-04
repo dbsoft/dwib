@@ -23,6 +23,7 @@ char *DWFilename = NULL, *DWFullFilename = NULL;
 HICN hIcons[20];
 HMENUI menuWindows;
 int AutoExpand = FALSE, PropertiesInspector = TRUE, LivePreview = TRUE, BitmapButtons = TRUE;
+int ToolbarX, ToolbarY, ToolbarW = 0, ToolbarH = 0, PropertiesX, PropertiesY, PropertiesW = 0, PropertiesH = 0;
 extern char *_dwib_image_root;
 
 char *Classes[] =
@@ -56,6 +57,14 @@ SaveConfig Config[] =
     { "AUTOEXPAND",         TYPE_INT,   &AutoExpand },
     { "LIVEPREVIEW",        TYPE_INT,   &LivePreview },
     { "PROPINSP",           TYPE_INT,   &PropertiesInspector },
+    { "PROPERTIESX",        TYPE_INT,   &PropertiesX },
+    { "PROPERTIESY",        TYPE_INT,   &PropertiesY },
+    { "PROPERTIESW",        TYPE_INT,   &PropertiesW },
+    { "PROPERTIESH",        TYPE_INT,   &PropertiesH },
+    { "TOOLBARX",           TYPE_INT,   &ToolbarX },
+    { "TOOLBARY",           TYPE_INT,   &ToolbarY },
+    { "TOOLBARW",           TYPE_INT,   &ToolbarW },
+    { "TOOLBARH",           TYPE_INT,   &ToolbarH },
     { "BITMAPBUTTONS",      TYPE_INT,   &BitmapButtons },
     { "", 0, 0}
 };
@@ -7288,6 +7297,53 @@ int DWSIGNAL preview_locale_clicked(HWND item, void *data)
     return FALSE;
 }
 
+/* Put the toolbar in the default position */
+void toolbar_default(void)
+{
+    dw_window_set_gravity(hwndToolbar, DW_GRAV_LEFT | DW_GRAV_OBSTACLES, DW_GRAV_TOP | DW_GRAV_OBSTACLES);
+    dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 650);
+}
+
+/* Put the properties window in the default position */
+void properties_default(void)
+{    
+    dw_window_set_gravity(hwndProperties, DW_GRAV_LEFT | DW_GRAV_OBSTACLES, DW_GRAV_TOP | DW_GRAV_OBSTACLES);
+    dw_window_set_pos_size(hwndProperties, 650, 20, 300, 550);
+}
+
+/* Save the window position to the config file */
+int DWSIGNAL save_position_clicked(HWND window, void *data)
+{
+    long x, y;
+    unsigned long w, h;
+    
+    dw_window_get_pos_size(hwndToolbar, &x, &y, &w, &h);
+    ToolbarX = (int)x;
+    ToolbarY = (int)y;
+    ToolbarW = (int)w;
+    ToolbarH = (int)h;
+    if(PropertiesInspector)
+    {
+        dw_window_get_pos_size(hwndProperties, &x, &y, &w, &h);
+        PropertiesX = (int)x;
+        PropertiesY = (int)y;
+        PropertiesW = (int)w;
+        PropertiesH = (int)h;
+    }
+    saveconfig();
+    return TRUE;
+}
+
+/* Save the window position to the config file */
+int DWSIGNAL reset_position_clicked(HWND window, void *data)
+{
+    ToolbarX = ToolbarY = ToolbarW = ToolbarH = PropertiesX = PropertiesY = PropertiesW = PropertiesH = 0;
+    saveconfig();
+    toolbar_default();
+    properties_default();
+    return TRUE;
+}
+
 void dwib_init(void)
 {
     HWND vbox, hbox, item;
@@ -7373,6 +7429,11 @@ void dwib_init(void)
     item = dw_menu_append_item(menuWindows, "Locale Manager", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), NULL);
     item = dw_menu_append_item(menuWindows, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
+    item = dw_menu_append_item(menuWindows, "Save Position", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_position_clicked), NULL);
+    item = dw_menu_append_item(menuWindows, "Reset Position", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(reset_position_clicked), NULL);
+    item = dw_menu_append_item(menuWindows, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(menu, "~Windows", DW_MENU_AUTO, 0, TRUE, FALSE, menuWindows);
     
     /* Add Help menu */
@@ -7389,16 +7450,20 @@ void dwib_init(void)
     
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
     dw_window_set_icon(hwndToolbar, DW_RESOURCE(ICON_APP));
-    dw_window_set_gravity(hwndToolbar, DW_GRAV_LEFT | DW_GRAV_OBSTACLES, DW_GRAV_TOP | DW_GRAV_OBSTACLES);
-    dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 650);
+    if(ToolbarW > 0 && ToolbarW > 0)
+        dw_window_set_pos_size(hwndToolbar, ToolbarX, ToolbarY, ToolbarW, ToolbarH);
+    else
+        toolbar_default();
     
     toolbar_select(DWCurrNode);
     
     hwndProperties = dw_window_new(DW_DESKTOP, "Properties Inspector", DW_FCF_TITLEBAR | DW_FCF_SIZEBORDER);
     properties_none();
     dw_signal_connect(hwndToolbar, DW_SIGNAL_SET_FOCUS, DW_SIGNAL_FUNC(toolbar_focus), NULL);
-    dw_window_set_gravity(hwndProperties, DW_GRAV_LEFT | DW_GRAV_OBSTACLES, DW_GRAV_TOP | DW_GRAV_OBSTACLES);
-    dw_window_set_pos_size(hwndProperties, 650, 20, 300, 550);
+    if(PropertiesW > 0 && PropertiesW > 0)
+        dw_window_set_pos_size(hwndProperties, PropertiesX, PropertiesY, PropertiesW, PropertiesH);
+    else
+        properties_default();
     if(PropertiesInspector)
         dw_window_show(hwndProperties);
     dw_window_show(hwndToolbar);
