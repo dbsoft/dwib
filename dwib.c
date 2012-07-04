@@ -7334,7 +7334,7 @@ int DWSIGNAL save_position_clicked(HWND window, void *data)
     return TRUE;
 }
 
-/* Save the window position to the config file */
+/* Reset the window position to the default and save */
 int DWSIGNAL reset_position_clicked(HWND window, void *data)
 {
     ToolbarX = ToolbarY = ToolbarW = ToolbarH = PropertiesX = PropertiesY = PropertiesW = PropertiesH = 0;
@@ -7450,7 +7450,7 @@ void dwib_init(void)
     
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
     dw_window_set_icon(hwndToolbar, DW_RESOURCE(ICON_APP));
-    if(ToolbarW > 0 && ToolbarW > 0)
+    if(ToolbarW > 0 && ToolbarH > 0)
         dw_window_set_pos_size(hwndToolbar, ToolbarX, ToolbarY, ToolbarW, ToolbarH);
     else
         toolbar_default();
@@ -7460,7 +7460,7 @@ void dwib_init(void)
     hwndProperties = dw_window_new(DW_DESKTOP, "Properties Inspector", DW_FCF_TITLEBAR | DW_FCF_SIZEBORDER);
     properties_none();
     dw_signal_connect(hwndToolbar, DW_SIGNAL_SET_FOCUS, DW_SIGNAL_FUNC(toolbar_focus), NULL);
-    if(PropertiesW > 0 && PropertiesW > 0)
+    if(PropertiesW > 0 && PropertiesH > 0)
         dw_window_set_pos_size(hwndProperties, PropertiesX, PropertiesY, PropertiesW, PropertiesH);
     else
         properties_default();
