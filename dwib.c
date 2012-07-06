@@ -741,7 +741,7 @@ void deleteControl(xmlNodePtr node)
                 dw_notebook_page_destroy((HWND)notebooknode->psvi, pageid);
         }
         /* Handle special case for padding... need to use
-         * dw_box_remove_at_index() instead of dw_window_destroy()
+         * dw_box_unpack_at_index() instead of dw_window_destroy()
          * due to lack of a window handle for padding.
          */
         else if(node->name && strcmp((char *)node->name, "Padding") == 0)
@@ -757,7 +757,7 @@ void deleteControl(xmlNodePtr node)
                     index++;
                 }
                 /* Remove the padding from the layout */
-                dw_box_remove_at_index((HWND)boxnode->psvi, index);
+                dw_box_unpack_at_index((HWND)boxnode->psvi, index);
             }
         }
         else /* Just destroy any other controls */
