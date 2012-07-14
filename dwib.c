@@ -4122,7 +4122,6 @@ void DWSIGNAL properties_box(xmlNodePtr node)
                 val = "3";
             else
                 val = astrdup(thisval);
-            dw_debug("Val \"%s\" Thisval \"%s\" %d\n", val, thisval, atoi(thisval));
             xmlFree(thisval);
        }
     }
