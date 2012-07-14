@@ -1814,10 +1814,8 @@ void DWSIGNAL properties_text(xmlNodePtr node)
             if(strcmp(thisval, "Status") == 0)
                 val = "1";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -1868,10 +1866,8 @@ void DWSIGNAL properties_text(xmlNodePtr node)
             else if(strcmp(thisval, "Right") == 0)
                 val = "2";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -1898,10 +1894,8 @@ void DWSIGNAL properties_text(xmlNodePtr node)
             else if(strcmp(thisval, "Bottom") == 0)
                 val = "2";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -2009,10 +2003,8 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
             if(strcmp(thisval, "Password") == 0)
                 val = "1";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -2663,10 +2655,8 @@ void DWSIGNAL properties_container(xmlNodePtr node)
             if(strcmp(thisval, "Filesystem") == 0)
                 val = "1";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -3788,10 +3778,8 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
             if(strcmp(thisval, "Bottom") == 0)
                 val = "1";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -3941,10 +3929,8 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
             if(strcmp(thisval, "Vertical") == 0)
                 val = "1";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -4130,15 +4116,14 @@ void DWSIGNAL properties_box(xmlNodePtr node)
         {
             if(strcmp(thisval, "Group") == 0)
                 val = "1";
-            if(strcmp(thisval, "Scroll") == 0)
+            else if(strcmp(thisval, "Scroll") == 0)
                 val = "2";
-            if(strcmp(thisval, "Splitbar") == 0)
+            else if(strcmp(thisval, "Splitbar") == 0)
                 val = "3";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            dw_debug("Val \"%s\" Thisval \"%s\" %d\n", val, thisval, atoi(thisval));
+            xmlFree(thisval);
        }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -4164,10 +4149,8 @@ void DWSIGNAL properties_box(xmlNodePtr node)
             if(strcmp(thisval, "Vertical") == 0)
                 val = "1";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -4746,10 +4729,8 @@ void DWSIGNAL properties_window(xmlNodePtr node)
             else if(strcmp(thisval, "Right") == 0)
                 val = "2";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -4770,10 +4751,8 @@ void DWSIGNAL properties_window(xmlNodePtr node)
             else if(strcmp(thisval, "Bottom") == 0)
                 val = "2";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -5037,10 +5016,8 @@ void DWSIGNAL properties_window(xmlNodePtr node)
             if(strcmp(thisval, "Vertical") == 0)
                 val = "1";
             else
-            {
                 val = astrdup(thisval);
-                xmlFree(thisval);
-            }
+            xmlFree(thisval);
         }
     }
     dw_listbox_select(item, atoi(val), TRUE);
@@ -7442,7 +7419,7 @@ void dwib_init(void)
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_page_clicked), DW_POINTER("http://dbsoft.org/"));
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "Help Contents", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
-    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_page_clicked), DW_POINTER("http://www.dbsoft.org/newsitem.php?id=41"));
+    dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_page_clicked), DW_POINTER("http://www.dbsoft.org/dwib.php"));
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "About", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(about_clicked), NULL);
