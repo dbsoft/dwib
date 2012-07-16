@@ -434,9 +434,9 @@ int DWSIGNAL render_expose(HWND window, DWExpose *exp, void *data)
     
     dw_window_get_pos_size(window, NULL, NULL, &width, &height);
     dw_color_foreground_set(DW_CLR_WHITE);
-    dw_draw_rect(window, 0, DW_DRAW_FILL, 0, 0, width, height);
+    dw_draw_rect(window, 0, DW_DRAW_FILL, 0, 0, (int)width, (int)height);
     dw_color_foreground_set(DW_CLR_YELLOW);
-    dw_draw_arc(window, 0, DW_DRAW_FILL | DW_DRAW_FULL, width/2, height/2, 0, 0, width, height);
+    dw_draw_arc(window, 0, DW_DRAW_FILL | DW_DRAW_FULL, (int)width/2, (int)height/2, 0, 0, (int)width, (int)height);
     dw_color_foreground_set(DW_CLR_DARKBLUE);
     dw_font_text_extents_get(window, 0, text, &fontwidth, &fontheight);
     dw_draw_text(window, 0, (width - fontwidth)/2, (height - fontheight)/2, text);
@@ -530,7 +530,7 @@ void setTitle(void)
 {
     if(DWFilename)
     {
-        int buflen = (int)strlen(APP_NAME) + strlen(DWFilename) + 4;
+        int buflen = (int)strlen(APP_NAME) + (int)strlen(DWFilename) + 4;
         char *tmpbuf = (char *)malloc(buflen); 
 
         if(tmpbuf)
@@ -2536,39 +2536,36 @@ void populate_columns(HWND vbox, HWND scrollbox, HWND combo, xmlNodePtr node)
         {
             if(strcmp((char *)p->name, "Item") == 0)
             {
-                char *thisval;
+                char *thisval = (char *)xmlNodeListGetString(DWDoc, p->children, 1);
                 xmlNodePtr freeme = NULL;
+                char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
+                char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
                 
-                if((thisval = (char *)xmlNodeListGetString(DWDoc, p->children, 1)))
+                /* Skip over entries if they don't have text and aren't icons */
+                if((thisval && *thisval) || (coltype && strcmp(coltype, "Icon") == 0))
                 {
-                    char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
-                    char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
-
-                    /* Skip over entries if they don't have text and aren't icons */
-                    if(*thisval || (coltype && strcmp(coltype, "Icon") == 0))
-                    {
-                        add_row(vbox, scrollbox, count, thisval, coltype ? coltype : "", colalign ? colalign : "", p, TRUE);
-                        count++;
-                        
-                        /* Add the column to the OS/2 split column list */
-                        snprintf(buf, 20, "%d", count);
-                        dw_listbox_append(combo, buf);
-                        p = p->next;
-                    }
-                    else
-                        freeme = p;
-                    if(coltype)
-                        xmlFree(coltype);
-                    if(colalign)
-                        xmlFree(colalign);
-                    xmlFree(thisval);
+                    add_row(vbox, scrollbox, count, thisval ? thisval : "", coltype ? coltype : "", colalign ? colalign : "", p, TRUE);
+                    count++;
+                    
+                    /* Add the column to the OS/2 split column list */
+                    snprintf(buf, 20, "%d", count);
+                    dw_listbox_append(combo, buf);
+                    p = p->next;
                 }
                 else
                     freeme = p;
                 
+                if(coltype)
+                    xmlFree(coltype);
+                if(colalign)
+                    xmlFree(colalign);
+                if(thisval)
+                    xmlFree(thisval);
+                
                 if(freeme)
                 {
                     p = p->next;
+                    dw_debug("Unlinking node %s\n", thisval);
                     
                     /* Unlink and free any empty nodes */
                     xmlUnlinkNode(freeme);
@@ -6587,7 +6584,7 @@ int DWSIGNAL image_add_clicked(HWND button, void *data)
         if(*file)
         {
             HICN icon = dw_icon_load_from_file(file);
-            int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+            int len = _dwib_image_root ? (int)strlen(_dwib_image_root) : 0;
             void *continfo = dw_container_alloc(cont, 1);
             unsigned long iid = 0;
             char *val = file, *embedded = "No";
@@ -6651,7 +6648,7 @@ int DWSIGNAL image_rem_clicked(HWND button, void *data)
 /* Populate or repopulate the image list */
 void populateImages(HWND item, xmlNodePtr rootNode)
 {
-    int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+    int len = _dwib_image_root ? (int)strlen(_dwib_image_root) : 0;
     xmlNodePtr imageNode = rootNode->children;
     
     while(imageNode)
@@ -6682,7 +6679,7 @@ void populateImages(HWND item, xmlNodePtr rootNode)
                 if(embedNode && (embeddata = (char *)xmlNodeListGetString(DWDoc, embedNode->children, 1)) != NULL)
                 {
                     char *data;
-                    int length = strlen(embeddata);
+                    int length = (int)strlen(embeddata);
                     
                     /* Attempt to decode embedded data */
                     if((data = _dwib_decode64_lines(embeddata, &length)) != NULL)
@@ -6788,7 +6785,7 @@ int DWSIGNAL image_view_delete(HWND window, xmlNodePtr imageNode)
         
         if(file)
         {
-            int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+            int len = _dwib_image_root ? (int)strlen(_dwib_image_root) : 0;
             struct dwstat st;
             char *origfile = file;
             
@@ -6810,7 +6807,7 @@ int DWSIGNAL image_view_delete(HWND window, xmlNodePtr imageNode)
                         /* Create a node and base 64 encode the image data on it */
                         xmlTextWriterPtr writer = xmlNewTextWriterTree(DWDoc, imageNode, 0);
                         xmlTextWriterStartElement(writer, (xmlChar *)"Embedded");
-                        xmlTextWriterWriteBase64(writer, imagedata, 0, st.st_size);
+                        xmlTextWriterWriteBase64(writer, imagedata, 0, (int)st.st_size);
                         xmlTextWriterEndElement(writer);
                         xmlFreeTextWriter(writer);
                         changed = 1;
@@ -6889,7 +6886,7 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
             if((embeddata = (char *)xmlNodeListGetString(DWDoc, node->children, 1)) != NULL)
             {
                 char *data;
-                int length = strlen(embeddata);
+                int length = (int)strlen(embeddata);
                 
                 /* Attempt to decode embedded data */
                 if((data = _dwib_decode64_lines(embeddata, &length)) != NULL)
@@ -6905,7 +6902,7 @@ int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
         }
         else
         {
-            int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+            int len = _dwib_image_root ? (int)strlen(_dwib_image_root) : 0;
             
             if(len && file)
                 file = _dwib_combine_path(len, file, alloca(len + strlen(file) + 2));

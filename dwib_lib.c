@@ -462,7 +462,7 @@ char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc, int *length)
             if(iid == *resid)
             {
                 /* Generate a path to the file */
-                int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+                int len = _dwib_image_root ? (int)strlen(_dwib_image_root) : 0;
                 char *freeme = NULL;
                 
                 if((node = _dwib_find_child(this, "Embedded")) != NULL &&
@@ -470,7 +470,7 @@ char *_dwib_builder_bitmap(int *resid, xmlDocPtr doc, int *length)
                 {
                     char *data;
                     
-                    *length = strlen(val);
+                    *length = (int)strlen(val);
                     
                     /* Attempt to decode embedded data */
                     if((data = _dwib_decode64_lines(val, length)) != NULL)
@@ -551,7 +551,7 @@ HWND _dwib_button_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
                  */
                 if(!resid && setting && *setting && stat(setting, &st) != 0)
                 {
-                    int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+                    int len = _dwib_image_root ? (int)strlen(_dwib_image_root) : 0;
                     
                     if(len)
                         setting = _dwib_combine_path(len, setting, alloca(len + strlen(setting) + 2));
@@ -1080,7 +1080,7 @@ HWND _dwib_bitmap_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
          */
         if(!resid && setting && *setting && stat(setting, &st) != 0)
         {
-            int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
+            int len = _dwib_image_root ? (int)strlen(_dwib_image_root) : 0;
             
             if(len)
                 setting = _dwib_combine_path(len, setting, alloca(len + strlen(setting) + 2));
