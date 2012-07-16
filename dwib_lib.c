@@ -689,54 +689,46 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
 
             for(p=node->children;p;p = p->next)
             {
-                char *itemval;
-
-                if(strcmp((char *)p->name, "Item") == 0 &&
-                   (itemval = (char *)xmlNodeListGetString(doc, p->children, 1)))
+                if(strcmp((char *)p->name, "Item") == 0)
                 {
-                    if(*itemval)
-                    {
-                        if((thisval = _dwib_get_locale_string(p, doc)))
-                        {
-                            char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
-                            char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
-                            
-                            if(*thisval || (coltype && strcmp(coltype, "Icon") == 0))
-                            {
-                                unsigned long ctype = DW_CFA_STRING;
-                                unsigned long calign = DW_CFA_LEFT;
+                    char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
+                    char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
 
-                                if(coltype)
-                                {
-                                    if(strcmp(coltype, "Icon") == 0)
-                                        ctype = DW_CFA_BITMAPORICON;
-                                    else if(strcmp(coltype, "Number") == 0)
-                                        ctype = DW_CFA_ULONG;
-                                    else if(strcmp(coltype, "Date") == 0)
-                                        ctype = DW_CFA_DATE;
-                                    else if(strcmp(coltype, "Time") == 0)
-                                        ctype = DW_CFA_TIME;
-                                }
-                                if(colalign)
-                                {
-                                    if(strcmp(colalign, "Center") == 0)
-                                        calign = DW_CFA_CENTER;
-                                    else if(strcmp(colalign, "Right") == 0)
-                                        calign = DW_CFA_RIGHT;
-                                }
-                                colnames[count] = thisval;
-                                colflags[count] = ctype | calign | DW_CFA_SEPARATOR;
-                                count++;
-                            }
-                            else
-                                xmlFree(thisval);
-                            if(coltype)
-                                xmlFree(coltype);
-                            if(colalign)
-                                xmlFree(colalign);
+                    thisval = _dwib_get_locale_string(p, doc);
+
+                    if((thisval && *thisval) || (coltype && strcmp(coltype, "Icon") == 0))
+                    {
+                        unsigned long ctype = DW_CFA_STRING;
+                        unsigned long calign = DW_CFA_LEFT;
+
+                        if(coltype)
+                        {
+                            if(strcmp(coltype, "Icon") == 0)
+                                ctype = DW_CFA_BITMAPORICON;
+                            else if(strcmp(coltype, "Number") == 0)
+                                ctype = DW_CFA_ULONG;
+                            else if(strcmp(coltype, "Date") == 0)
+                                ctype = DW_CFA_DATE;
+                            else if(strcmp(coltype, "Time") == 0)
+                                ctype = DW_CFA_TIME;
                         }
+                        if(colalign)
+                        {
+                            if(strcmp(colalign, "Center") == 0)
+                                calign = DW_CFA_CENTER;
+                            else if(strcmp(colalign, "Right") == 0)
+                                calign = DW_CFA_RIGHT;
+                        }
+                        colnames[count] = thisval ? thisval : (char *)xmlStrdup((xmlChar *)"");
+                        colflags[count] = ctype | calign | DW_CFA_SEPARATOR;
+                        count++;
                     }
-                    xmlFree(itemval);
+                    else
+                        xmlFree(thisval);
+                    if(coltype)
+                        xmlFree(coltype);
+                    if(colalign)
+                        xmlFree(colalign);
                 }
             }
             switch(type)
