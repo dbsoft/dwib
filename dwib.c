@@ -6782,6 +6782,7 @@ int DWSIGNAL image_view_delete(HWND window, xmlNodePtr imageNode)
         {
             int len = _dwib_image_root ? strlen(_dwib_image_root) : 0;
             struct dwstat st;
+            char *origfile = file;
             
             if(len)
                 file = _dwib_combine_path(len, file, alloca(len + strlen(file) + 2));
@@ -6809,7 +6810,7 @@ int DWSIGNAL image_view_delete(HWND window, xmlNodePtr imageNode)
                     close(fd);
                 }
             }
-            xmlFree(file);
+            xmlFree(origfile);
         }
     }
     
