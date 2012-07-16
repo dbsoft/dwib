@@ -669,8 +669,12 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
             if(strcmp((char *)p->name, "Item") == 0 &&
                (thisval = (char *)xmlNodeListGetString(doc, p->children, 1)))
             {
-                if(*thisval)
+                char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
+                
+                if(*thisval || (coltype && strcmp(coltype, "Icon") == 0))
                    count++;
+                if(coltype)
+                    xmlFree(coltype);
                 xmlFree(thisval);
             }
         }
@@ -694,10 +698,11 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
                     {
                         if((thisval = _dwib_get_locale_string(p, doc)))
                         {
-                            if(*thisval)
+                            char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
+                            char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
+                            
+                            if(*thisval || (coltype && strcmp(coltype, "Icon") == 0))
                             {
-                                char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
-                                char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
                                 unsigned long ctype = DW_CFA_STRING;
                                 unsigned long calign = DW_CFA_LEFT;
 
@@ -711,7 +716,6 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
                                         ctype = DW_CFA_DATE;
                                     else if(strcmp(coltype, "Time") == 0)
                                         ctype = DW_CFA_TIME;
-                                    xmlFree(coltype);
                                 }
                                 if(colalign)
                                 {
@@ -719,7 +723,6 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
                                         calign = DW_CFA_CENTER;
                                     else if(strcmp(colalign, "Right") == 0)
                                         calign = DW_CFA_RIGHT;
-                                    xmlFree(colalign);
                                 }
                                 colnames[count] = thisval;
                                 colflags[count] = ctype | calign | DW_CFA_SEPARATOR;
@@ -727,6 +730,10 @@ void _dwib_populate_container(HWND container, xmlNodePtr node, xmlDocPtr doc, in
                             }
                             else
                                 xmlFree(thisval);
+                            if(coltype)
+                                xmlFree(coltype);
+                            if(colalign)
+                                xmlFree(colalign);
                         }
                     }
                     xmlFree(itemval);

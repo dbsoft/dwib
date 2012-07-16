@@ -2537,32 +2537,40 @@ void populate_columns(HWND vbox, HWND scrollbox, HWND combo, xmlNodePtr node)
             if(strcmp((char *)p->name, "Item") == 0)
             {
                 char *thisval;
+                xmlNodePtr freeme = NULL;
                 
-                if((thisval = (char *)xmlNodeListGetString(DWDoc, p->children, 1)) && *thisval)
+                if((thisval = (char *)xmlNodeListGetString(DWDoc, p->children, 1)))
                 {
                     char *coltype = (char *)xmlGetProp(p, (xmlChar *)"ColType");
                     char *colalign = (char *)xmlGetProp(p, (xmlChar *)"ColAlign");
 
-                    add_row(vbox, scrollbox, count, thisval, coltype ? coltype : "", colalign ? colalign : "", p, TRUE);
-                    count++;
-
-                    /* Add the column to the OS/2 split column list */
-                    snprintf(buf, 20, "%d", count);
-                    dw_listbox_append(combo, buf);
-                    p = p->next;
+                    /* Skip over entries if they don't have text and aren't icons */
+                    if(*thisval || (coltype && strcmp(coltype, "Icon") == 0))
+                    {
+                        add_row(vbox, scrollbox, count, thisval, coltype ? coltype : "", colalign ? colalign : "", p, TRUE);
+                        count++;
+                        
+                        /* Add the column to the OS/2 split column list */
+                        snprintf(buf, 20, "%d", count);
+                        dw_listbox_append(combo, buf);
+                        p = p->next;
+                    }
+                    else
+                        freeme = p;
                     if(coltype)
                         xmlFree(coltype);
                     if(colalign)
                         xmlFree(colalign);
                     xmlFree(thisval);
                 }
-                else 
+                else
+                    freeme = p;
+                
+                if(freeme)
                 {
-                    /* Unlink and free any empty nodes */
-                    xmlNodePtr freeme = p;
-                    
                     p = p->next;
                     
+                    /* Unlink and free any empty nodes */
                     xmlUnlinkNode(freeme);
                     xmlFreeNode(freeme);
                 }
