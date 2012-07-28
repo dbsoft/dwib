@@ -6460,7 +6460,7 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
             dw_html_url(html, url);
             
             /* Setup the size */
-            dw_window_set_size(window, 800, 600);
+            dw_window_set_size(window, 850, 600);
             dw_window_show(window);
         }
         else
