@@ -81,6 +81,7 @@ installer:
     copy dwib.exe install\package
     copy $(DWINCPATH)\dw.dll install\package
     copy readme.txt install\package
+    copy install\scripts\license.txt install\package
     copy readme.txt install\scripts
     rm -f install\dwib.ace install\misc.ace
     cd install\package

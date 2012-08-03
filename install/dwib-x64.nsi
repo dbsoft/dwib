@@ -28,8 +28,8 @@ FunctionEnd
 ; General
 
   ; Name and file
-  Name "Dynamic Windows Interface Builder 0.5"
-  OutFile "dwib05win64.exe"
+  Name "Dynamic Windows Interface Builder"
+  OutFile "dwib10b1win64.exe"
 
   ; Default installation folder
   InstallDir "$PROGRAMFILES64\DWIB"

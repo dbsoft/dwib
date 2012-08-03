@@ -82,6 +82,7 @@ installer:
     copy dwib.exe install\package
     copy $(DWINCDIR)\dw.dll install\package
     copy readme.txt install\package
+    copy install\scripts\license.txt install\package
     cd install\package
     copy ..\dwib-$(TARGET_CPU).nsi dwib.nsi
     makensis dwib.nsi
