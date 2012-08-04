@@ -898,6 +898,7 @@ void save_properties(void)
             retval |= updateNode(node, vbox, "label", FALSE);
             retval |= updateNode(node, vbox, "alignment", FALSE);
             retval |= updateNode(node, vbox, "valignment", FALSE);
+            retval |= updateNode(node, vbox, "wordwrap", TRUE);
             break;
         case TYPE_ENTRYFIELD:
             retval |= updateNode(node, vbox, "subtype", FALSE);
@@ -1900,6 +1901,25 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "valignment", DW_POINTER(item));  
+    /* Word wrap */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Word", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "wordwrap")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
+            val = astrdup(thisval);
+            xmlFree(thisval);
+        }
+    }
+    item = dw_checkbox_new("Wrap", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "wordwrap", DW_POINTER(item));
     
     /* If it is a new window add button */
     if(!node || !node->parent)

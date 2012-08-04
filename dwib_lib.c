@@ -635,6 +635,12 @@ HWND _dwib_text_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox
             flags |= DW_DT_BOTTOM;
         xmlFree(thisval);
     }
+    if((this = _dwib_find_child(node, "wordwrap")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_DT_WORDBREAK;
+        xmlFree(thisval);
+    }
 
     switch(type)
     {
