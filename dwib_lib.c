@@ -846,6 +846,12 @@ HWND _dwib_ranged_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packb
         pos = thisval;
         position = atoi(pos);
     }
+    if((this = _dwib_find_child(node, "orientation")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if((atoi(thisval) || strcmp(thisval, "Vertical") == 0))
+            orient = DW_VERT;
+        xmlFree(thisval);
+    }
 
     switch(type)
     {

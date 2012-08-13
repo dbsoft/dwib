@@ -951,6 +951,7 @@ void save_properties(void)
             retval |= updateNode(node, vbox, "position", FALSE);
             retval |= updateNode(node, vbox, "upper", FALSE);
             retval |= updateNode(node, vbox, "lower", FALSE);
+            retval |= updateNode(node, vbox, "orientation", FALSE);
             break;
         case TYPE_BITMAP:
             retval |= save_item(node, vbox);
@@ -3503,6 +3504,31 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_spinbutton_set_limits(item, 65536, -65536);
     dw_window_set_data(vbox, "lower", DW_POINTER(item));
+    /* Orientation */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Orientation", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    item = dw_combobox_new("Horizontal", 0);
+    dw_window_set_tooltip(item, "This property is used only with scrollbars.");
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_listbox_append(item, "Horizontal");
+    dw_listbox_append(item, "Vertical");
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "orientation")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
+            if(strcmp(thisval, "Vertical") == 0)
+                val = "1";
+            else
+                val = astrdup(thisval);
+            xmlFree(thisval);
+        }
+    }
+    dw_listbox_select(item, atoi(val), TRUE);
+    dw_window_set_data(vbox, "orientation", DW_POINTER(item));    
     
     /* If it is a new window add button */
     if(!node || !node->parent)
