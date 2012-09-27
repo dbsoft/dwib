@@ -883,6 +883,7 @@ void save_properties(void)
             retval |= updateNode(node, vbox, "sysmenu", TRUE);
             retval |= updateNode(node, vbox, "tasklist", TRUE);
             retval |= updateNode(node, vbox, "composited", TRUE);
+            retval |= updateNode(node, vbox, "textured", TRUE);
             retval |= updateNode(node, vbox, "orientation", FALSE);
             break;
         case TYPE_BOX:
@@ -5048,6 +5049,23 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     }
     dw_checkbox_set(item, atoi(val));
     dw_window_set_data(vbox, "composited", DW_POINTER(item));
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    dw_box_pack_start(hbox, 0, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    item = dw_checkbox_new("Textured", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_tooltip(item, "Enables textured window backgrounds on supported platforms");
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "textured")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
+            val = astrdup(thisval);
+            xmlFree(thisval);
+        }
+    }
+    dw_checkbox_set(item, atoi(val));
+    dw_window_set_data(vbox, "textured", DW_POINTER(item));
     /* Orientation */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -6470,7 +6488,7 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
         if(html)
         {
             /* We have access to the HTML widget so create a browser window */
-            HWND window = dw_window_new(DW_DESKTOP, APP_NAME " Browser", DW_FCF_COMPOSITED |
+            HWND window = dw_window_new(DW_DESKTOP, APP_NAME " Browser", DW_FCF_COMPOSITED | DW_FCF_TEXTURED |
                                         DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
             HWND vbox = dw_box_new(DW_VERT, 0);
             HWND hbox = dw_box_new(DW_HORZ, 0);
@@ -6531,7 +6549,7 @@ int DWSIGNAL about_clicked(HWND button, void *data)
         HWND item = dw_text_new(APP_NAME, 0);
         char verbuf[100] = {0};
         
-        hwndAbout = dw_window_new(DW_DESKTOP, "About", DW_FCF_COMPOSITED |
+        hwndAbout = dw_window_new(DW_DESKTOP, "About", DW_FCF_COMPOSITED | DW_FCF_TEXTURED |
                                   DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_DLGBORDER);
         
         /* About text */
@@ -7038,7 +7056,7 @@ int DWSIGNAL image_manager_clicked(HWND button, void *data)
         xmlNodePtr imageNode = _dwib_find_child(rootNode, "ImageRoot");
         char *val = imageNode ? (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1) : NULL;
         
-        hwndImages = dw_window_new(DW_DESKTOP, "Image Manager", DW_FCF_COMPOSITED | DW_FCF_MINMAX |
+        hwndImages = dw_window_new(DW_DESKTOP, "Image Manager", DW_FCF_COMPOSITED | DW_FCF_TEXTURED | DW_FCF_MINMAX |
                                    DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
         
         /* Developer Image Root Row */
@@ -7392,7 +7410,7 @@ void dwib_init(void)
     DWCurrNode = xmlNewNode(NULL, (xmlChar *)"DynamicWindows");
     xmlDocSetRootElement(DWDoc, DWCurrNode);
     
-    hwndToolbar = dw_window_new(DW_DESKTOP, APP_NAME, DW_FCF_COMPOSITED |
+    hwndToolbar = dw_window_new(DW_DESKTOP, APP_NAME, DW_FCF_COMPOSITED | DW_FCF_TEXTURED |
                                 DW_FCF_TITLEBAR | DW_FCF_MINMAX | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_SIZEBORDER);
     hbox = dw_box_new(DW_HORZ, 0);
     dw_window_set_data(hwndToolbar, "hbox", DW_POINTER(hbox));
@@ -7487,7 +7505,7 @@ void dwib_init(void)
     
     toolbar_select(DWCurrNode);
     
-    hwndProperties = dw_window_new(DW_DESKTOP, "Properties Inspector", DW_FCF_TITLEBAR | DW_FCF_SIZEBORDER);
+    hwndProperties = dw_window_new(DW_DESKTOP, "Properties Inspector", DW_FCF_TITLEBAR | DW_FCF_SIZEBORDER | DW_FCF_TEXTURED);
     properties_none();
     dw_signal_connect(hwndToolbar, DW_SIGNAL_SET_FOCUS, DW_SIGNAL_FUNC(toolbar_focus), NULL);
     if(PropertiesW > 0 && PropertiesH > 0)

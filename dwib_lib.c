@@ -1389,6 +1389,12 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
             flags |= DW_FCF_COMPOSITED;
         xmlFree(thisval);
     }
+    if((this = _dwib_find_child(node, "textured")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+    {
+        if(atoi(thisval))
+            flags |= DW_FCF_TEXTURED;
+        xmlFree(thisval);
+    }
     if((this = _dwib_find_child(node, "titlebar")) && (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
     {
         if(atoi(thisval))
