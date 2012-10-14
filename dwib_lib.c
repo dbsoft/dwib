@@ -1291,9 +1291,12 @@ HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int
     xmlNodePtr p = _dwib_find_child(node, "Children");
     HMENUI menu = 0;
 
-    for(p=p->children;p;p = p->next)
+    if(p)
     {
-        menu = _dwib_child(doc, window, box, windowlevel, p, menu, 65536);
+       for(p=p->children;p;p = p->next)
+       {
+           menu = _dwib_child(doc, window, box, windowlevel, p, menu, 65536);
+       }
     }
     return menu;
 }
