@@ -5980,7 +5980,7 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
         {
             thisNode = xmlNewNode(NULL, (xmlChar *)Classes[which]);
             /* Create a sub-node for holding children */
-            xmlNewTextChild(thisNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+            xmlNewTextChild(currentNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
             
             dw_window_set_data(hwndProperties, "type", DW_INT_TO_POINTER(which));
             properties_notebook_page(thisNode);
