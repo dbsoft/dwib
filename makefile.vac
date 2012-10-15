@@ -79,7 +79,11 @@ installer:
     rm -rf install\package
     md install\package
     copy dwib.exe install\package
+    lxlite install\package\dwib.exe
     copy $(DWINCPATH)\dw.dll install\package
+    lxlite install\package\dw.dll
+    copy $(XML2LIBPATH)\libxml2.dll install\package
+    lxlite install\package\libxml2.dll
     copy readme.txt install\package
     copy install\scripts\license.txt install\package
     copy readme.txt install\scripts
