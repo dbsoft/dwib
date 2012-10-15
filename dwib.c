@@ -5979,9 +5979,12 @@ int DWSIGNAL toolbar_clicked(HWND button, void *data)
         if(strcmp((char *)currentNode->name, "Notebook") == 0)
         {
             thisNode = xmlNewNode(NULL, (xmlChar *)Classes[which]);
-            /* Create a sub-node for holding children */
-            xmlNewTextChild(currentNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
             
+            if(!_dwib_find_child(currentNode, "Children"))
+            {
+               /* Create a sub-node for holding children */
+               xmlNewTextChild(currentNode, NULL, (xmlChar *)"Children", (xmlChar *)"");
+            }
             dw_window_set_data(hwndProperties, "type", DW_INT_TO_POINTER(which));
             properties_notebook_page(thisNode);
         }
