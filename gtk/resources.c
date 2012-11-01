@@ -24,14 +24,14 @@
 #include "Padding.xpm"
 #include "Menu.xpm"
 #include "Placehold.xpm"
-#if GTK_MAJOR_VERSION < 3
+#if GTK_MAJOR_VERSION < 2
 #include "Font.xpm"
 #include "Color.xpm"
 #include "Refresh.xpm"
 #include "Locale.xpm"
 #endif
 
-#if GTK_MAJOR_VERSION > 2
+#if GTK_MAJOR_VERSION > 1
 /* GdkPixbufs Inline */
 #include "Font.h"
 #include "Color.h"
@@ -93,7 +93,7 @@ char *_resource_data[RESOURCE_MAX] = {
 (char *)Calendar_xpm,
 (char *)Padding_xpm,
 (char *)Menu_xpm,
-#if GTK_MAJOR_VERSION > 2
+#if GTK_MAJOR_VERSION > 1
 (char *)Font,
 (char *)Color,
 (char *)Refresh,

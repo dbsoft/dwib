@@ -1940,10 +1940,13 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     else 
         dw_window_disable(localebutton);
     
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
    
 /* Create a new entryfield definition */
@@ -2093,10 +2096,13 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     else 
         dw_window_disable(localebutton);
     
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new combobox definition */
@@ -2324,10 +2330,13 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     else 
         dw_window_disable(localebutton2);
     
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new listbox definition */
@@ -2448,10 +2457,13 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     /* Update the locale buttons */
     dw_signal_connect(localebutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_list_clicked), DW_POINTER(list));
     
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 char *ColTypes[] =
@@ -2868,10 +2880,13 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     else 
         dw_window_disable(localebutton);
     
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new tree definition */
@@ -2940,10 +2955,13 @@ void DWSIGNAL properties_tree(xmlNodePtr node)
     }
     
     /* Update the locale buttons */
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new MLE definition */
@@ -3063,10 +3081,13 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     else 
         dw_window_disable(localebutton);
         
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new render definition */
@@ -3135,10 +3156,13 @@ void DWSIGNAL properties_render(xmlNodePtr node)
     }
     
     /* Update the locale buttons */
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new button definition */
@@ -3350,10 +3374,13 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     else 
         dw_window_disable(localebutton);
     
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new ranged definition */
@@ -3543,10 +3570,13 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
     }
     
     /* Update the locale buttons */
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new bitmap definition */
@@ -3648,10 +3678,13 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     else 
         dw_window_disable(localebutton);
     
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new HTML definition */
@@ -3751,10 +3784,13 @@ void DWSIGNAL properties_html(xmlNodePtr node)
     else 
         dw_window_disable(localebutton);
     
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new notebook definition */
@@ -3849,10 +3885,13 @@ void DWSIGNAL properties_notebook(xmlNodePtr node)
     }
     
     /* Update the locale buttons */
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new notebook page definition */
@@ -4010,10 +4049,13 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     else 
         dw_window_disable(localebutton2);
     
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new calendar definition */
@@ -4082,10 +4124,13 @@ void DWSIGNAL properties_calendar(xmlNodePtr node)
     }
     
     /* Update the locale buttons */
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }
 
 /* Create a new box definition */
@@ -4265,10 +4310,13 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     else 
         dw_window_disable(localebutton);
     
-    if((this = _dwib_find_child(node, "tooltip")))
-        dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
-    else 
-        dw_window_disable(localetooltipbutton);
+    if(localetooltipbutton)
+    {
+       if((this = _dwib_find_child(node, "tooltip")))
+           dw_signal_connect(localetooltipbutton, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), this);
+       else 
+           dw_window_disable(localetooltipbutton);
+    }
 }    
 
 /* Create a new padding definition */
