@@ -7548,6 +7548,7 @@ void dwib_init(void)
     item = dw_menu_append_item(menu, "~Help", DW_MENU_AUTO, 0, TRUE, FALSE, submenu);
     
     dw_signal_connect(hwndToolbar, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
+    dw_signal_connect(DW_DESKTOP, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(toolbar_delete), NULL);
     dw_window_set_icon(hwndToolbar, DW_RESOURCE(ICON_APP));
     if(ToolbarW > 0 && ToolbarH > 0)
         dw_window_set_pos_size(hwndToolbar, ToolbarX, ToolbarY, ToolbarW, ToolbarH);
