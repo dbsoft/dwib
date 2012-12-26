@@ -1345,7 +1345,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
     return FALSE;
 }
 
-/* Internal function that handles creation on a single node */
+/* Internal function that handles populating focus lists */
 void _focus_child(HWND combo, xmlNodePtr orig, xmlNodePtr p, xmlDocPtr doc, int focus)
 {
     if(strcmp((char *)p->name, "Box") == 0 ||
