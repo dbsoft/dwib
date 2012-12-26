@@ -39,6 +39,8 @@ int main(int argc, char *argv[])
 
     /* Connect the signal handlers */
     dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(exit_handler), NULL);
+    /* Handler for Mac application menu Quit */
+    dw_signal_connect(DW_DESKTOP, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(exit_handler), NULL);
     dw_signal_connect(dwib_window_get_handle(window, "quitmenu"), DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(exit_handler), NULL);
 
     dw_main();
