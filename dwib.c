@@ -885,6 +885,7 @@ void save_properties(void)
             retval |= updateNode(node, vbox, "composited", TRUE);
             retval |= updateNode(node, vbox, "textured", TRUE);
             retval |= updateNode(node, vbox, "orientation", FALSE);
+            retval |= updateNode(node, vbox, "default", FALSE);
             break;
         case TYPE_BOX:
             retval |= updateNode(node, vbox, "subtype", FALSE);
@@ -906,10 +907,12 @@ void save_properties(void)
             retval |= save_item(node, vbox);
             retval |= updateNode(node, vbox, "deftext", FALSE);
             retval |= updateNode(node, vbox, "limit", FALSE);
+            retval |= updateNode(node, vbox, "clickdefault", FALSE);
             break;
         case TYPE_COMBOBOX:
             retval |= save_item(node, vbox);
             retval |= updateNode(node, vbox, "deftext", FALSE);
+            retval |= updateNode(node, vbox, "clickdefault", FALSE);
             retval |= DW_POINTER_TO_INT(dw_window_get_data((HWND)dw_window_get_data(vbox, "list"), "_dwib_modified"));
             break;
         case TYPE_LISTBOX:
@@ -1340,6 +1343,63 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
     if(val)
         xmlFree(val);
     return FALSE;
+}
+
+/* Internal function that handles creation on a single node */
+void _focus_child(HWND combo, xmlNodePtr orig, xmlNodePtr p, xmlDocPtr doc, int focus)
+{
+    if(strcmp((char *)p->name, "Box") == 0 ||
+       strcmp((char *)p->name, "Notebook") == 0 ||
+       strcmp((char *)p->name, "NotebookPage") == 0)
+    {
+        _focus_children(combo, orig, p, doc, focus);
+    }
+    else if(strcmp((char *)p->name, "Entryfield") == 0 ||
+            strcmp((char *)p->name, "Button") == 0 ||
+            strcmp((char *)p->name, "Combobox") == 0 || (focus && (
+            strcmp((char *)p->name, "Container") == 0 ||
+            strcmp((char *)p->name, "Ranged") == 0 ||
+            strcmp((char *)p->name, "Tree") == 0 ||
+            strcmp((char *)p->name, "MLE") == 0 ||
+            strcmp((char *)p->name, "Render") == 0 ||
+            strcmp((char *)p->name, "HTML") == 0 ||
+            strcmp((char *)p->name, "Calendar") == 0 ||
+            strcmp((char *)p->name, "Listbox") == 0)))
+    {
+        if(p != orig)
+        {
+            char *thisval = NULL;
+            xmlNodePtr this;
+            
+            if((this = _dwib_find_child(p, "dataname")) &&
+               (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+                dw_listbox_append(combo, thisval);
+            if(thisval)
+                xmlFree(thisval);
+        }
+    }
+}
+
+/* Internal function fo parsing the children of packable widgets... boxes, notebook pages, etc */
+void _focus_children(HWND combo, xmlNodePtr orig, xmlNodePtr node, xmlDocPtr doc, int focus)
+{
+    xmlNodePtr p = _dwib_find_child(node, "Children");
+    
+    if(p)
+    {
+        for(p=p->children;p;p = p->next)
+        {
+            _focus_child(combo, orig, p, doc, focus);
+        }
+    }
+}
+
+void populateFocus(HWND combo, xmlNodePtr node, xmlDocPtr doc, int focus)
+{
+    xmlNodePtr windownode = findWindow(node);
+    
+    if(windownode)
+        _focus_children(combo, node, windownode, doc, focus);
 }
 
 /* Destroy the properties window contents... */
@@ -2059,6 +2119,25 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
+    /* Click default */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Click default", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "clickdefault")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
+            val = astrdup(thisval);
+            xmlFree(thisval);
+        }
+    }
+    item = dw_combobox_new(val ? val : "", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "clickdefault", DW_POINTER(item));
+    populateFocus(item, node, DWDoc, FALSE);
     /* Limit */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
@@ -2282,6 +2361,25 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
+    /* Click default */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Click default", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "clickdefault")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
+            val = astrdup(thisval);
+            xmlFree(thisval);
+        }
+    }
+    item = dw_combobox_new(val ? val : "", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "clickdefault", DW_POINTER(item));
+    populateFocus(item, node, DWDoc, FALSE);
     /* List */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, TRUE, 0);
@@ -5138,6 +5236,25 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     }
     dw_listbox_select(item, atoi(val), TRUE);
     dw_window_set_data(vbox, "orientation", DW_POINTER(item));
+    /* Default */
+    hbox = dw_box_new(DW_HORZ, 0);
+    dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
+    item = dw_text_new("Default focus", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+    dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
+    val = defvalstr;
+    if((this = _dwib_find_child(node, "default")))
+    {
+        if((thisval = (char *)xmlNodeListGetString(DWDoc, this->children, 1)))
+        {
+            val = astrdup(thisval);
+            xmlFree(thisval);
+        }
+    }
+    item = dw_combobox_new(val ? val : "", 0);
+    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
+    dw_window_set_data(vbox, "default", DW_POINTER(item));
+    populateFocus(item, node, DWDoc, TRUE);
     
     /* If it is a new window add button */
     if(!node || !node->parent)

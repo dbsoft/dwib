@@ -1491,50 +1491,19 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     return ret;
 }
 
-/*
- * Loads a window with the specified name from an XML tree.
- * Parameters:
- *       handle: A handle to an XML tree.
- *       name: The name of the window to load.
- * Returns:
- *       A handle to a top-level window or NULL on failure.
- */
-HWND API dwib_load(DWIB handle, char *name)
-{
-    xmlDocPtr doc = handle;
-    xmlNodePtr p, rootNode = xmlDocGetRootElement(doc);
-
-    if(!rootNode)
-        return 0;
-
-    for(p=rootNode->children;p;p = p->next)
-    {
-        if(strcmp((char *)p->name, "Window") == 0)
-        {
-            xmlNodePtr this = _dwib_find_child(p, "title");
-            char *val = (char *)xmlNodeListGetString(doc, this->children, 1);
-
-            if(val && strcmp(name, val) == 0)
-            {
-                HWND window = _dwib_window_create(p, doc);
-                _dwib_children(p, doc, window, (HWND)dw_window_get_data(window, "_dwib_box"), TRUE);
-                return window;
-            }
-        }
-    }
-    return 0;
-}
-
 int _dwib_check_dataname(xmlNodePtr node, xmlDocPtr doc, char *dataname)
 {
     char *thisval = NULL;
     xmlNodePtr this;
+    int retval = FALSE;
 
     if((this = _dwib_find_child(node, "dataname")) &&
         (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)) &&
         (strcmp(dataname, thisval) == 0))
-        return TRUE;
-    return FALSE;
+            retval = TRUE;
+    if(thisval)
+        xmlFree(thisval);
+    return retval;
 }
 
 /* Internal function fo parsing the children of packable widgets... boxes, notebook pages, etc */
@@ -1572,6 +1541,50 @@ int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dat
     return retval;
 }
 
+/* Internal function that handles setting click defaults */
+void _dwib_focus_child(HWND window, xmlNodePtr p, xmlDocPtr doc)
+{
+    if(strcmp((char *)p->name, "Box") == 0 ||
+       strcmp((char *)p->name, "Notebook") == 0 ||
+       strcmp((char *)p->name, "NotebookPage") == 0)
+    {
+        _dwib_focus_children(window, p, doc);
+    }
+    else if(strcmp((char *)p->name, "Entryfield") == 0 ||
+            strcmp((char *)p->name, "Combobox") == 0 )
+    {
+        if(p->psvi)
+        {
+            char *thisval = NULL;
+            xmlNodePtr this;
+            HWND handle = 0;
+            
+            if((this = _dwib_find_child(p, "clickdefault")) &&
+               (thisval = (char *)xmlNodeListGetString(doc, this->children, 1)))
+                handle = dwib_window_get_handle(window, thisval);
+            if(handle)
+                dw_window_click_default((HWND)p->psvi, handle);
+            if(thisval)
+                xmlFree(thisval);
+        }
+    }
+}
+
+/* Internal function fo parsing the children of packable widgets... boxes, notebook pages, etc */
+void _dwib_focus_children(HWND window, xmlNodePtr node, xmlDocPtr doc)
+{
+    xmlNodePtr p = _dwib_find_child(node, "Children");
+    
+    if(p)
+    {
+        for(p=p->children;p;p = p->next)
+        {
+            _dwib_focus_child(window, p, doc);
+        }
+    }
+}
+
+
 /* Internal helper function to combine two paths */
 char *_dwib_combine_path(int len, char *val, char *file)
 {
@@ -1580,6 +1593,55 @@ char *_dwib_combine_path(int len, char *val, char *file)
         strcat(file, DIRSEP);
     strcat(file, val);
     return file;
+}
+
+/*
+ * Loads a window with the specified name from an XML tree.
+ * Parameters:
+ *       handle: A handle to an XML tree.
+ *       name: The name of the window to load.
+ * Returns:
+ *       A handle to a top-level window or NULL on failure.
+ */
+HWND API dwib_load(DWIB handle, char *name)
+{
+    xmlDocPtr doc = handle;
+    xmlNodePtr p, rootNode = xmlDocGetRootElement(doc);
+    
+    if(!rootNode)
+        return 0;
+    
+    for(p=rootNode->children;p;p = p->next)
+    {
+        if(strcmp((char *)p->name, "Window") == 0)
+        {
+            xmlNodePtr this = _dwib_find_child(p, "title");
+            char *val = (char *)xmlNodeListGetString(doc, this->children, 1);
+            
+            if(val && strcmp(name, val) == 0)
+            {
+                HWND window = _dwib_window_create(p, doc);
+                char *thisval = NULL;
+                xmlNodePtr focus;
+                HWND handle = 0;
+                
+                _dwib_children(p, doc, window, (HWND)dw_window_get_data(window, "_dwib_box"), TRUE);
+                
+                /* Handle setting the default focus item */
+                if((focus = _dwib_find_child(p, "default")) &&
+                   (thisval = (char *)xmlNodeListGetString(doc, focus->children, 1)))
+                    handle = dwib_window_get_handle(window, thisval);
+                if(handle)
+                    dw_window_default(window, handle);
+                if(thisval)
+                    xmlFree(thisval);
+                /* Handle setting click defaults now that the window is created */
+                _dwib_focus_children(window, p, doc);
+                return window;
+            }
+        }
+    }
+    return 0;
 }
 
 /*

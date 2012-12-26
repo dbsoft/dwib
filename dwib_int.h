@@ -42,6 +42,7 @@ HMENUI _dwib_children(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND box, int
 HMENUI _dwib_child(xmlDocPtr doc, HWND window, HWND box, int windowlevel, xmlNodePtr p, HMENUI menu, int index);
 char *_dwib_combine_path(int len, char *val, char *file);
 char *_dwib_decode64_lines(char *raw, int *length); 
+void _dwib_focus_children(HWND window, xmlNodePtr node, xmlDocPtr doc);
 
 HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc);
 void _dwib_padding_create(xmlNodePtr node, xmlDocPtr doc, HWND window, HWND packbox, int index);
@@ -75,6 +76,7 @@ int generateNode(char *buf, xmlNodePtr p);
 xmlNodePtr findWindow(xmlNodePtr thisnode);
 void toolbar_bitmap_buttons_create(void);
 void toolbar_text_buttons_create(void);
+void _focus_children(HWND combo, xmlNodePtr orig, xmlNodePtr node, xmlDocPtr doc, int focus);
 
 /* INI File support */
 typedef struct _saveconfig {
