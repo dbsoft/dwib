@@ -3948,7 +3948,7 @@ MKDIR="mkdir"
 
 
 
-ac_config_files="$ac_config_files Makefile:Makefile.in dwib-config1"
+ac_config_files="$ac_config_files Makefile:Makefile.in dwib-config1 dwib1.pc"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4655,6 +4655,7 @@ do
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile:Makefile.in" ;;
     "dwib-config1") CONFIG_FILES="$CONFIG_FILES dwib-config1" ;;
+    "dwib1.pc") CONFIG_FILES="$CONFIG_FILES dwib1.pc" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

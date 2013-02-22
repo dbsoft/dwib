@@ -100,9 +100,12 @@ install: FORCE
 	$(INSTALL) -d $(prefix)/include; \
 	$(INSTALL) -d $(prefix)/lib; \
 	$(INSTALL) -d $(prefix)/bin; \
+	$(INSTALL) -d $(prefix)/lib/pkgconfig; \
 	$(INSTALL) dwib.h $(prefix)/include; \
 	sed -e 's/@DWIB_MAJOR_VERSION@/'$(VER_MAJ)'/' -e 's/@DWIB_MINOR_VERSION@/'$(VER_MIN)'/' -e 's/@DWIB_SUB_VERSION@/'$(VER_REV)'/' < dwib-config1 > dwib-config
 	$(INSTALL) dwib-config $(prefix)/bin; \
+	sed -e 's/@VERSION@/'$(VER_MAJ).$(VER_MIN).$(VER_REV)'/' < dwib1.pc > dwib.pc
+	$(INSTALL) dwib.pc $(prefix)/lib/pkgconfig; \
 	$(INSTALL) $(TARGET) $(prefix)/bin; \
 	$(INSTALL) $(SYSCONF_LINK_TARGET_SHARED)  $(prefix)/lib; \
 	cd $(prefix)/lib; \

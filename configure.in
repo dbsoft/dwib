@@ -126,4 +126,4 @@ AC_SUBST(TARGET)
 
 AC_SUBST(ARCH)
 
-AC_OUTPUT(Makefile:Makefile.in dwib-config1)
+AC_OUTPUT(Makefile:Makefile.in dwib-config1 dwib1.pc)
