@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${exec_prefix}/include
+ 
+Name: dwib
+Description: Dynamic Windows Interface Builder
+Version: @VERSION@
+Libs: -L${prefix}/lib -ldwib
+Cflags: -I${prefix}/include @CFLAGS@
