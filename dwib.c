@@ -7070,7 +7070,7 @@ int DWSIGNAL image_view_delete(HWND window, xmlNodePtr imageNode)
 }
 
 /* Open a dialog for extra info on an image */
-int DWSIGNAL image_view_enter(HWND cont, xmlNodePtr imageNode, void *data)
+int DWSIGNAL image_view_enter(HWND cont, char *text, void *data, xmlNodePtr imageNode)
 {
     char *file = imageNode ? (char *)xmlNodeListGetString(DWDoc, imageNode->children, 1) : NULL;
     char *origfile = file;
