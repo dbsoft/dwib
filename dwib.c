@@ -439,7 +439,7 @@ int DWSIGNAL render_expose(HWND window, DWExpose *exp, void *data)
     dw_draw_arc(window, 0, DW_DRAW_FILL | DW_DRAW_FULL, (int)width/2, (int)height/2, 0, 0, (int)width, (int)height);
     dw_color_foreground_set(DW_CLR_DARKBLUE);
     dw_font_text_extents_get(window, 0, text, &fontwidth, &fontheight);
-    dw_draw_text(window, 0, (width - fontwidth)/2, (height - fontheight)/2, text);
+    dw_draw_text(window, 0, (int)(width - fontwidth)/2, (int)(height - fontheight)/2, text);
     return FALSE;
 }
 
