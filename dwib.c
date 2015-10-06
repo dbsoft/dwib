@@ -6724,7 +6724,7 @@ int DWSIGNAL about_clicked(HWND button, void *data)
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
         dw_box_pack_start(hwndAbout, vbox, 0, 0, TRUE, TRUE, 0);
         dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-        item = dw_text_new("Brian Smith © 2011-2012", 0);
+        item = dw_text_new("Brian Smith © 2011-2015", 0);
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
         dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
         sprintf(verbuf, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);

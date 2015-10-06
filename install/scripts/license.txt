@@ -1,6 +1,6 @@
 Copyright Information About Dynamic Windows Interface Builder.
 
-Copyright (c) 2011-2012, Brian Smith <brian@dbsoft.org>
+Copyright (c) 2011-2015, Brian Smith <brian@dbsoft.org>
 Copyright (c) 2012, Mark Hessling <mark@rexx.org>
 All rights reserved.
 
