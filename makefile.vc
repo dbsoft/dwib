@@ -13,8 +13,10 @@ TARGET=dwib
 # Configure settings for the target platform
 #	Default to x86 if not specified
 #
-!if "$(TARGET_CPU)" == ""
+!if "$(VSCMD_ARG_TGT_ARCH)" == ""
 TARGET_CPU=x86
+!else
+TARGET_CPU=$(VSCMD_ARG_TGT_ARCH)
 !endif
 
 !if "$(TARGET_CPU)" == "x86"
@@ -77,7 +79,7 @@ clean:
 # Create a zip file for use with Nullsoft's Install system
 # Requires NSIS and makensis to be in the PATH     
 installer:
-    rd /s /q install\package
+    -rd /s /q install\package
     md install\package
     copy dwib.exe install\package
     copy $(DWINCDIR)\dw.dll install\package
