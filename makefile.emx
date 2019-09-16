@@ -17,7 +17,7 @@ VER_REV := $(shell hg log -r . --template={rev})
 
 CFLAGS = -O -g -Zomf -Zmt -D__ST_MT_ERRNO__ -I. -Wall -I$(DWINCPATH) -I$(XML2INCPATH) -D__TARGET__=\"dwib\" -DVER_MAJ=$(VER_MAJ) -DVER_MIN=$(VER_MIN) -DVER_REV=$(VER_REV) -o $(@)
 LDFLAGS = -ldw -L$(DWLIBPATH) -lxml2 -L$(XML2LIBPATH)
-RCFLAGS = -r -x1
+RCFLAGS = -r -x1 -i .
 
 
 OBJECTS = dwib.obj dwib_lib.obj
