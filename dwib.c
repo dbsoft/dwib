@@ -6644,6 +6644,18 @@ int DWSIGNAL web_reload_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handle web go */
+int DWSIGNAL web_go_clicked(HWND button, void *data)
+{
+    HWND html = (HWND)data;
+    HWND location = (HWND)dw_window_get_data(button, "location");
+    char *url = dw_window_get_text(location);
+    
+    dw_html_url(html, url);
+    dw_free(url);
+    return FALSE;
+}
+
 /* Handle loading a web page */
 int DWSIGNAL web_page_clicked(HWND button, void *data)
 {
@@ -6661,6 +6673,7 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
             HWND vbox = dw_box_new(DW_VERT, 0);
             HWND hbox = dw_box_new(DW_HORZ, 0);
             HWND item = dw_menu_append_item(menuWindows, APP_NAME " Browser", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
+            HWND location = dw_entryfield_new(url, 0);
             
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(menu_show_window), DW_POINTER(window));
             dw_window_set_data(window, "dwib_menu", DW_POINTER(item));
@@ -6684,6 +6697,16 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
             dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_reload_clicked), DW_POINTER(html));
               
+            /* Put in some extra space */
+            dw_box_pack_start(hbox, 0, 5, 1, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, location, -1, -1, TRUE, FALSE, 0);
+            
+            item = dw_button_new("Go", 0);
+            dw_window_set_data(item, "location", DW_POINTER(location));
+            dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+            dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_go_clicked), DW_POINTER(html));
+            dw_window_click_default(location, item);
+            
             /* Pack in the HTML widget */
             dw_box_pack_start(vbox, html, 1, 1, TRUE, TRUE, 0);
             
