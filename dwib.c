@@ -6656,6 +6656,25 @@ int DWSIGNAL web_go_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handle web html changed */
+int DWSIGNAL web_html_changed(HWND html, int status, char *url, void *data)
+{
+    HWND location = (HWND)data;
+    
+    if(location && status == DW_HTML_CHANGE_COMPLETE)
+    {
+        char *oldurl = dw_window_get_text(location);
+
+        if(oldurl)
+        {
+            if(url && strcmp(oldurl, url) != 0)
+                dw_window_set_text(location, url);
+            dw_free(oldurl);
+        }
+    }    
+    return FALSE;
+}
+
 /* Handle loading a web page */
 int DWSIGNAL web_page_clicked(HWND button, void *data)
 {
@@ -6711,6 +6730,7 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
             dw_box_pack_start(vbox, html, 1, 1, TRUE, TRUE, 0);
             
             dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(generic_delete), NULL);
+            dw_signal_connect(html, DW_SIGNAL_HTML_CHANGED, DW_SIGNAL_FUNC(web_html_changed), DW_POINTER(location));
             
             dw_html_url(html, url);
             
@@ -6747,7 +6767,7 @@ int DWSIGNAL about_clicked(HWND button, void *data)
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
         dw_box_pack_start(hwndAbout, vbox, 0, 0, TRUE, TRUE, 0);
         dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-        item = dw_text_new("Brian Smith © 2011-2015", 0);
+        item = dw_text_new("Brian Smith © 2011-2019", 0);
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
         dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
         sprintf(verbuf, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
