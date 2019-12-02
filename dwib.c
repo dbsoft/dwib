@@ -6656,6 +6656,21 @@ int DWSIGNAL web_go_clicked(HWND button, void *data)
     return FALSE;
 }
 
+/* Handle web javascript result */
+int DWSIGNAL web_html_result(HWND html, int status, char *result, void *user_data, void *script_data)
+{
+    HWND window = (HWND)script_data;
+    
+    if(status == DW_ERROR_NONE && result && window)
+    {
+        char tmpbuf[1025];
+        
+        snprintf(tmpbuf, 1024, "Dynamic Windows Interface Builder Browser - %s", result);
+        dw_window_set_text(window, tmpbuf);
+    }
+    return TRUE;
+}
+
 /* Handle web html changed */
 int DWSIGNAL web_html_changed(HWND html, int status, char *url, void *data)
 {
@@ -6671,7 +6686,8 @@ int DWSIGNAL web_html_changed(HWND html, int status, char *url, void *data)
                 dw_window_set_text(location, url);
             dw_free(oldurl);
         }
-    }    
+        dw_html_javascript_run(html, "window.document.title;", NULL);
+    }
     return FALSE;
 }
 
@@ -6731,7 +6747,8 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
             
             dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(generic_delete), NULL);
             dw_signal_connect(html, DW_SIGNAL_HTML_CHANGED, DW_SIGNAL_FUNC(web_html_changed), DW_POINTER(location));
-            
+            dw_signal_connect(html, DW_SIGNAL_HTML_RESULT, DW_SIGNAL_FUNC(web_html_result), DW_POINTER(window));
+
             dw_html_url(html, url);
             
             /* Setup the size */
