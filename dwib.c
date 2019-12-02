@@ -6657,13 +6657,13 @@ int DWSIGNAL web_go_clicked(HWND button, void *data)
 }
 
 /* Handle web javascript result */
-int DWSIGNAL web_html_result(HWND html, int status, char *result, void *user_data, void *script_data)
+int DWSIGNAL web_html_result(HWND html, int status, char *result, void *script_data, void *user_data)
 {
-    HWND window = (HWND)script_data;
+    HWND window = (HWND)user_data;
     
     if(status == DW_ERROR_NONE && result && window)
     {
-        char tmpbuf[1025];
+        char tmpbuf[1025] = {0};
         
         snprintf(tmpbuf, 1024, "Dynamic Windows Interface Builder Browser - %s", result);
         dw_window_set_text(window, tmpbuf);
