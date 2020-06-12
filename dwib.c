@@ -7749,6 +7749,9 @@ void dwib_init(void)
 /* The main entry point.  Notice we don't use WinMain() on Windows */
 int main(int argc, char *argv[])
 {
+    /* Enable full dark mode on platforms that support it */
+    dw_feature_set(DW_FEATURE_DARK_MODE, 2);
+
     dw_init(TRUE, argc, argv);
     
     /* Recent file menu */
