@@ -7750,10 +7750,13 @@ void dwib_init(void)
 int main(int argc, char *argv[])
 {
     /* Enable full dark mode on platforms that support it */
-    dw_feature_set(DW_FEATURE_DARK_MODE, 2);
+    dw_feature_set(DW_FEATURE_DARK_MODE, DW_DARK_MODE_FULL);
+
+    /* Set the Application ID to enable features like notifications */
+    dw_app_id_set("org.dbsoft.dwindows.dwib", "Dynamic Windows Application Builder");
 
     dw_init(TRUE, argc, argv);
-    
+
     /* Recent file menu */
     menuRecent = dw_menu_new(0);
     dw_menu_append_item(menuRecent, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
