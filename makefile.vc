@@ -9,6 +9,17 @@
 
 TARGET=dwib
 
+# Configure alternate compiler based on Clang/LLVM
+!if "$(CLANG)" == "Y"
+WLIB=llvm-lib.exe
+CC=clang-cl.exe
+LINK=lld-link.exe
+!else
+WLIB=lib.exe
+CC=cl.exe
+LINK=link.exe
+!endif
+
 #
 # Configure settings for the target platform
 #	Default to x86 if not specified
@@ -52,13 +63,11 @@ VER_REV=0
 
 !include Version
 
-CC = cl
-CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR) -I$(XML2INCDIR) -DVER_MAJ=$(VER_MAJ) -D VER_MIN=$(VER_MIN) -DVER_REV=$(VER_REV)
+CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR) -I$(XML2INCDIR) -DVER_MAJ=$(VER_MAJ) -D VER_MIN=$(VER_MIN) -DVER_REV=$(VER_REV) -D_CRT_SECURE_NO_WARNINGS
 LIBS = wsock32.lib kernel32.lib user32.lib comctl32.lib gdi32.lib advapi32.lib shell32.lib comdlg32.lib $(DWLIBDIR)\dw.lib $(XML2LIBDIR)\libxml2_a.lib
 RES = 
 LINKFLAGS = -machine:$(TARGET_CPU) -manifest $(LINK_DEBUG)
 DLLLINKFLAGS = -dll
-LINK = link
 DEFFILE = win\dwib.def
 
 OBJS =	dwib.obj \
@@ -107,7 +116,7 @@ $(OBJS)
 $(LIBS)
 win\dwib.res
 <<
-	mt.exe /manifest dwib.exe.manifest win\dwib.exe.$(TARGET_CPU).manifest /outputresource:dwib.exe;1
+	mt.exe -manifest dwib.exe.manifest win\dwib.exe.$(TARGET_CPU).manifest -outputresource:dwib.exe;1
  
 dwib.dll: $(LIBOBJS) $(DEFFILE)
 	$(LINK) @<<
@@ -116,8 +125,8 @@ $(LINKFLAGS) $(DLLLINKFLAGS)
 $(LIBOBJS) $(RES)
 $(LIBS)
 <<
-	lib /def:$(DEFFILE) /machine:$(TARGET_CPU) /out:dwib.lib
-	mt.exe /manifest dwib.dll.manifest win\dwib.dll.$(TARGET_CPU).manifest /outputresource:dwib.dll;2
+	$(WLIB) -def:$(DEFFILE) -machine:$(TARGET_CPU) -out:dwib.lib
+	mt.exe -manifest dwib.dll.manifest win\dwib.dll.$(TARGET_CPU).manifest -outputresource:dwib.dll;2
  
 example.exe: example.obj winmain.obj
 	$(LINK) @<<
@@ -127,7 +136,7 @@ example.obj winmain.obj
 $(LIBS) dwib.lib
 
 <<
-	mt.exe /manifest example.exe.manifest win\example.exe.$(TARGET_CPU).manifest /outputresource:example.exe;1
+	mt.exe -manifest example.exe.manifest win\example.exe.$(TARGET_CPU).manifest -outputresource:example.exe;1
  
 .c.obj:
 	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $(CFLAGS_COMPILE) $*.c
