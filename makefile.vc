@@ -63,7 +63,11 @@ VER_REV=0
 
 !include Version
 
-CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR) -I$(XML2INCDIR) -DVER_MAJ=$(VER_MAJ) -D VER_MIN=$(VER_MIN) -DVER_REV=$(VER_REV) -D_CRT_SECURE_NO_WARNINGS
+# The Visual C CRT and other Windows components have deprecated lots of common functions
+# These options will hide the deprecation warnings; Comment the next line to see them
+CRT_FLAGS = -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNING -D_WINSOCK_DEPRECATED_NO_WARNINGS
+
+CFLAGS = -c $(PLATFORM_DEF) -D__WIN32__ -DMSVC -D__TARGET__=\"$(TARGET)\" -I. -I$(DWINCDIR) -I$(XML2INCDIR) -DVER_MAJ=$(VER_MAJ) -D VER_MIN=$(VER_MIN) -DVER_REV=$(VER_REV) $(CRT_FLAGS)
 LIBS = wsock32.lib kernel32.lib user32.lib comctl32.lib gdi32.lib advapi32.lib shell32.lib comdlg32.lib $(DWLIBDIR)\dw.lib $(XML2LIBDIR)\libxml2_a.lib
 RES = 
 LINKFLAGS = -machine:$(TARGET_CPU) -manifest $(LINK_DEBUG)
