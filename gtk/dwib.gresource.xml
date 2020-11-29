@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/org/dbsoft/dwindows/">
+    <file>resources/101.png</file>
+    <file>resources/102.png</file>
+    <file>resources/103.png</file>
+    <file>resources/104.png</file>
+    <file>resources/105.png</file>
+    <file>resources/106.png</file>
+    <file>resources/107.png</file>
+    <file>resources/108.png</file>
+    <file>resources/109.png</file>
+    <file>resources/110.png</file>
+    <file>resources/111.png</file>
+    <file>resources/112.png</file>
+    <file>resources/113.png</file>
+    <file>resources/114.png</file>
+    <file>resources/115.png</file>
+    <file>resources/116.png</file>
+    <file>resources/117.png</file>
+    <file>resources/118.png</file>
+    <file>resources/119.png</file>
+    <file>resources/200.png</file>
+    <file>resources/201.png</file>
+    <file>resources/202.png</file>
+    <file>resources/203.png</file>
+    <file>resources/250.png</file>
+  </gresource>
+</gresources>
