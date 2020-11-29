@@ -621,7 +621,7 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-GRESOURCE
+RESOURCE
 ARCH
 TARGET
 SONAME
@@ -3854,6 +3854,17 @@ PLATCCFLAGS="-g -O2 -fPIC -Wall"
 LIBS=`dwindows-config --libs`
 CFLAGS=`dwindows-config --cflags`
 GRESOURCE=`dwindows-config --gresource`
+PLATFORM=`uname -s`
+
+if test x"$GRESOURCE" = x"enabled"; then
+  RESOURCE="gresources.o"
+else
+  RESOURCE="resources.o"
+fi
+
+if test x"$PLATFORM" = x"Darwin"; then
+  RESOURCE=""
+fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dw_main in -ldwindows" >&5
 $as_echo_n "checking for dw_main in -ldwindows... " >&6; }

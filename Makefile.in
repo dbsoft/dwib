@@ -8,7 +8,7 @@ MAKE = @MAKE@
 MKDIR = @MKDIR@
 INSTALL = @INSTALL@
 PREFIX = @prefix@
-GRESOURCE = @GRESOURCE@
+RESOURCE = @RESOURCE@
 TARGET = @TARGET@
 SOSUFFIX=	@SOSUFFIX@
 SONAME=	@SONAME@
@@ -73,18 +73,17 @@ $(SYSCONF_LINK_TARGET_STATIC): $(LIBOBJECTS)
 $(OBJECTS):
 	$(CC) $(CFLAGS) -DDW_RESOURCES $(INCLUDES) -c $<
 
-resources.o:
-ifeq ($(GRESOURCE),enabled)
+gresources.o:
 	-chmod +x gtk/resources.sh
 	-gtk/resources.sh
 	$(GRC) --generate-source --target=gresources.c gtk/dwib.gresource.xml
-	$(CC) $(CFLAGS) $(INCLUDES) -c gresources.c -o resources.o
-else
-	$(CC) $(CFLAGS) $(INCLUDES) -c gtk/resources.c
-endif
+	$(CC) $(CFLAGS) $(INCLUDES) -c gresources.c
 
-$(TARGET):  $(OBJECTS) resources.o
-	$(CC) $(CFLAGS) -DDW_RESOURCES $(INCLUDES) -o $(TARGET) $(OBJECTS) resources.o $(LDFLAGS) $(LIBS)
+resources.o:
+	$(CC) $(CFLAGS) $(INCLUDES) -c gtk/resources.c
+
+$(TARGET):  $(OBJECTS) $(RESOURCE)
+	$(CC) $(CFLAGS) -DDW_RESOURCES $(INCLUDES) -o $(TARGET) $(OBJECTS) $(RESOURCE) $(LDFLAGS) $(LIBS)
 	-chmod +x mac/finishup.sh
 	-mac/finishup.sh "$(DISPLAYNAME)" "$(TARGET)"
 
@@ -98,8 +97,8 @@ installer: $(TARGET)
 	-mac/installer.sh "$(DISPLAYNAME)" "$(TARGET)"
 
 clean:
-	$(RM) $(OBJECTS) resources.o gresources.c $(TARGET) example example.o *.$(SOSUFFIX) *.$(SOSUFFIX).* *~
-	$(RM) -rf resources/
+	$(RM) $(OBJECTS) resources.o gresources.c gresources.o $(TARGET) example example.o *.$(SOSUFFIX) *.$(SOSUFFIX).* *~
+	$(RM) -r resources/
 
 distclean: clean
 	$(RM) os2/*~ win/*~ gtk/*~ config.cache config.log config.status Makefile config.h
@@ -123,7 +122,8 @@ install: FORCE
 	ln -sf $(SYSCONF_LINK_TARGET_SHARED) lib$(TARGET).$(SOSUFFIX); \
 	ln -sf $(SYSCONF_LINK_TARGET_SHARED) lib$(TARGET).$(SOSUFFIX).$(VER_MAJ)
 
-resources.o: gtk/resources.c gtk/dwib.gresource.xml
+resources.o: gtk/resources.c
+gresources.o: gtk/dwib.gresource.xml
 dwib.o: dwib.c dwib.h dwib_int.h resources.h config.h
 dwib_lib.o: dwib_lib.c dwib.h dwib_int.h config.h
 
