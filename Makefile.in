@@ -3,10 +3,12 @@
 CC = @CC@
 RM = @RM@
 CP = @CP@
+GRC = @GRC@
 MAKE = @MAKE@
 MKDIR = @MKDIR@
 INSTALL = @INSTALL@
 PREFIX = @prefix@
+GRESOURCE = @GRESOURCE@
 TARGET = @TARGET@
 SOSUFFIX=	@SOSUFFIX@
 SONAME=	@SONAME@
@@ -72,7 +74,14 @@ $(OBJECTS):
 	$(CC) $(CFLAGS) -DDW_RESOURCES $(INCLUDES) -c $<
 
 resources.o:
+ifeq ($(GRESOURCE),enabled)
+	-chmod +x gtk/resources.sh
+	-gtk/resources.sh
+	$(GRC) --generate-source --target=gresources.c gtk/dwib.gresource.xml
+	$(CC) $(CFLAGS) $(INCLUDES) -c gresources.c -o resources.o
+else
 	$(CC) $(CFLAGS) $(INCLUDES) -c gtk/resources.c
+endif
 
 $(TARGET):  $(OBJECTS) resources.o
 	$(CC) $(CFLAGS) -DDW_RESOURCES $(INCLUDES) -o $(TARGET) $(OBJECTS) resources.o $(LDFLAGS) $(LIBS)
@@ -89,10 +98,11 @@ installer: $(TARGET)
 	-mac/installer.sh "$(DISPLAYNAME)" "$(TARGET)"
 
 clean:
-	$(RM) $(OBJECTS) resources.o $(TARGET) example example.o *.$(SOSUFFIX) *.$(SOSUFFIX).* *~
+	$(RM) $(OBJECTS) resources.o gresources.c $(TARGET) example example.o *.$(SOSUFFIX) *.$(SOSUFFIX).* *~
+	$(RM) -rf resources/
 
-distclean:
-	$(RM) $(OBJECTS) resources.o $(TARGET) *~ os2/*~ win/*~ gtk/*~ config.cache config.log config.status Makefile config.h
+distclean: clean
+	$(RM) os2/*~ win/*~ gtk/*~ config.cache config.log config.status Makefile config.h
 
 FORCE:
 
@@ -113,7 +123,7 @@ install: FORCE
 	ln -sf $(SYSCONF_LINK_TARGET_SHARED) lib$(TARGET).$(SOSUFFIX); \
 	ln -sf $(SYSCONF_LINK_TARGET_SHARED) lib$(TARGET).$(SOSUFFIX).$(VER_MAJ)
 
-resources.o: gtk/resources.c
+resources.o: gtk/resources.c gtk/dwib.gresource.xml
 dwib.o: dwib.c dwib.h dwib_int.h resources.h config.h
 dwib_lib.o: dwib_lib.c dwib.h dwib_int.h config.h
 

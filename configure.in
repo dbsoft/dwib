@@ -22,14 +22,17 @@ fi
 
 AC_PROG_INSTALL
 
+AC_CHECK_PROG(GRC, glib-compile-resources, glib-compile-resources)
+
 AC_SUBST(MAKE)
+AC_SUBST(GRC)
 
 dnl Checks for system
 AC_CANONICAL_SYSTEM
 
 dnl ---------------------- check for '--with-arch' switch -----------------
 AC_ARG_WITH(arch,
-   [  --with-arch             specify architecture: one of all, 32bit, 64bit, intel, ppc, ppc64, x86_64, i386],
+   [  --with-arch             specify MacOS architecture: one of modern, all, 32bit, 64bit, intel, arm, ppc, ppc64, x86_64, i386],
    [with_arch=$withval],
    [with_arch=no],
 )
@@ -43,6 +46,7 @@ PLATCCFLAGS="-g -O2 -fPIC -Wall"
 
 LIBS=`dwindows-config --libs`
 CFLAGS=`dwindows-config --cflags`
+GRESOURCE=`dwindows-config --gresource`
 
 AC_CHECK_LIB(dwindows, dw_main,LIBS="$LIBS",AC_MSG_ERROR(Dynamic Windows library not found. Interface Builder cannot build without it.))
 
@@ -78,16 +82,25 @@ case "$target" in
             ARCH=""
             ;;
          all)
-            ARCH="-arch ppc -arch ppc64 -arch x86_64 -arch i386"
+            ARCH="-arch ppc -arch ppc64 -arch x86_64 -arch i386 -arch arm64"
             ;;
          32bit)
             ARCH="-arch ppc -arch i386"
             ;;
          64bit)
-            ARCH="-arch ppc64 -arch x86_64"
+            ARCH="-arch ppc64 -arch x86_64 -arch arm64"
             ;;
          intel)
             ARCH="-arch i386 -arch x86_64"
+            ;;
+         powerpc)
+            ARCH="-arch ppc -arch ppc64"
+            ;;
+         arm)
+            ARCH="-arch arm64"
+            ;;
+         modern)
+            ARCH="-arch x86_64 -arch arm64"
             ;;
          *)
             ARCH="-arch $with_arch"
@@ -125,5 +138,7 @@ AC_SUBST(SONAME)
 AC_SUBST(TARGET)
 
 AC_SUBST(ARCH)
+
+AC_SUBST(GRESOURCE)
 
 AC_OUTPUT(Makefile:Makefile.in dwib-config1 dwib1.pc)

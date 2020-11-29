@@ -31,7 +31,7 @@ enum DWTYPES
     TYPE_CALENDAR,
     TYPE_PADDING,
     TYPE_MENU
-} DWTypes;
+};
 
 /* Internal library functions */
 int _dwib_get_color(char *color);
