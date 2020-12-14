@@ -6775,7 +6775,7 @@ int DWSIGNAL about_clicked(HWND button, void *data)
         HWND vbox = dw_box_new(DW_VERT, 0);
         HWND hbox = dw_box_new(DW_HORZ, 0);
         HWND item = dw_text_new(APP_NAME, 0);
-        char verbuf[100] = {0};
+        char verbuf[101] = {0};
         
         hwndAbout = dw_window_new(DW_DESKTOP, "About", DW_FCF_COMPOSITED | DW_FCF_TEXTURED |
                                   DW_FCF_TITLEBAR | DW_FCF_SYSMENU | DW_FCF_TASKLIST | DW_FCF_DLGBORDER);
@@ -6784,10 +6784,10 @@ int DWSIGNAL about_clicked(HWND button, void *data)
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
         dw_box_pack_start(hwndAbout, vbox, 0, 0, TRUE, TRUE, 0);
         dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-        item = dw_text_new("Brian Smith © 2011-2019", 0);
+        item = dw_text_new("Brian Smith © 2011-2021", 0);
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
         dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
-        sprintf(verbuf, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
+        snprintf(verbuf, 100, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
         item = dw_text_new(verbuf, 0);
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
         dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
