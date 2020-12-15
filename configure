@@ -1341,7 +1341,7 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-arch             specify MacOS architecture: one of modern, all, 32bit, 64bit, intel, arm, ppc, ppc64, x86_64, i386
+  --with-arch             specify MacOS architecture: one of modern, classic, 32bit, intel, arm, powerpc
 
 Some influential environment variables:
   CC          C compiler command
@@ -3981,14 +3981,11 @@ case "$target" in
          no)
             ARCH=""
             ;;
-         all)
-            ARCH="-arch ppc -arch ppc64 -arch x86_64 -arch i386 -arch arm64"
+         classic)
+            ARCH="-arch ppc -arch x86_64 -arch i386"
             ;;
          32bit)
             ARCH="-arch ppc -arch i386"
-            ;;
-         64bit)
-            ARCH="-arch ppc64 -arch x86_64 -arch arm64"
             ;;
          intel)
             ARCH="-arch i386 -arch x86_64"
