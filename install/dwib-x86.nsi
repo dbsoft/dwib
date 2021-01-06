@@ -10,7 +10,7 @@
 
   ; Name and file
   Name "Dynamic Windows Interface Builder"
-  OutFile "dwib10b2win.exe"
+  OutFile "dwib10b3win.exe"
 
   ; Default installation folder
   InstallDir "$PROGRAMFILES\DWIB"
