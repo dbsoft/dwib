@@ -1491,7 +1491,7 @@ HWND _dwib_window_create(xmlNodePtr node, xmlDocPtr doc)
     return ret;
 }
 
-int _dwib_check_dataname(xmlNodePtr node, xmlDocPtr doc, char *dataname)
+int _dwib_check_dataname(xmlNodePtr node, xmlDocPtr doc, const char *dataname)
 {
     char *thisval = NULL;
     xmlNodePtr this;
@@ -1507,7 +1507,7 @@ int _dwib_check_dataname(xmlNodePtr node, xmlDocPtr doc, char *dataname)
 }
 
 /* Internal function fo parsing the children of packable widgets... boxes, notebook pages, etc */
-int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, char *dataname, HWND box, int index)
+int _dwib_children_search(xmlNodePtr node, xmlDocPtr doc, HWND window, const char *dataname, HWND box, int index)
 {
     xmlNodePtr p = _dwib_find_child(node, "Children");
     int retval = DW_ERROR_GENERAL;
@@ -1603,7 +1603,7 @@ char *_dwib_combine_path(int len, char *val, char *file)
  * Returns:
  *       A handle to a top-level window or NULL on failure.
  */
-HWND API dwib_load(DWIB handle, char *name)
+HWND API dwib_load(DWIB handle, const char *name)
 {
     xmlDocPtr doc = handle;
     xmlNodePtr p, rootNode = xmlDocGetRootElement(doc);
@@ -1656,7 +1656,7 @@ HWND API dwib_load(DWIB handle, char *name)
  * Returns:
  *       DW_ERROR_GENERAL on error or DW_ERROR_NONE on success.
  */
-int API dwib_load_at_index(DWIB handle, char *name, char *dataname, HWND window, HWND box, int index)
+int API dwib_load_at_index(DWIB handle, const char *name, const char *dataname, HWND window, HWND box, int index)
 {
     xmlDocPtr doc = handle;
     xmlNodePtr p, rootNode = xmlDocGetRootElement(doc);
@@ -1727,7 +1727,7 @@ void API dwib_show(HWND window)
  * Returns:
  *       A handle to an XML tree or NULL on failure.
  */
-DWIB API dwib_open_from_data(char *buffer, int size)
+DWIB API dwib_open_from_data(const char *buffer, int size)
 {
     return xmlParseMemory(buffer, size);
 }
@@ -1739,7 +1739,7 @@ DWIB API dwib_open_from_data(char *buffer, int size)
  * Returns:
  *       A handle to an XML tree or NULL on failure.
  */
-DWIB API dwib_open(char *filename)
+DWIB API dwib_open(const char *filename)
 {
     return xmlParseFile(filename);
 }
@@ -1763,7 +1763,7 @@ void API dwib_close(DWIB handle)
  * Returns:
  *       DW_ERROR_NONE if found was found and selected, or DW_ERROR_GENERAL.
  */
-int API dwib_image_root_set(char *path)
+int API dwib_image_root_set(const char *path)
 {
     char *oldroot = _dwib_image_root;
     struct dwstat st;
@@ -1790,12 +1790,12 @@ int API dwib_image_root_set(char *path)
  * Returns:
  *       DW_ERROR_NONE if locale was found and selected, or DW_ERROR_GENERAL.
  */
-int API dwib_locale_set(char *loc)
+int API dwib_locale_set(const char *loc)
 {
     char *oldlocale = _dwib_locale, *encode;
     
     /* Should we check that the locale is valid? */
-    _dwib_locale = loc ? strdup(loc) : loc;
+    _dwib_locale = loc ? strdup(loc) : NULL;
     
     /* Trim off encoding string...
      * Often the LANG environment variable will be
@@ -1821,7 +1821,7 @@ int API dwib_locale_set(char *loc)
  * Returns:
  *       A handle to a widget or NULL on failure.
  */
-HWND API dwib_window_get_handle(HWND handle, char *dataname)
+HWND API dwib_window_get_handle(HWND handle, const char *dataname)
 {
     return (HWND)dw_window_get_data(handle,dataname);
 }
