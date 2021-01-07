@@ -87,14 +87,9 @@ installer:
     copy readme.txt install\package
     copy install\scripts\license.txt install\package
     copy readme.txt install\scripts
-    rm -f install\dwib.ace install\misc.ace
-    cd install\package
-    ace2 -r a ..\dwib.ace *
-    cd ..\scripts
-    ace2 a ..\misc.ace *
+    cd install
+    wic -a dwibos2.exe 1 -cpackage -r * -U -s dwib.wis
     cd ..
-    copy $(SFXPATH)\sfx.exe .\sfx.exe
-    packinst dwib.cfg
 
 dwib.obj: dwib.c dwib.h dwib_int.h resources.h
 dwib_lib.obj: dwib_lib.c dwib.h dwib_int.h resources.h
