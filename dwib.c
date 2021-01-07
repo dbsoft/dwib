@@ -7751,7 +7751,7 @@ int main(int argc, char *argv[])
         dw_feature_set(DW_FEATURE_DARK_MODE, DW_DARK_MODE_FULL);
 
     /* Set the Application ID to enable features like notifications */
-    dw_app_id_set("org.dbsoft.dwindows.dwib", "Dynamic Windows Application Builder");
+    dw_app_id_set("org.dbsoft.dwindows.dwib", "Dynamic Windows Interface Builder");
 
     dw_init(TRUE, argc, argv);
 
