@@ -116,6 +116,10 @@ install: FORCE
 	sed -e 's/@VERSION@/'$(VER_MAJ).$(VER_MIN).$(VER_REV)'/' < dwib1.pc > dwib.pc
 	$(INSTALL) dwib.pc $(prefix)/lib/pkgconfig; \
 	$(INSTALL) $(TARGET) $(prefix)/bin; \
+	$(MKDIR) -p $(PREFIX)/share/pixmaps/$(TARGET); \
+	$(CP) -f gtk/*.png $(PREFIX)/share/pixmaps/$(TARGET); \
+	$(MKDIR) -p $(PREFIX)/share/applications/; \
+	$(INSTALL) gtk/org.dbsoft.dwindows.dwib.desktop $(PREFIX)/share/applications/; \
 	$(INSTALL) $(SYSCONF_LINK_TARGET_SHARED)  $(prefix)/lib; \
 	cd $(prefix)/lib; \
 	rm -f lib$(TARGET).so lib$(TARGET).so.$(VER_MAJ); \

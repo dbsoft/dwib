@@ -4038,7 +4038,7 @@ MKDIR="mkdir"
 
 
 
-ac_config_files="$ac_config_files Makefile:Makefile.in dwib-config1 dwib1.pc"
+ac_config_files="$ac_config_files Makefile:Makefile.in dwib-config1 dwib1.pc gtk/org.dbsoft.dwindows.dwib.desktop"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4734,6 +4734,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile:Makefile.in" ;;
     "dwib-config1") CONFIG_FILES="$CONFIG_FILES dwib-config1" ;;
     "dwib1.pc") CONFIG_FILES="$CONFIG_FILES dwib1.pc" ;;
+    "gtk/org.dbsoft.dwindows.dwib.desktop") CONFIG_FILES="$CONFIG_FILES gtk/org.dbsoft.dwindows.dwib.desktop" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
