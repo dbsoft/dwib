@@ -15,7 +15,7 @@ int DWSIGNAL exit_handler(HWND win, void *data)
 }
 
 /* The main entry point.  Notice we don't use WinMain() on Windows */
-int main(int argc, char *argv[])
+int dwmain(int argc, char *argv[])
 {
     HWND window;
     DWIB handle;

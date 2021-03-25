@@ -7744,7 +7744,7 @@ void dwib_init(void)
 }
 
 /* The main entry point.  Notice we don't use WinMain() on Windows */
-int main(int argc, char *argv[])
+int dwmain(int argc, char *argv[])
 {
     /* Enable full dark mode on platforms that support it */
     if(getenv("DW_DARK_MODE"))

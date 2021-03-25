@@ -75,8 +75,7 @@ DLLLINKFLAGS = -dll
 DEFFILE = win\dwib.def
 
 OBJS =	dwib.obj \
-        dwib_lib.obj \
-        winmain.obj
+        dwib_lib.obj
 
 LIBOBJS = dwib_lib.obj
         
@@ -132,11 +131,11 @@ $(LIBS)
 	$(WLIB) -def:$(DEFFILE) -machine:$(TARGET_CPU) -out:dwib.lib
 	mt.exe -manifest dwib.dll.manifest win\dwib.dll.$(TARGET_CPU).manifest -outputresource:dwib.dll;2
  
-example.exe: example.obj winmain.obj
+example.exe: example.obj
 	$(LINK) @<<
 -out:$(@) -subsystem:windows
 $(LINKFLAGS)
-example.obj winmain.obj
+example.obj
 $(LIBS) dwib.lib
 
 <<
