@@ -1289,9 +1289,9 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         dw_window_set_style(item, DW_DT_CENTER | DW_DT_VCENTER, DW_DT_CENTER | DW_DT_VCENTER);
         dw_box_pack_start(hwndLocale, vbox, 0, 0, TRUE, TRUE, 0);
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
-        dw_box_pack_start(hbox, item, width, -1, FALSE, TRUE, 0);
+        dw_box_pack_start(hbox, item, width, DW_SIZE_AUTO, FALSE, TRUE, 0);
         item = dw_entryfield_new(val ? val : "", 0);
-        dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, FALSE, 0);
         dw_window_set_data(hwndLocale, "default", DW_POINTER(item));
         dw_window_disable(item);
         
@@ -1300,7 +1300,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
         combo = item = dw_combobox_new("", 0);
         dw_window_set_data(hwndLocale, "combo", DW_POINTER(combo));
-        dw_box_pack_start(hbox, item, width, -1, FALSE, TRUE, 0);
+        dw_box_pack_start(hbox, item, width, DW_SIZE_AUTO, FALSE, TRUE, 0);
         /* Populate the combobox if we can */
         if(localesNode)
         {
@@ -1312,7 +1312,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
             }
         }
         item = dw_entryfield_new("", 0);
-        dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, FALSE, 0);
         dw_window_set_data(hwndLocale, "entry", DW_POINTER(item));
         dw_signal_connect(combo, DW_SIGNAL_LIST_SELECT, DW_SIGNAL_FUNC(locale_manager_select), DW_POINTER(item));
         
@@ -1330,7 +1330,7 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_rem_clicked), DW_POINTER(combo));
         dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
         item = dw_button_new("Done", 0);
-        dw_box_pack_start(hbox, item, -1, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
         
         /* Delete handlers */
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_delete), DW_POINTER(hwndLocale));
@@ -1649,7 +1649,7 @@ HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
         dw_window_get_preferred_size(button, &width, NULL);
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-        dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         dw_window_set_data(vbox, "tooltip", DW_POINTER(item));
     }
     /* Foreground Color */
@@ -1682,7 +1682,7 @@ HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), DW_POINTER(tmp));
     /* Background Color */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1713,7 +1713,7 @@ HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     dw_window_set_data(vbox, "bcolor", DW_POINTER(item));    
     item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), DW_POINTER(tmp));
     /* Font */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -1736,7 +1736,7 @@ HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     dw_window_set_data(vbox, "font", DW_POINTER(item));    
     item = dw_bitmapbutton_new("Font chooser", ICON_FONT);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(font_clicked), DW_POINTER(tmp));
     if(sysfont)
     {
@@ -1760,7 +1760,7 @@ HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         dw_window_set_data(vbox, sysfont, DW_POINTER(item));    
         item = dw_bitmapbutton_new("Font chooser", ICON_FONT);
         dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(font_clicked), DW_POINTER(tmp));
     }
     return localebutton;
@@ -1828,7 +1828,7 @@ void _dwib_title(HWND scrollbox, char *title, xmlNodePtr node)
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - 48, PROPERTIES_HEIGHT, TRUE, TRUE, 0);
         item = dw_bitmapbutton_new("Refresh Preview Widget", ICON_REFRESH);
         dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(refresh_widget_clicked), NULL);
     }
     else 
@@ -1906,7 +1906,7 @@ void DWSIGNAL properties_text(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "label", DW_POINTER(item));
     /* Alignment */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2117,7 +2117,7 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
     /* Click default */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2359,7 +2359,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "deftext", DW_POINTER(item));
     /* Click default */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2401,7 +2401,7 @@ void DWSIGNAL properties_combobox(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     item = dw_button_new("+", 0);
     dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_clicked), DW_POINTER(vbox));
@@ -2533,7 +2533,7 @@ void DWSIGNAL properties_listbox(xmlNodePtr node)
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
     localebutton = button = dw_bitmapbutton_new("Locale", ICON_LOCALE);
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     item = dw_button_new("+", 0);
     dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_clicked), DW_POINTER(vbox));
@@ -2615,7 +2615,7 @@ void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype,
     snprintf(buf, 50, "entryfield%d", count);
     dw_window_set_data(vbox, buf, DW_POINTER(item));
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - (BUTTON_ICON_WIDTH + width), PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     if(node)
         dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_clicked), node);
     else
@@ -2821,7 +2821,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_tooltip(item, "Title for the main filesytem column.");
     dw_window_set_data(vbox, "coltitle", DW_POINTER(item));
     /* Multiple select */
@@ -2896,7 +2896,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     else if(x == DW_CLR_DEFAULT)
         dw_listbox_select(item, 1, TRUE);
     dw_window_set_data(vbox, "oddcolor", DW_POINTER(item));    
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_signal_connect(button, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), DW_POINTER(tmp));
     /* Even Color */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -2930,7 +2930,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_window_set_data(vbox, "evencolor", DW_POINTER(item));    
     item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), DW_POINTER(tmp));
     /* OS/2 Split Column */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -3146,7 +3146,7 @@ void DWSIGNAL properties_mle(xmlNodePtr node)
     dw_window_set_style(localebutton, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(localebutton, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, localebutton, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, localebutton, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = defvalstr;
     if((this = _dwib_find_child(node, "deftext")))
@@ -3431,7 +3431,7 @@ void DWSIGNAL properties_button(xmlNodePtr node)
     dw_window_set_style(localebutton, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(localebutton, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, localebutton, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, localebutton, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "setting", DW_POINTER(item));
     /* Add possible images to the list */
     populateImageList(item);
@@ -3754,7 +3754,7 @@ void DWSIGNAL properties_bitmap(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "setting", DW_POINTER(item));
     /* Add possible images to the list */
     populateImageList(item);
@@ -3862,7 +3862,7 @@ void DWSIGNAL properties_html(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "URL", DW_POINTER(item));
     
     /* If it is a new window add button */
@@ -4073,7 +4073,7 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
     
     localetooltipbutton = properties_item(node, scrollbox, FALSE, FALSE);
@@ -4098,7 +4098,7 @@ void DWSIGNAL properties_notebook_page(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "statustext", DW_POINTER(item));
     /* Orientation */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -4369,7 +4369,7 @@ void DWSIGNAL properties_box(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
     /* Split % */
     hbox = dw_box_new(DW_HORZ, 0);
@@ -4648,7 +4648,7 @@ void DWSIGNAL properties_menu(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
     /* Data name*/
     hbox = dw_box_new(DW_HORZ, 0);
@@ -4835,7 +4835,7 @@ void DWSIGNAL properties_window(xmlNodePtr node)
     dw_window_set_style(button, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_get_preferred_size(button, &width, NULL);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH - width, PROPERTIES_HEIGHT, TRUE, FALSE, 0);
-    dw_box_pack_start(hbox, button, -1, -1, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, button, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
     dw_window_set_data(vbox, "title", DW_POINTER(item));
     /* Size */ 
     hbox = dw_box_new(DW_HORZ, 0);
@@ -6715,27 +6715,27 @@ int DWSIGNAL web_page_clicked(HWND button, void *data)
             
             /* Add navigation buttons */
             item = dw_button_new("Back", 0);
-            dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_back_clicked), DW_POINTER(html));
             
             item = dw_button_new("Forward", 0);
-            dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_forward_clicked), DW_POINTER(html));
             
             /* Put in some extra space */
             dw_box_pack_start(hbox, 0, 5, 1, FALSE, FALSE, 0);
             
             item = dw_button_new("Reload", 0);
-            dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_reload_clicked), DW_POINTER(html));
               
             /* Put in some extra space */
             dw_box_pack_start(hbox, 0, 5, 1, FALSE, FALSE, 0);
-            dw_box_pack_start(hbox, location, -1, -1, TRUE, FALSE, 0);
+            dw_box_pack_start(hbox, location, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, FALSE, 0);
             
             item = dw_button_new("Go", 0);
             dw_window_set_data(item, "location", DW_POINTER(location));
-            dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+            dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
             dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(web_go_clicked), DW_POINTER(html));
             dw_window_click_default(location, item);
             
@@ -6780,21 +6780,21 @@ int DWSIGNAL about_clicked(HWND button, void *data)
         /* About text */
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
         dw_box_pack_start(hwndAbout, vbox, 0, 0, TRUE, TRUE, 0);
-        dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, FALSE, 0);
         item = dw_text_new("Brian Smith © 2011-2021", 0);
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
-        dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, FALSE, 0);
         snprintf(verbuf, 100, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
         item = dw_text_new(verbuf, 0);
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
-        dw_box_pack_start(vbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, FALSE, 0);
         dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
         
         /* Button box */
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
         dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
         item = dw_button_new("Ok", 0);
-        dw_box_pack_start(hbox, item, 60, -1, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, 60, DW_SIZE_AUTO, FALSE, FALSE, 0);
         dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
         
         /* Delete handlers */
@@ -7153,15 +7153,15 @@ int DWSIGNAL image_view_enter(HWND cont, char *text, void *data, xmlNodePtr imag
         dw_window_set_style(item, DW_DT_CENTER | DW_DT_VCENTER, DW_DT_CENTER | DW_DT_VCENTER);
         dw_box_pack_start(window, vbox, 0, 0, TRUE, TRUE, 0);
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
-        dw_box_pack_start(hbox, item, -1, -1, FALSE, TRUE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, TRUE, 0);
         val = node ? (char *)xmlNodeListGetString(DWDoc, node->children, 1) : NULL;
         item = dw_spinbutton_new(val ? val : "0", 0);
         dw_spinbutton_set_limits(item, 2000, 0);
         dw_spinbutton_set_pos(item, val ? atoi(val) : 0);
-        dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, FALSE, 0);
         dw_window_set_data(window, "_dwib_imageid", DW_POINTER(item));
         item = dw_checkbox_new("Embedded", 0);
-        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         dw_window_set_data(window, "_dwib_embedded", DW_POINTER(item));
         if((node = _dwib_find_child(imageNode, "Embedded")) != NULL)
             dw_checkbox_set(item, TRUE);
@@ -7198,7 +7198,7 @@ int DWSIGNAL image_view_enter(HWND cont, char *text, void *data, xmlNodePtr imag
             
             dw_window_set_bitmap(item, 0, file);
         }
-        dw_box_pack_start(vbox, item, -1, -1, TRUE, TRUE, 0);
+        dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, TRUE, 0);
 
         /* Connect signal handlers */
         dw_signal_connect(window, DW_SIGNAL_DELETE, DW_SIGNAL_FUNC(image_view_delete), DW_POINTER(imageNode));
@@ -7288,17 +7288,17 @@ int DWSIGNAL image_manager_clicked(HWND button, void *data)
         dw_window_set_style(item, DW_DT_CENTER | DW_DT_VCENTER, DW_DT_CENTER | DW_DT_VCENTER);
         dw_box_pack_start(hwndImages, vbox, 0, 0, TRUE, TRUE, 0);
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
-        dw_box_pack_start(hbox, item, -1, -1, FALSE, TRUE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, TRUE, 0);
         item = dw_entryfield_new(val ? val : "", 0);
-        dw_box_pack_start(hbox, item, -1, -1, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, FALSE, 0);
         dw_window_set_data(hwndImages, "_dwib_directory", DW_POINTER(item));
         item = dw_button_new("Browse", 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_browse_clicked), DW_POINTER(hwndImages));
-        dw_box_pack_start(hbox, item, -1, -1, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         
         /* Image list container */
         item = dw_container_new(0, FALSE);
-        dw_box_pack_start(vbox, item, -1, -1, TRUE, TRUE, 0);
+        dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, TRUE, 0);
         dw_filesystem_setup(item, coltypes, colnames, 2);
         dw_window_set_data(hwndImages, "_dwib_imagelist", DW_POINTER(item));
         /* Populate the container */
@@ -7316,7 +7316,7 @@ int DWSIGNAL image_manager_clicked(HWND button, void *data)
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_rem_clicked), DW_POINTER(hwndImages));
         dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
         item = dw_button_new("Done", 0);
-        dw_box_pack_start(hbox, item, -1, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
         
         /* Delete handlers */
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_manager_delete), DW_POINTER(hwndImages));
@@ -7441,97 +7441,97 @@ void toolbar_bitmap_buttons_create(void)
     item = dw_bitmapbutton_new("Window", TYPE_WINDOW + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "window", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_WINDOW));
     item = dw_bitmapbutton_new("Box", TYPE_BOX + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "box", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_BOX));
     item = dw_bitmapbutton_new("Text", TYPE_TEXT + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "text", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_TEXT));
     item = dw_bitmapbutton_new("Entryfield", TYPE_ENTRYFIELD + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "entryfield", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_ENTRYFIELD));
     item = dw_bitmapbutton_new("Combobox", TYPE_COMBOBOX + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "combobox", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_COMBOBOX));
     item = dw_bitmapbutton_new("Listbox", TYPE_LISTBOX + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "listbox", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_LISTBOX));
     item = dw_bitmapbutton_new("Container", TYPE_CONTAINER + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "container", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_CONTAINER));
     item = dw_bitmapbutton_new("Tree", TYPE_TREE + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "tree", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_TREE));
     item = dw_bitmapbutton_new("MLE", TYPE_MLE + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "mle", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_MLE));
     item = dw_bitmapbutton_new("Render", TYPE_RENDER + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "render", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_RENDER));
     item = dw_bitmapbutton_new("Button", TYPE_BUTTON + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "button", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_BUTTON));
     item = dw_bitmapbutton_new("Ranged", TYPE_RANGED + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "ranged", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_RANGED));
     item = dw_bitmapbutton_new("Bitmap", TYPE_BITMAP + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "bitmap", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_BITMAP));
     item = dw_bitmapbutton_new("Notebook", TYPE_NOTEBOOK + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "notebook", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_NOTEBOOK));
     item = dw_bitmapbutton_new("Notebook Page", TYPE_NOTEBOOK_PAGE + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "nb page", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_NOTEBOOK_PAGE));
     item = dw_bitmapbutton_new("HTML", TYPE_HTML + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "html", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_HTML));
     item = dw_bitmapbutton_new("Calendar", TYPE_CALENDAR + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "calendar", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_CALENDAR));
     item = dw_bitmapbutton_new("Padding", TYPE_PADDING + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "padding", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_PADDING));
     item = dw_bitmapbutton_new("Menu", TYPE_MENU + 100);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
     dw_window_set_data(hwndToolbar, "menu", DW_POINTER(item));
-    dw_box_pack_start(vbox, item, -1, -1, FALSE, FALSE, BUTTON_PADDING);
+    dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, BUTTON_PADDING);
     dw_signal_connect(item , DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(toolbar_clicked), DW_INT_TO_POINTER(TYPE_MENU));
     dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
 }
