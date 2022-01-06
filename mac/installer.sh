@@ -10,7 +10,9 @@ then
     cp -prf "$APPNAME.app" install/package
     cp -f readme.txt install/package
     cp -f /usr/local/lib/libdwindows.dylib "install/package/$APPNAME.app/Contents/MacOS"
+    cp -f $BINNAME "install/package/$APPNAME.app/Contents/MacOS"
     install_name_tool -change `otool -L $BINNAME | grep libdwindows | cut -d ' ' -f 1 | tr -d '\t'` @executable_path/libdwindows.dylib "install/package/$APPNAME.app/Contents/MacOS/$BINNAME"
+    codesign -s "-" "install/package/$APPNAME.app/Contents/MacOS/$BINNAME"
     #/Developer/Tools/SetFile -a V "install/package/$BINNAME.png"
     ln -s /Applications install/package/.
     rm -f "install/$APPNAME.dmg"
