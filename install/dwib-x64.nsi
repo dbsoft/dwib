@@ -29,7 +29,7 @@ FunctionEnd
 
   ; Name and file
   Name "Dynamic Windows Interface Builder"
-  OutFile "dwib10b4win64.exe"
+  OutFile "dwib10b5win64.exe"
 
   ; Default installation folder
   InstallDir "$PROGRAMFILES64\DWIB"
@@ -80,26 +80,31 @@ FunctionEnd
 Section "Dummy Section" SecDummy
 
   SetOutPath "$INSTDIR"
-  
+
   ; Binaries
   File dwib.exe
   File *.dll
+  ; Developer Header
+  File dwib.h
+  ; Developer Libraries
+  File /r x86
+  File /r x64
   ; Help
   File readme.txt
-    
+
   ; Store installation folder
   WriteRegStr HKCU "Software\DWIB" "" $INSTDIR
-  
+
   ; Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
-  
+
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-    
+
     ; Create shortcuts
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Dynamic Windows Interface Builder.lnk" "$INSTDIR\dwib.exe"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-    
+
     ; Create Uninstall infor 
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\DWIB" \
                      "DisplayName" "Dynamic Windows Interface Builder"
@@ -127,12 +132,22 @@ Section "Uninstall"
 
   ; Binaries
   Delete "$INSTDIR\dwib.exe"
-  Delete "$INSTDIR\dw.dll"
+  Delete "$INSTDIR\*.dll"
+  ; Developer Header
+  Delete "$INSTDIR\dwib.h"
+  ; Developer Libraries
+  Delete "$INSTDIR\x86\dwib.dll"
+  Delete "$INSTDIR\x86\dwib.lib"
+  Delete "$INSTDIR\x64\dwib.dll"
+  Delete "$INSTDIR\x64\dwib.lib"
   ; Help
   Delete "$INSTDIR\readme.txt"
 
   Delete "$INSTDIR\Uninstall.exe"
 
+  ; Directories
+  RMDir "$INSTDIR\x86"
+  RMDir "$INSTDIR\x64"
   RMDir "$INSTDIR"
   
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder

@@ -83,30 +83,42 @@ all: dwib.exe dwib.dll example.exe
 
 clean:
 	-erase *.dll
-        -erase *.exe
-        -erase *.opt
-        -erase *.lib
-        -erase *.obj
-        -erase *.map
-        -erase *.pdb
-        -erase *.ilk
-        -erase *.exp
-        -erase win\*.res
-        -erase *~
-        
+	-erase *.exe
+	-erase *.opt
+	-erase *.lib
+	-erase *.obj
+	-erase *.map
+	-erase *.pdb
+	-erase *.ilk
+	-erase *.exp
+	-erase win\*.res
+	-erase *~
+
+distclean: clean
+	-rd /s /q install\package
+	-rd /s /q x86
+	-rd /s /q x64
+
 # Create a zip file for use with Nullsoft's Install system
 # Requires NSIS and makensis to be in the PATH     
 installer:
-    -rd /s /q install\package
-    md install\package
-    copy dwib.exe install\package
-    copy $(DWINCDIR)\dw.dll install\package
-    copy readme.txt install\package
-    copy install\scripts\license.txt install\package
-    cd install\package
-    copy ..\dwib-$(TARGET_CPU).nsi dwib.nsi
-    makensis dwib.nsi
-    move dwib*win*.exe ..
+	-rd /s /q install\package
+	md install\package
+	copy dwib.exe install\package
+	copy $(DWINCDIR)\dw.dll install\package
+	copy readme.txt install\package
+	copy install\scripts\license.txt install\package
+	copy dwib.h install\package
+	md install\package\x86
+	-copy x86\dwib.dll install\package\x86
+	-copy x86\dwib.lib install\package\x86
+	md install\package\x64
+	-copy x64\dwib.dll install\package\x64
+	-copy x64\dwib.lib install\package\x64
+	cd install\package
+	copy ..\dwib-$(TARGET_CPU).nsi dwib.nsi
+	makensis dwib.nsi
+	move dwib*win*.exe ..
 
 dwib.res: win\dwib.rc
 	rc -r win\dwib.rc
@@ -120,7 +132,7 @@ $(LIBS)
 win\dwib.res
 <<
 	mt.exe -manifest dwib.exe.manifest win\dwib.exe.$(TARGET_CPU).manifest -outputresource:dwib.exe;1
- 
+
 dwib.dll: $(LIBOBJS) $(DEFFILE)
 	$(LINK) @<<
 -out:$(@) -def:$(DEFFILE)
@@ -130,7 +142,10 @@ $(LIBS)
 <<
 	$(WLIB) -def:$(DEFFILE) -machine:$(TARGET_CPU) -out:dwib.lib
 	mt.exe -manifest dwib.dll.manifest win\dwib.dll.$(TARGET_CPU).manifest -outputresource:dwib.dll;2
- 
+	-md $(TARGET_CPU)
+	-copy dwib.dll $(TARGET_CPU)
+	-copy dwib.lib $(TARGET_CPU)
+
 example.exe: example.obj
 	$(LINK) @<<
 -out:$(@) -subsystem:windows
@@ -140,6 +155,6 @@ $(LIBS) dwib.lib
 
 <<
 	mt.exe -manifest example.exe.manifest win\example.exe.$(TARGET_CPU).manifest -outputresource:example.exe;1
- 
+
 .c.obj:
 	$(CC) $(CFLAGS) $(CFLAGS_DEBUG) $(CFLAGS_COMPILE) $*.c

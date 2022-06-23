@@ -1,10 +1,10 @@
 <WARPIN>
 <HEAD>
 <PCK INDEX="1"
-      PACKAGEID="Brian Smith\DWIB\Base package\1\0\4"
+      PACKAGEID="Brian Smith\DWIB\Base package\1\0\5"
       TARGET="?:\Programs\DWIB"
       SELECT
-      TITLE="Dynamic Windows Interface Builder 1.0b4"
+      TITLE="Dynamic Windows Interface Builder 1.0b5"
       CREATEOBJECT="WPProgram|Dynamic Windows Interface Builder|<WP_DESKTOP>|EXENAME=$(1)\DWIB.EXE;OBJECTID=<DWIB>;"
       >Create User Interfaces for Dynamic Windows applications stored in XML.</PCK>
 </HEAD>
