@@ -1,8 +1,8 @@
 # Dynamic Windows Interface Builder Makefile
 
 # Edit this as necessary.
-#DWLIBPATH=..\..\dwindows\lib
-#DWINCPATH=..\..\dwindows
+#DWLIBPATH=\work\netlabs\dwindows
+#DWINCPATH=\work\netlabs\dwindows
 #XML2LIBPATH=\usr\lib
 #XML2INCPATH=\usr\include\libxml2
 
@@ -73,14 +73,14 @@ example.exe:  example.obj
 clean: 
 	rm $(OBJECTS) dwib.exe example.exe os2\dwib.res
 
-# Create an installer using Installer/2...
-# Packinst and ace2 need to be in the path...
+# Create an installer using WarpIn...
+# wic needs to be in the path...
 installer:
     rm -rf install\package
     md install\package
     copy dwib.exe install\package
     lxlite install\package\dwib.exe
-    copy $(DWINCPATH)\dw.dll install\package
+    copy $(DWLIBPATH)\dw.dll install\package
     lxlite install\package\dw.dll
     copy $(XML2LIBPATH)\libxml2.dll install\package
     lxlite install\package\libxml2.dll

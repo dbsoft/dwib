@@ -6,8 +6,11 @@ RC = rc
 MAKE = make
 COMPRESS = lxlite
 
-XML2LIBPATH=/usr/lib
-XML2INCPATH=/usr/include/libxml2
+# Edit this as necessary.
+#DWINCDIR=/work/netlabs/dwindows
+#DWLIBDIR=/work/netlabs/dwindows
+#XML2LIBPATH=/usr/lib
+#XML2INCPATH=/usr/include/libxml2
 
 DEFS =
 LIBS =
