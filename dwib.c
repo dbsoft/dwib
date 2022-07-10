@@ -6803,7 +6803,11 @@ int DWSIGNAL about_clicked(HWND button, void *data)
         item = dw_text_new("Brian Smith © 2011-2022", 0);
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
         dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, FALSE, 0);
+#ifdef VER_MAJ
         snprintf(verbuf, 100, "%d.%d.%d", VER_MAJ, VER_MIN, VER_REV);
+#else
+        strncpy(verbuf, "1.0.0", 100);
+#endif
         item = dw_text_new(verbuf, 0);
         dw_window_set_style(item, DW_DT_CENTER, DW_DT_CENTER);
         dw_box_pack_start(vbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, TRUE, FALSE, 0);
