@@ -7769,6 +7769,9 @@ void dwib_init(void)
     item = dw_tree_new(0);
     dw_window_set_data(hwndToolbar, "treeview", DW_POINTER(item));
 
+    dw_signal_connect(item, DW_SIGNAL_ITEM_SELECT, DW_SIGNAL_FUNC(tree_select), NULL);
+    dw_signal_connect(item, DW_SIGNAL_ITEM_CONTEXT, DW_SIGNAL_FUNC(tree_context), NULL);
+
 #ifdef DWIB_MULTI_WINDOW
     dw_box_pack_start(vbox, item, 1, 1, TRUE, TRUE, 0);
 
@@ -7779,9 +7782,6 @@ void dwib_init(void)
     dw_box_pack_start(vbox, item, 1, 1, TRUE, TRUE, 0);
     dw_splitbar_set(item, ((float)DWIB_WINDOW_WIDTH / ((float)DWIB_PROPERTIES_EXTRA + (float)DWIB_WINDOW_WIDTH)) * 100.0);
 #endif
-
-    dw_signal_connect(item, DW_SIGNAL_ITEM_SELECT, DW_SIGNAL_FUNC(tree_select), NULL);
-    dw_signal_connect(item, DW_SIGNAL_ITEM_CONTEXT, DW_SIGNAL_FUNC(tree_context), NULL);
 
     properties_none();
 #ifdef DWIB_MULTI_WINDOW
