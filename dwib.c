@@ -26,6 +26,11 @@ int AutoExpand = FALSE, PropertiesInspector = TRUE, LivePreview = TRUE, BitmapBu
 int ToolbarX, ToolbarY, ToolbarW = 0, ToolbarH = 0, PropertiesX, PropertiesY, PropertiesW = 0, PropertiesH = 0;
 extern char *_dwib_image_root;
 
+/* Enable multi-window on platforms that it makes sense on */
+#if defined(__WIN32__) || defined(__MAC__) || defined(__OS2__)
+#define DWIB_MULTI_WINDOW 1
+#endif
+
 char *Classes[] =
 {
     "None",
@@ -716,11 +721,15 @@ int save_item(xmlNodePtr node, HWND vbox)
     retval |= updateNode(node, vbox, "font", FALSE);
 #ifdef __OS2__
     retval |= updateNode(node, vbox, "os2font", FALSE);
-#elif defined(__MAC__)    
+#elif defined(__MAC__)
     retval |= updateNode(node, vbox, "macfont", FALSE);
-#elif defined(__WIN32__)    
+#elif defined(__IOS__)
+    retval |= updateNode(node, vbox, "iosfont", FALSE);
+#elif defined(__WIN32__)
     retval |= updateNode(node, vbox, "winfont", FALSE);
-#elif defined(__UNIX__)    
+#elif defined(__ANDROID__)
+    retval |= updateNode(node, vbox, "andfont", FALSE);
+#elif defined(__UNIX__)
     retval |= updateNode(node, vbox, "unixfont", FALSE);
 #endif
     return retval;
@@ -1488,9 +1497,15 @@ HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
 #elif defined(__MAC__)
     char *sysfont = "macfont";
     char *sysfonttext = "Mac Font";
+#elif defined(__IOS__)
+    char *sysfont = "iosfont";
+    char *sysfonttext = "iOS Font";
 #elif defined(__WIN32__)
     char *sysfont = "winfont";
     char *sysfonttext = "Windows Font";
+#elif defined(__ANDROID__)
+    char *sysfont = "andfont";
+    char *sysfonttext = "Android Font";
 #elif defined(__UNIX__)
     char *sysfont = "unixfont";
     char *sysfonttext = "Unix Font";
@@ -6430,12 +6445,14 @@ int DWSIGNAL tree_select(HWND window, HTREEITEM item, char *text, void *data, vo
     return FALSE;
 }
 
+#ifdef DWIB_MULTI_WINDOW
 /* Handles raising the properties inspector when the toolbar gets focus */
 int DWSIGNAL toolbar_focus(HWND toolbar, void *data)
 {
     dw_window_raise(hwndProperties);
     return FALSE;
 }
+#endif
 
 /* Closing the toolbar window */
 int DWSIGNAL toolbar_delete(HWND hwnd, void *data)
@@ -6536,6 +6553,7 @@ int DWSIGNAL tree_context(HWND window, char *text, int x, int y, void *data, voi
     return FALSE;
 }
 
+#ifdef DWIB_MULTI_WINDOW
 /* Handle toggling auto-expand */
 int DWSIGNAL properties_inspector_clicked(HWND button, void *data)
 {
@@ -6548,6 +6566,7 @@ int DWSIGNAL properties_inspector_clicked(HWND button, void *data)
     saveconfig();
     return FALSE;
 }
+#endif
 
 /* Handle toggling auto-expand */
 int DWSIGNAL auto_expand_clicked(HWND button, void *data)
@@ -7568,19 +7587,34 @@ int DWSIGNAL preview_locale_clicked(HWND item, void *data)
     return FALSE;
 }
 
+#define DWIB_WINDOW_POS       20
+#define DWIB_WINDOW_HEIGHT    550
+#define DWIB_WINDOW_WIDTH     600
+#define DWIB_WINDOW_EXTRA     100
+#define DWIB_PROPERTIES_WIDTH 300
+#ifdef DWIB_MULTI_WINDOW
+#define DWIB_PROPERTIES_EXTRA 0
+#else
+#define DWIB_PROPERTIES_EXTRA DWIB_PROPERTIES_WIDTH
+#endif
+
 /* Put the toolbar in the default position */
 void toolbar_default(void)
 {
     dw_window_set_gravity(hwndToolbar, DW_GRAV_LEFT | DW_GRAV_OBSTACLES, DW_GRAV_TOP | DW_GRAV_OBSTACLES);
-    dw_window_set_pos_size(hwndToolbar, 20, 20, 600, 650);
+    dw_window_set_pos_size(hwndToolbar, DWIB_WINDOW_POS, DWIB_WINDOW_POS, DWIB_WINDOW_WIDTH + DWIB_PROPERTIES_EXTRA, 
+                           DWIB_WINDOW_HEIGHT + DWIB_WINDOW_EXTRA);
 }
 
 /* Put the properties window in the default position */
+#ifdef DWIB_MULTI_WINDOW
 void properties_default(void)
 {    
     dw_window_set_gravity(hwndProperties, DW_GRAV_LEFT | DW_GRAV_OBSTACLES, DW_GRAV_TOP | DW_GRAV_OBSTACLES);
-    dw_window_set_pos_size(hwndProperties, 650, 20, 300, 550);
+    dw_window_set_pos_size(hwndProperties, DWIB_WINDOW_WIDTH + (DWIB_WINDOW_POS * 2), 
+                           DWIB_WINDOW_POS, DWIB_PROPERTIES_WIDTH, DWIB_WINDOW_HEIGHT);
 }
+#endif
 
 /* Save the window position to the config file */
 int DWSIGNAL save_position_clicked(HWND window, void *data)
@@ -7593,6 +7627,7 @@ int DWSIGNAL save_position_clicked(HWND window, void *data)
     ToolbarY = (int)y;
     ToolbarW = (int)w;
     ToolbarH = (int)h;
+#ifdef DWIB_MULTI_WINDOW
     if(PropertiesInspector)
     {
         dw_window_get_pos_size(hwndProperties, &x, &y, &w, &h);
@@ -7601,6 +7636,7 @@ int DWSIGNAL save_position_clicked(HWND window, void *data)
         PropertiesW = (int)w;
         PropertiesH = (int)h;
     }
+#endif
     saveconfig();
     return TRUE;
 }
@@ -7611,7 +7647,9 @@ int DWSIGNAL reset_position_clicked(HWND window, void *data)
     ToolbarX = ToolbarY = ToolbarW = ToolbarH = PropertiesX = PropertiesY = PropertiesW = PropertiesH = 0;
     saveconfig();
     toolbar_default();
+#ifdef DWIB_MULTI_WINDOW
     properties_default();
+#endif
     return TRUE;
 }
 
@@ -7646,11 +7684,6 @@ void dwib_init(void)
         toolbar_text_buttons_create();
     vbox = dw_box_new(DW_VERT, 0);
     dw_box_pack_start(hbox, vbox, 0, 0, TRUE, TRUE, 0);
-    item = dw_tree_new(0);
-    dw_box_pack_start(vbox, item, 1, 1, TRUE, TRUE, 0);
-    dw_signal_connect(item, DW_SIGNAL_ITEM_SELECT, DW_SIGNAL_FUNC(tree_select), NULL);
-    dw_signal_connect(item, DW_SIGNAL_ITEM_CONTEXT, DW_SIGNAL_FUNC(tree_context), NULL);
-    dw_window_set_data(hwndToolbar, "treeview", DW_POINTER(item));
     
     menu = dw_menubar_new(hwndToolbar);
     /* Add File menu */
@@ -7693,8 +7726,10 @@ void dwib_init(void)
     
     /* Add Window menu */
     menuWindows = dw_menu_new(0);
+#ifdef DWIB_MULTI_WINDOW
     item = dw_menu_append_item(menuWindows, "Properties Inspector", DW_MENU_AUTO, PropertiesInspector ? DW_MIS_CHECKED : 0, TRUE, TRUE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(properties_inspector_clicked), NULL);
+#endif
     item = dw_menu_append_item(menuWindows, "Image Manager", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_manager_clicked), NULL);
     item = dw_menu_append_item(menuWindows, "Locale Manager", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
@@ -7728,11 +7763,28 @@ void dwib_init(void)
         dw_window_set_pos_size(hwndToolbar, ToolbarX, ToolbarY, ToolbarW, ToolbarH);
     else
         toolbar_default();
-    
+
     toolbar_select(DWCurrNode);
-    
+
+    item = dw_tree_new(0);
+    dw_window_set_data(hwndToolbar, "treeview", DW_POINTER(item));
+
+#ifdef DWIB_MULTI_WINDOW
+    dw_box_pack_start(vbox, item, 1, 1, TRUE, TRUE, 0);
+
     hwndProperties = dw_window_new(DW_DESKTOP, "Properties Inspector", DW_FCF_TITLEBAR | DW_FCF_SIZEBORDER | DW_FCF_TEXTURED);
+#else
+    hwndProperties = dw_box_new(DW_HORZ, 0);
+    item = dw_splitbar_new(DW_HORZ, item, hwndProperties, 0);
+    dw_box_pack_start(vbox, item, 1, 1, TRUE, TRUE, 0);
+    dw_splitbar_set(item, ((float)DWIB_WINDOW_WIDTH / ((float)DWIB_PROPERTIES_EXTRA + (float)DWIB_WINDOW_WIDTH)) * 100.0);
+#endif
+
+    dw_signal_connect(item, DW_SIGNAL_ITEM_SELECT, DW_SIGNAL_FUNC(tree_select), NULL);
+    dw_signal_connect(item, DW_SIGNAL_ITEM_CONTEXT, DW_SIGNAL_FUNC(tree_context), NULL);
+
     properties_none();
+#ifdef DWIB_MULTI_WINDOW
     dw_signal_connect(hwndToolbar, DW_SIGNAL_SET_FOCUS, DW_SIGNAL_FUNC(toolbar_focus), NULL);
     if(PropertiesW > 0 && PropertiesH > 0)
         dw_window_set_pos_size(hwndProperties, PropertiesX, PropertiesY, PropertiesW, PropertiesH);
@@ -7740,6 +7792,7 @@ void dwib_init(void)
         properties_default();
     if(PropertiesInspector)
         dw_window_show(hwndProperties);
+#endif
     dw_window_show(hwndToolbar);
 }
 
