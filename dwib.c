@@ -5743,6 +5743,8 @@ int DWSIGNAL open_clicked(HWND button, void *data)
             }
             /* Save the recent files config */
             saveconfig();
+        } else if(filename) {
+            dw_messagebox("File open error", DW_MB_OK | DW_MB_ERROR, "Failed to open \"%s\".", filename);
         }
     }
     return FALSE;
