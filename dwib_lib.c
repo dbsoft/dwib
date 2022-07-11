@@ -3,8 +3,8 @@
  * Author: Brian Smith
  */
 
-#include <dw.h>
-#include <dwcompat.h>
+#include "dw.h"
+#include "dwcompat.h"
 #include <libxml/tree.h>
 #include <string.h>
 #include <ctype.h>

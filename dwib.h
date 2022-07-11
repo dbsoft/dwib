@@ -6,7 +6,7 @@
 #ifndef DWIB_H
 #define DWIB_H
 
-#include <dw.h>
+#include "dw.h"
 
 typedef void *DWIB;
 
