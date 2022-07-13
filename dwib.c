@@ -5680,8 +5680,10 @@ int DWSIGNAL open_clicked(HWND button, void *data)
     {
         char *filename = data ? (char *)data : dw_file_browse("Open interface", ".", "xml", DW_FILE_OPEN);
         xmlDocPtr doc;
-        
-        if(filename && (doc = xmlParseFile(filename)))
+        int fd = -1;
+
+        if(filename && (fd = dw_file_open(filename, O_RDONLY)) > -1 &&
+                (doc = xmlReadFd(fd, filename, NULL, 0)))
         {
             char *tmpptr, *oldfilename = DWFullFilename;
             xmlNodePtr imageNode;
@@ -5746,6 +5748,8 @@ int DWSIGNAL open_clicked(HWND button, void *data)
         } else if(filename) {
             dw_messagebox("File open error", DW_MB_OK | DW_MB_ERROR, "Failed to open \"%s\".", filename);
         }
+        if(fd > -1)
+            close(fd);
     }
     return FALSE;
 }
