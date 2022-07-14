@@ -256,6 +256,7 @@ char *_astrdup(char *src, void *buf)
 /* Clear the recent menu list */
 void clear_recent(void)
 {
+#ifndef __IOS__
     int x;
     
     for(x=0; x<menucountRecent; x++)
@@ -272,11 +273,13 @@ void clear_recent(void)
         }
     }
     menucountRecent = 0;
+#endif
 }
 
 /* Add an entry to the recent menu */
 void add_recent(char *filename)
 {
+#ifndef __IOS__
     /* Trim off the path using Unix or DOS format */
     char *tmpptr = strrchr(filename, '/');
     if(!tmpptr)
@@ -310,6 +313,7 @@ void add_recent(char *filename)
         dw_signal_connect(menuItemRecent[menucountRecent], DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(open_clicked), DW_POINTER(filenameRecent[menucountRecent]));
         menucountRecent++;
     }
+#endif
 }
 
 /* Load the ini file from disk setting all the necessary flags */
@@ -7703,7 +7707,9 @@ void dwib_init(void)
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "~Open", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(open_clicked), NULL);
+#ifndef __IOS__
     item = dw_menu_append_item(submenu, "Open Recent", DW_MENU_AUTO, 0, TRUE, FALSE, menuRecent);
+#endif
     item = dw_menu_append_item(submenu, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
     item = dw_menu_append_item(submenu, "~Save", DW_MENU_AUTO, 0, TRUE, FALSE, DW_NOMENU);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(save_clicked), NULL);
@@ -7819,9 +7825,11 @@ int dwmain(int argc, char *argv[])
     dw_init(TRUE, argc, argv);
 
     /* Recent file menu */
+#ifndef __IOS__
     menuRecent = dw_menu_new(0);
     dw_menu_append_item(menuRecent, DW_MENU_SEPARATOR, 0, 0, TRUE, FALSE, DW_NOMENU);
-    
+#endif
+
     loadconfig();
     
     dwib_init();
