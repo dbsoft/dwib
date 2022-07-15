@@ -5312,7 +5312,16 @@ int DWSIGNAL save_as_clicked(HWND button, void *data)
 
         /* Trim off the path using Unix or DOS format */
         DWFullFilename = strdup(filename);
-        tmpptr = strrchr(DWFullFilename, '/');
+#ifdef __ANDROID__
+        /* Handle special Android URI case of : encoded as %3A */
+        tmpptr = strrchr(DWFullFilename, '%');
+        if(tmpptr && *(tmpptr+1) == '3' && *(tmpptr+2) == 'A')
+            tmpptr += 2;
+        else
+            tmpptr = 0;
+        if(!tmpptr)
+#endif
+            tmpptr = strrchr(DWFullFilename, '/');
         if(!tmpptr)
             tmpptr = strrchr(DWFullFilename, '\\');
         /* Copy the short filename */
