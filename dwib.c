@@ -5293,6 +5293,25 @@ void DWSIGNAL properties_window(xmlNodePtr node)
         dw_window_disable(localebutton);    
 }
 
+/* Internal function to return the short filename from the full path or URI */
+char *_dwib_get_filename(char *fullfilename)
+{
+    char *tmpptr;
+
+#ifdef __ANDROID__
+    /* Handle special Android URI case of : encoded as %3A */
+    tmpptr = strrchr(fullfilename, '%');
+    if(tmpptr && *(tmpptr+1) == '3' && *(tmpptr+2) == 'A')
+        tmpptr += 2;
+    else
+#endif
+        tmpptr = strrchr(fullfilename, '/');
+    if(!tmpptr)
+        tmpptr = strrchr(fullfilename, '\\');
+    /* Copy the short filename */
+    return tmpptr ? ++tmpptr : fullfilename;
+}
+
 /* Handle saving the current layout */
 int DWSIGNAL save_as_clicked(HWND button, void *data)
 {
@@ -5300,7 +5319,7 @@ int DWSIGNAL save_as_clicked(HWND button, void *data)
     
     if(filename)
     {
-        char *tmpptr, *oldfilename = DWFullFilename;
+        char *oldfilename = DWFullFilename;
 
         /* Make sure the XML tree is up-to-date */
         save_properties();
@@ -5312,20 +5331,7 @@ int DWSIGNAL save_as_clicked(HWND button, void *data)
 
         /* Trim off the path using Unix or DOS format */
         DWFullFilename = strdup(filename);
-#ifdef __ANDROID__
-        /* Handle special Android URI case of : encoded as %3A */
-        tmpptr = strrchr(DWFullFilename, '%');
-        if(tmpptr && *(tmpptr+1) == '3' && *(tmpptr+2) == 'A')
-            tmpptr += 2;
-        else
-            tmpptr = 0;
-        if(!tmpptr)
-#endif
-            tmpptr = strrchr(DWFullFilename, '/');
-        if(!tmpptr)
-            tmpptr = strrchr(DWFullFilename, '\\');
-        /* Copy the short filename */
-        DWFilename = tmpptr ? ++tmpptr : DWFullFilename;
+        DWFilename = _dwib_get_filename(DWFullFilename);
         add_recent(DWFullFilename);
         /* Free any old memory */
         if(oldfilename)
@@ -5682,7 +5688,6 @@ int DWSIGNAL new_clicked(HWND button, void *data)
     return FALSE;
 }
 
-
 /* Handle loading a new layout */
 int DWSIGNAL open_clicked(HWND button, void *data)
 {
@@ -5698,7 +5703,7 @@ int DWSIGNAL open_clicked(HWND button, void *data)
         if(filename && (fd = dw_file_open(filename, O_RDONLY)) > -1 &&
                 (doc = xmlReadFd(fd, filename, NULL, 0)))
         {
-            char *tmpptr, *oldfilename = DWFullFilename;
+            char *oldfilename = DWFullFilename;
             xmlNodePtr imageNode;
             
             /* Make sure no preview windows are open */
@@ -5732,11 +5737,7 @@ int DWSIGNAL open_clicked(HWND button, void *data)
 
             /* Trim off the path using Unix or DOS format */
             DWFullFilename = strdup(filename);
-            tmpptr = strrchr(DWFullFilename, '/');
-            if(!tmpptr)
-                tmpptr = strrchr(DWFullFilename, '\\');
-            /* Copy the short filename */
-            DWFilename = tmpptr ? ++tmpptr : DWFilename;
+            DWFilename = _dwib_get_filename(DWFullFilename);
             add_recent(DWFullFilename);
             /* Free any old memory */
             if(oldfilename)
