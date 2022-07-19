@@ -1623,7 +1623,7 @@ HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
             }
         }
         item = dw_spinbutton_new(val, 0);
-        dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
         dw_spinbutton_set_limits(item, 2000, 0);
         dw_window_set_data(vbox, "padding", DW_POINTER(item));
         /* Enabled */
@@ -1674,7 +1674,7 @@ HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     /* Foreground Color */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Foreground Color", 0);
+    item = dw_text_new("Fore Color", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = "Default";
@@ -1706,7 +1706,7 @@ HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
     /* Background Color */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("Background Color", 0);
+    item = dw_text_new("Back Color", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     val = "Default";
@@ -2954,7 +2954,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     /* OS/2 Split Column */
     hbox = dw_box_new(DW_HORZ, 0);
     dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
-    item = dw_text_new("OS/2 Split Column", 0);
+    item = dw_text_new("Split Column", 0);
     dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, FALSE, 0);
     dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
     tmp = item = dw_combobox_new("None", 0);
