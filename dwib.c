@@ -1022,7 +1022,7 @@ void save_properties(void)
     }
 }
 
-#define PROPERTIES_HEIGHT 22
+#define PROPERTIES_HEIGHT DW_SIZE_AUTO
 #define PROPERTIES_WIDTH 124
 #define BUTTON_ICON_WIDTH 40
 #define BUTTON_ICON_HEIGHT 30
