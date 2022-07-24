@@ -2173,7 +2173,7 @@ void DWSIGNAL properties_entryfield(xmlNodePtr node)
         }
     }
     item = dw_spinbutton_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, TRUE, 0);
+    dw_box_pack_start(hbox, item, DW_SIZE_AUTO, PROPERTIES_HEIGHT, FALSE, TRUE, 0);
     dw_spinbutton_set_limits(item, 2000, -1);
     dw_window_set_data(vbox, "limit", DW_POINTER(item));
     
@@ -3608,7 +3608,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
         }
     }
     item = dw_spinbutton_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, TRUE, 0);
+    dw_box_pack_start(hbox, item, DW_SIZE_AUTO, PROPERTIES_HEIGHT, FALSE, TRUE, 0);
     dw_spinbutton_set_limits(item, 65536, 0);
     dw_window_set_data(vbox, "position", DW_POINTER(item));
     /* Ranger - Upper */
@@ -3627,7 +3627,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
         }
     }
     item = dw_spinbutton_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, TRUE, 0);
+    dw_box_pack_start(hbox, item, DW_SIZE_AUTO, PROPERTIES_HEIGHT, FALSE, TRUE, 0);
     dw_spinbutton_set_limits(item, 65536, -65536);
     dw_window_set_data(vbox, "upper", DW_POINTER(item));
     /* Ranger - Lower */
@@ -3646,7 +3646,7 @@ void DWSIGNAL properties_ranged(xmlNodePtr node)
         }
     }
     item = dw_spinbutton_new(val, 0);
-    dw_box_pack_start(hbox, item, PROPERTIES_WIDTH/2, PROPERTIES_HEIGHT, FALSE, TRUE, 0);
+    dw_box_pack_start(hbox, item, DW_SIZE_AUTO, PROPERTIES_HEIGHT, FALSE, TRUE, 0);
     dw_spinbutton_set_limits(item, 65536, -65536);
     dw_window_set_data(vbox, "lower", DW_POINTER(item));
     /* Orientation */
