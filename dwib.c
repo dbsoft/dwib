@@ -5700,6 +5700,8 @@ int DWSIGNAL new_clicked(HWND button, void *data)
             free(oldfilename);
         /* Update the window title */
         setTitle();
+        /* Make sure the toolbar is updated */
+        toolbar_select(DWCurrNode);
     }
     return FALSE;
 }
