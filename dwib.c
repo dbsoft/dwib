@@ -2669,7 +2669,7 @@ void add_row(HWND vbox, HWND scrollbox, int count, char *colname, char *coltype,
     snprintf(buf, 50, "addbutton%d", count);
     dw_window_set_data(vbox, buf, DW_POINTER(item));
     dw_window_set_tooltip(item, "Add a new column");
-    dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, TRUE, 0);
+    dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, TRUE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(add_row_clicked), DW_POINTER(scrollbox));
     if(disable)
         dw_window_disable(item);
@@ -2950,7 +2950,7 @@ void DWSIGNAL properties_container(xmlNodePtr node)
     dw_window_set_data(vbox, "evencolor", DW_POINTER(item));    
     item = dw_bitmapbutton_new("Color chooser", ICON_COLOR);
     dw_window_set_style(item, DW_BS_NOBORDER, DW_BS_NOBORDER);
-    dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
+    dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, TRUE, 0);
     dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(color_clicked), DW_POINTER(tmp));
     /* OS/2 Split Column */
     hbox = dw_box_new(DW_HORZ, 0);
