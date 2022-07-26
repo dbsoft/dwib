@@ -76,6 +76,7 @@ int generateNode(char *buf, xmlNodePtr p);
 xmlNodePtr findWindow(xmlNodePtr thisnode);
 void toolbar_bitmap_buttons_create(void);
 void toolbar_text_buttons_create(void);
+void toolbar_select(xmlNodePtr node);
 void _focus_children(HWND combo, xmlNodePtr orig, xmlNodePtr node, xmlDocPtr doc, int focus);
 
 /* INI File support */
