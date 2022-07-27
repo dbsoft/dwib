@@ -1282,15 +1282,15 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         HWND hbox = dw_box_new(DW_HORZ, 0);
         HWND item = dw_text_new("Default Locale: ", 0);
         HWND combo;
-        int width;
+        int width = 0, height = 0;
         xmlNodePtr rootNode = xmlDocGetRootElement(DWDoc);
         xmlNodePtr localesNode = _dwib_find_child(rootNode, "Locales");
         
         dw_window_get_preferred_size(item, &width, NULL);
-        
+
         if(width < 100)
             width = 100;
-        
+
         /* Make sure the locale manager window isn't open */
         if(hwndLocale)
             locale_manager_delete(hwndLocale, NULL);
@@ -1330,20 +1330,21 @@ int DWSIGNAL locale_manager_clicked(HWND button, void *data)
         dw_signal_connect(combo, DW_SIGNAL_LIST_SELECT, DW_SIGNAL_FUNC(locale_manager_select), DW_POINTER(item));
         
         /* Something to expand between the buttons and content */
-        dw_box_pack_start(vbox, 0, 0, 0, TRUE, TRUE, 0);
+        dw_box_pack_start(vbox, 0, 1, 1, TRUE, TRUE, 0);
         
         /* Button box */
         hbox = dw_box_new(DW_HORZ, 0);
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
         item = dw_button_new("+", 0);
-        dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_add_clicked), DW_POINTER(combo));
         item = dw_button_new("-", 0);
-        dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_rem_clicked), DW_POINTER(combo));
-        dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
         item = dw_button_new("Done", 0);
-        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_window_get_preferred_size(item, NULL, &height);
+        dw_box_pack_start(hbox, 0, 1, height, TRUE, TRUE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         
         /* Delete handlers */
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(locale_manager_delete), DW_POINTER(hwndLocale));
@@ -1562,6 +1563,7 @@ HWND properties_item(xmlNodePtr node, HWND scrollbox, int box, int tooltip)
         dw_box_pack_start(scrollbox, hbox, 0, 0, TRUE, FALSE, 0);
         item = dw_text_new("x Height", 0);
         dw_box_pack_start(hbox, item, PROPERTIES_WIDTH, PROPERTIES_HEIGHT, FALSE, TRUE, 0);
+        dw_window_set_style(item, DW_DT_VCENTER, DW_DT_VCENTER);
         val = defvalint;
         if((this = _dwib_find_child(node, "height")))
         {
@@ -7389,14 +7391,14 @@ int DWSIGNAL image_manager_clicked(HWND button, void *data)
         hbox = dw_box_new(DW_HORZ, 0);
         dw_box_pack_start(vbox, hbox, 0, 0, TRUE, FALSE, 0);
         item = dw_button_new("+", 0);
-        dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_add_clicked), DW_POINTER(hwndImages));
         item = dw_button_new("-", 0);
-        dw_box_pack_start(hbox, item, BUTTON_ICON_WIDTH, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_rem_clicked), DW_POINTER(hwndImages));
-        dw_box_pack_start(hbox, 0, 1, 1, TRUE, FALSE, 0);
+        dw_box_pack_start(hbox, 0, 1, 1, TRUE, TRUE, 0);
         item = dw_button_new("Done", 0);
-        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, BUTTON_ICON_HEIGHT, FALSE, FALSE, 0);
+        dw_box_pack_start(hbox, item, DW_SIZE_AUTO, DW_SIZE_AUTO, FALSE, FALSE, 0);
         
         /* Delete handlers */
         dw_signal_connect(item, DW_SIGNAL_CLICKED, DW_SIGNAL_FUNC(image_manager_delete), DW_POINTER(hwndImages));
