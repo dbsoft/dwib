@@ -22,4 +22,15 @@ In a later iteration I intend to have more code generation functionality to aid 
 
 Third party software:
 
-I have decided to use libxml2 to generate and load the XML. The reason for this choice is it is stable software written in C under a liberal MIT license. Additionally it is included on MacOS X, almost any Linux and any Unix with Gnome by default. It will likely only need to be included or statically linked on Windows and OS/2.
+I have decided to use libxml2 to generate and load the XML. The reason for this choice is it is stable software written in C under a liberal MIT license. Additionally it is included on MacOS, almost any Linux and any Unix with Gnome by default. It will likely only need to be included or statically linked on Windows and OS/2.
+
+Notes for building libxml2 on Windows, these are the commands I use from the win32 directory: 
+cscript configure.js compiler=msvc prefix=\Work\GitHub\libxml2 include=\Work\GitHub\libxml2\include lib=\Work\GitHub\libxml2\lib iconv=no cruntime=/MT dynruntime=no
+nmake /f makefile.msvc /a
+nmake /f makefile.msvc install
+cd ..\lib
+mkdir %VSCMD_ARG_TGT_ARCH%
+copy * %VSCMD_ARG_TGT_ARCH%
+
+set XML2INCDIR=\Work\GitHub\libxml2\include
+set XML2LIBDIR=\Work\GitHub\libxml2\lib
