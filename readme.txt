@@ -25,7 +25,7 @@ Third party software:
 I have decided to use libxml2 to generate and load the XML. The reason for this choice is it is stable software written in C under a liberal MIT license. Additionally it is included on MacOS, almost any Linux and any Unix with Gnome by default. It will likely only need to be included or statically linked on Windows and OS/2.
 
 Notes for building libxml2 on Windows, these are the commands I use from the win32 directory: 
-cscript configure.js compiler=msvc prefix=\Work\GitHub\libxml2 include=\Work\GitHub\libxml2\include lib=\Work\GitHub\libxml2\lib iconv=no cruntime=/MT dynruntime=no
+cscript configure.js compiler=msvc prefix=\Work\GitHub\libxml2 include=\Work\GitHub\libxml2\include lib=\Work\GitHub\libxml2\lib iconv=no cruntime=/MT dynruntime=no http=no ftp=no
 nmake /f makefile.msvc /a
 nmake /f makefile.msvc install
 cd ..\lib

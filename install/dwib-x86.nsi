@@ -69,7 +69,7 @@ Section "Dummy Section" SecDummy
   File dwib.h
   ; Developer Libraries
   File /r x86
-  File /r x64
+  File /nonfatal /r x64
   ; Help
   File readme.txt
 
