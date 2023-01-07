@@ -105,7 +105,7 @@ installer:
 	-rd /s /q install\package
 	md install\package
 	copy dwib.exe install\package
-	copy $(DWINCDIR)\dw.dll install\package
+	copy $(DWLIBDIR)\$(TARGET_CPU)\dw.dll install\package
 	copy readme.txt install\package
 	copy install\scripts\license.txt install\package
 	copy dwib.h install\package
