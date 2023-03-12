@@ -94,7 +94,7 @@ example: example.c dwib.h
 
 installer: $(TARGET)
 	-chmod +x mac/installer.sh
-	-mac/installer.sh "$(DISPLAYNAME)" "$(TARGET)"
+	-mac/installer.sh "$(DISPLAYNAME)" "$(TARGET)" "$(CODESIGNIDENTITY)"
 
 clean:
 	$(RM) $(OBJECTS) resources.o gresources.c gresources.o $(TARGET) example example.o *.$(SOSUFFIX) *.$(SOSUFFIX).* *~

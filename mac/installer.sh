@@ -2,6 +2,7 @@
 PLATFORM=`uname -s`
 APPNAME=$1
 BINNAME=$2
+IDENTITY=$3
 
 if [ $PLATFORM = "Darwin" ]
 then
@@ -12,7 +13,13 @@ then
     cp -f /usr/local/lib/libdwindows.dylib "install/package/$APPNAME.app/Contents/MacOS"
     cp -f $BINNAME "install/package/$APPNAME.app/Contents/MacOS"
     install_name_tool -change `otool -L $BINNAME | grep libdwindows | cut -d ' ' -f 1 | tr -d '\t'` @executable_path/libdwindows.dylib "install/package/$APPNAME.app/Contents/MacOS/$BINNAME"
-    codesign -s "-" "install/package/$APPNAME.app/Contents/MacOS/$BINNAME"
+    if [ -z "$IDENTITY" ]
+    then
+        IDENTITY="-"
+    else
+        echo "Signing code with identity: $IDENTITY"
+    fi
+    codesign --deep -s "$IDENTITY" "install/package/$APPNAME.app"
     #/Developer/Tools/SetFile -a V "install/package/$BINNAME.png"
     ln -s /Applications install/package/.
     rm -f "install/$APPNAME.dmg"
